@@ -1,0 +1,3 @@
+#!/bin/bash
+touch `dirname "$0"`/custom_chrome_called
+exec chrome "$@"

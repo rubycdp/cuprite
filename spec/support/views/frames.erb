@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<html>
+<body>
+<iframe name="frame"></iframe>
+<iframe></iframe>
+<iframe id="id_frame"></iframe>
+</body>
+<script type="text/javascript">
+document.getElementsByName("frame")[0].src = "http://localhost:" + location.port + "/cuprite/slow";
+document.querySelector("iframe:not([name]):not([id])").src = "http://localhost:" + location.port + "/cuprite/headers";
+document.querySelector("#id_frame").src = "http://localhost:" + location.port + "/cuprite/get_cookie";
+</script>
+</html>
