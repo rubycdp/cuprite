@@ -88,7 +88,7 @@ describe Capybara::Session do
 
         context "and is then brought in" do
           before do
-            @session.execute_script "$("#off-the-left").animate({left: "10"});"
+            @session.execute_script %Q($("#off-the-left").animate({left: "10"});)
             Cuprite::SpecHelper.set_capybara_wait_time(1)
           end
 
