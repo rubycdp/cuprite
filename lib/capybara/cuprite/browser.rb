@@ -1,3 +1,4 @@
+require "base64"
 require "forwardable"
 require "cuprite/browser/process"
 require "cuprite/browser/client"
@@ -14,8 +15,8 @@ module Capybara::Cuprite
 
     def initialize(options = nil)
       options ||= {}
-      @process = Process.start(options.fetch(:browser, {}))
-      @client  = Client.new(@process.host, @process.port)
+      @process = Process.start(options)
+      @client  = Client.new(@process.host, @process.port, options[:logger])
     end
 
     def visit(url)
@@ -23,13 +24,15 @@ module Capybara::Cuprite
       command("DOM.enable")
       command("CSS.enable")
       command("Runtime.enable")
+
       command("Page.navigate", url: url) do |response|
         wait(event: "Page.frameStoppedLoading", params: { frameId: response["frameId"] })
       end
     end
 
     def current_url
-      command "current_url"
+      response = command "Runtime.evaluate", expression: "location.href"
+      response["result"]["value"]
     end
 
     def frame_url
@@ -63,16 +66,34 @@ module Capybara::Cuprite
     end
 
     def find(_, selector)
-      response = command("DOM.getDocument", depth: 0)
-      response = command("DOM.querySelectorAll", nodeId: response["root"]["nodeId"], selector: selector)
-      result = response["nodeIds"].map do |id|
-        node = command("DOM.describeNode", nodeId: id)["node"]
-        node["nodeId"] = id
-        node["selector"] = selector
-        [nil, node] # FIXME: page_id
+      results = []
+      command("DOM.getDocument", depth: 0) # Search doesn't work w/o it
+      response = command "DOM.performSearch", query: selector
+      search_id, count = response["searchId"], response["resultCount"]
+
+      if count == 0
+        command "DOM.discardSearchResults", searchId: search_id
+        return results
       end
 
-      Array(result)
+      response = command "DOM.getSearchResults", searchId: search_id, fromIndex: 0, toIndex: count
+      results = response["nodeIds"].map do |node_id|
+        node = command("DOM.describeNode", nodeId: node_id)["node"]
+        next if node["nodeType"] != 1 # "nodeType":3, "nodeName":"#text" for eg
+        node["nodeId"] = node_id
+        node["selector"] = selector
+        [nil, node] # FIXME: page_id
+      end.compact
+
+      # response = command("DOM.querySelectorAll", nodeId: response["root"]["nodeId"], selector: selector)
+      # results = response["nodeIds"].map do |id|
+      #   node = command("DOM.describeNode", nodeId: id)["node"]
+      #   node["nodeId"] = id
+      #   node["selector"] = selector
+      #   [nil, node] # FIXME: page_id
+      # end
+
+      Array(results)
     end
 
     def find_within(page_id, id, method, selector)
@@ -158,8 +179,9 @@ module Capybara::Cuprite
       command "evaluate_async", script, wait_time, *args
     end
 
-    def execute(script, *args)
-      command "execute", script, *args
+    # FIXME: *args
+    def execute(expression, *args)
+      command "Runtime.evaluate", expression: expression
     end
 
     def within_frame(handle)
@@ -240,8 +262,9 @@ module Capybara::Cuprite
 
 
       # command "click", page_id, node, keys, offset
-      command "Input.dispatchMouseEvent", type: "mousePressed", button: "left", x: x, y: y
-      command "Input.dispatchMouseEvent", type: "mouseReleased", button: "left", x: x, y: y
+      command "Input.dispatchMouseEvent", type: "mouseMoved", x: x, y: y # hover then click?
+      command "Input.dispatchMouseEvent", type: "mousePressed", button: "left", x: x, y: y, clickCount: 1
+      command "Input.dispatchMouseEvent", type: "mouseReleased", button: "left", x: x, y: y, clickCount: 1
     end
 
     def right_click(page_id, id, keys = [], offset = {})
@@ -252,8 +275,24 @@ module Capybara::Cuprite
       command "double_click", page_id, id, keys, offset
     end
 
-    def hover(page_id, id)
-      command "hover", page_id, id
+    def hover(page_id, node)
+      result = command "DOM.getContentQuads", nodeId: node["nodeId"]
+      raise "Node is either not visible or not an HTMLElement" if result["quads"].size == 0
+
+      # FIXME: Case when a few quad returned
+      quads = result["quads"].map do |quad|
+        [{x: quad[0], y: quad[1]},
+         {x: quad[2], y: quad[3]},
+         {x: quad[4], y: quad[5]},
+         {x: quad[6], y: quad[7]}]
+      end
+
+      x, y = quads[0].inject([0, 0]) { |b, p| [b[0] + p[:x], b[1] + p[:y]] }
+      x /= 4
+      y /= 4
+
+      command "Input.dispatchMouseEvent", type: "mouseMoved", x: x, y: y
+      # command "hover", page_id, id
     end
 
     def drag(page_id, id, other_id)
@@ -281,16 +320,17 @@ module Capybara::Cuprite
       command "scroll_to", left, top
     end
 
-    def render(path, options = {})
-      check_render_options!(options)
-      options[:full] = !!options[:full]
-      command "render", path.to_s, options
+    def render(path, _options = {})
+      # check_render_options!(options)
+      # options[:full] = !!options[:full]
+      data = Base64.decode64(render_base64)
+      File.open(path.to_s, "w") { |f| f.write(data) }
     end
 
-    def render_base64(format, options = {})
-      check_render_options!(options)
-      options[:full] = !!options[:full]
-      command "render_base64", format.to_s, options
+    def render_base64(format = "png", _options = {})
+      # check_render_options!(options)
+      # options[:full] = !!options[:full]
+      command("Page.captureScreenshot", format: format)["data"]
     end
 
     def set_zoom_factor(zoom_factor)
@@ -422,6 +462,14 @@ module Capybara::Cuprite
 
     def modal_message
       command "modal_message"
+    end
+
+    private
+
+    def check_render_options!(options)
+      return if !options[:full] || !options.key?(:selector)
+      warn "Ignoring :selector in #render since :full => true was given at #{caller(1..1).first}"
+      options.delete(:selector)
     end
   end
 end

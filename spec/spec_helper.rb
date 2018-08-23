@@ -10,15 +10,28 @@ require "capybara/spec/spec_helper"
 require "capybara/cuprite"
 
 require "support/test_app"
-require "support/spec_logger"
 
 Capybara.register_driver(:cuprite) do |app|
   options = { logger: TestSessions.logger }
-  options[:path] = ENV["BROWSER"] if ENV["BROWSER"]
+  options.merge!(path: ENV["BROWSER_PATH"]) if ENV["BROWSER_PATH"]
   Capybara::Cuprite::Driver.new(app, options)
 end
 
 module TestSessions
+  class SpecLogger
+    attr_reader :messages
+
+    def reset
+      @messages = []
+    end
+
+    def puts(message)
+      @messages << message
+    end
+
+    alias_method :write, :puts
+  end
+
   def self.logger
     @logger ||= SpecLogger.new
   end

@@ -49,11 +49,9 @@ module Capybara::Cuprite
       attr_reader :host, :port
 
       def initialize(options)
-        @logger = options[:logger]
-        @path   = Cliver.detect(options[:path] || BROWSER_PATH)
-
-        options  = options.reject { |k, _| %i(logger path).include?(k) }
-        @options = DEFAULT_OPTIONS.merge(options)
+        @logger  = options[:logger]
+        @path    = Cliver.detect(options[:path] || BROWSER_PATH)
+        @options = DEFAULT_OPTIONS.merge(options.fetch(:browser, {}))
 
         @host = @options["remote-debugging-address"]
         @port = @options["remote-debugging-port"]

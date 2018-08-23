@@ -7,8 +7,9 @@ module Capybara::Cuprite
     class WebSocket
       attr_reader :url, :messages
 
-      def initialize(url)
+      def initialize(url, logger)
         @url    = url
+        @logger = logger
         uri     = URI.parse(@url)
         @sock   = TCPSocket.new(uri.host, uri.port)
         @driver = ::WebSocket::Driver.client(self)
@@ -34,13 +35,13 @@ module Capybara::Cuprite
         next_command_id.tap do |id|
           data = data.merge(id: id)
           json = data.to_json
-          log ">>> #{json}"
+          @logger.write ">>> #{json}"
           @driver.text(json)
         end
       end
 
       def on_message(event)
-        log "    <<< #{event.data}\n\n"
+        @logger.write "    <<< #{event.data}\n\n"
         data = JSON.parse(event.data)
         raise data["error"]["message"] if data["error"]
         @messages << data
@@ -51,7 +52,7 @@ module Capybara::Cuprite
       end
 
       def on_close(event)
-        log("<<< #{event.code}, #{event.reason}\n\n")
+        @logger.write "<<< #{event.code}, #{event.reason}\n\n"
         @dead = true
         @thread.kill
       end
@@ -70,10 +71,6 @@ module Capybara::Cuprite
 
       def next_command_id
         @command_id += 1
-      end
-
-      def log(message)
-        puts(message)
       end
     end
   end

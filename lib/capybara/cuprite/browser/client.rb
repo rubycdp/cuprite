@@ -9,9 +9,9 @@ require "cuprite/browser/web_socket"
 module Capybara::Cuprite
   class Browser
     class Client
-      def initialize(host, port)
+      def initialize(host, port, logger)
         @host, @port = host, port
-        @ws = WebSocket.new(ws_url)
+        @ws = WebSocket.new(ws_url, logger)
       end
 
       def command(method, params = {})
