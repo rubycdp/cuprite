@@ -40,7 +40,7 @@ module Capybara::Cuprite
       end
 
       def on_message(event)
-        log "<<< #{event.data}\n\n"
+        log "    <<< #{event.data}\n\n"
         data = JSON.parse(event.data)
         raise data["error"]["message"] if data["error"]
         @messages << data

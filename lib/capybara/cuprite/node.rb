@@ -6,9 +6,7 @@ module Capybara::Cuprite
 
     def initialize(driver, page_id, id)
       super(driver, self)
-
-      @page_id = page_id
-      @id      = id
+      @page_id, @id = page_id, id
     end
 
     def browser

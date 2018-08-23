@@ -22,9 +22,7 @@ module Capybara::Cuprite
       command("Page.enable")
       command("DOM.enable")
       command("CSS.enable")
-      # command("Page.setLifecycleEventsEnabled", enabled: true)
-      # command("Runtime.enable")
-
+      command("Runtime.enable")
       command("Page.navigate", url: url) do |response|
         wait(event: "Page.frameStoppedLoading", params: { frameId: response["frameId"] })
       end
@@ -86,11 +84,21 @@ module Capybara::Cuprite
     end
 
     def visible_text(page_id, node)
-      command "Runtime.evaluate", expression: <<~JS
-        $("#{node["selector"]}")
-      JS
+      begin
+        resolved = command "DOM.resolveNode", nodeId: node["nodeId"]
+        object_id = resolved["object"]["objectId"]
+      rescue RuntimeError => e
+        if e.message == "No node with given id found"
+          raise ObsoleteNode.new(self, e.message)
+        else
+          raise
+        end
+      end
 
-      # command "visible_text", page_id, id
+      response = command "Runtime.callFunctionOn", objectId: object_id, functionDeclaration: <<~JS
+        function () { return this.innerText; }
+      JS
+      response["result"]["value"]
     end
 
     def delete_text(page_id, id)
@@ -214,8 +222,26 @@ module Capybara::Cuprite
       switch_to_window(original)
     end
 
-    def click(page_id, id, keys = [], offset = {})
-      command "click", page_id, id, keys, offset
+    def click(page_id, node, keys = [], offset = {})
+      result = command "DOM.getContentQuads", nodeId: node["nodeId"]
+      raise "Node is either not visible or not an HTMLElement" if result["quads"].size == 0
+
+      # FIXME: Case when a few quad returned
+      quads = result["quads"].map do |quad|
+        [{x: quad[0], y: quad[1]},
+         {x: quad[2], y: quad[3]},
+         {x: quad[4], y: quad[5]},
+         {x: quad[6], y: quad[7]}]
+      end
+
+      x, y = quads[0].inject([0, 0]) { |b, p| [b[0] + p[:x], b[1] + p[:y]] }
+      x /= 4
+      y /= 4
+
+
+      # command "click", page_id, node, keys, offset
+      command "Input.dispatchMouseEvent", type: "mousePressed", button: "left", x: x, y: y
+      command "Input.dispatchMouseEvent", type: "mouseReleased", button: "left", x: x, y: y
     end
 
     def right_click(page_id, id, keys = [], offset = {})
