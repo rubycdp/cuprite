@@ -43,12 +43,15 @@ module Capybara::Cuprite
       def on_message(event)
         @logger.write "    <<< #{event.data}\n\n"
         data = JSON.parse(event.data)
-        raise data["error"]["message"] if data["error"]
         @messages << data
       end
 
+      # Not sure if CDP uses it at all as all errors go to on_message callback
+      # for example: {"error":{"code":-32000,"message":"No node with given id found"},"id":22}
+      # FIXME: Raise and close connection and then kill the browser as this
+      # would be the error not in the main thread?
       def on_error(event)
-        raise e.message
+        raise event.inspect
       end
 
       def on_close(event)

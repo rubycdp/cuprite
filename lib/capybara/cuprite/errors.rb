@@ -27,19 +27,12 @@ module Capybara
     end
 
     class BrowserError < ClientError
-      def name
-        response["name"]
-      end
-
-      def error_parameters
-        response["args"].join("\n")
+      def code
+        response["code"]
       end
 
       def message
-        "There was an error inside the browser of Cuprite. " \
-        "If this is the error returned, and not the cause of a more detailed error response, " \
-        "this is probably a bug, so please report it. " \
-        "\n\n#{name}: #{error_parameters}"
+        response["message"]
       end
     end
 

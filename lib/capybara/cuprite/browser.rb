@@ -108,12 +108,12 @@ module Capybara::Cuprite
       begin
         resolved = command "DOM.resolveNode", nodeId: node["nodeId"]
         object_id = resolved["object"]["objectId"]
-      rescue RuntimeError => e
+      rescue BrowserError => e
         if e.message == "No node with given id found"
-          raise ObsoleteNode.new(self, e.message)
-        else
-          raise
+          raise ObsoleteNode.new(self, e.response)
         end
+
+        raise
       end
 
       response = command "Runtime.callFunctionOn", objectId: object_id, functionDeclaration: <<~JS

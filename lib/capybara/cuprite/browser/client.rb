@@ -16,7 +16,8 @@ module Capybara::Cuprite
 
       def command(method, params = {})
         command_id = @ws.send(method: method, params: params)
-        message = wait(command: command_id)["result"]
+        error, message = wait(command: command_id).values_at("error", "result")
+        raise BrowserError.new(error) if error
         yield message if block_given?
         message
       rescue DeadClient
