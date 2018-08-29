@@ -1,10 +1,17 @@
+# frozen_string_literal: true
+
 require "json"
 require "socket"
+require "forwardable"
 require "websocket/driver"
 
 module Capybara::Cuprite
   class Browser
     class WebSocket
+      extend Forwardable
+
+      delegate close: :@driver
+
       attr_reader :url, :messages
 
       def initialize(url, logger)
@@ -16,7 +23,6 @@ module Capybara::Cuprite
 
         @messages   = []
         @dead       = false
-        @command_id = 0
 
         @driver.on(:message, &method(:on_message))
         @driver.on(:error, &method(:on_error))
@@ -31,13 +37,10 @@ module Capybara::Cuprite
         @driver.start
       end
 
-      def send(data)
-        next_command_id.tap do |id|
-          data = data.merge(id: id)
-          json = data.to_json
-          @logger.write ">>> #{json}"
-          @driver.text(json)
-        end
+      def send_message(data)
+        json = data.to_json
+        @logger.write ">>> #{json}"
+        @driver.text(json)
       end
 
       def on_message(event)
@@ -60,20 +63,8 @@ module Capybara::Cuprite
         @thread.kill
       end
 
-      def message_by(id: nil, method: nil)
-        @messages.find do |message|
-          id ? message["id"] == id : message["method"] == method
-        end
-      end
-
       def write(data)
         @sock.write(data)
-      end
-
-      private
-
-      def next_command_id
-        @command_id += 1
       end
     end
   end

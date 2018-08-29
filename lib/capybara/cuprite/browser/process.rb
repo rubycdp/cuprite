@@ -49,7 +49,6 @@ module Capybara::Cuprite
       attr_reader :host, :port
 
       def initialize(options)
-        @logger  = options[:logger]
         @path    = Cliver.detect(options[:path] || BROWSER_PATH)
         @options = DEFAULT_OPTIONS.merge(options.fetch(:browser, {}))
 
@@ -58,13 +57,12 @@ module Capybara::Cuprite
       end
 
       def start
+        @output = []
         @read_io, @write_io = IO.pipe
 
-        if @logger
-          @out_thread = Thread.new do
-            while !@read_io.eof? && (data = @read_io.readpartial(1024))
-              @logger.write(data)
-            end
+        @out_thread = Thread.new do
+          while !@read_io.eof? && (data = @read_io.readpartial(512))
+            @output << data
           end
         end
 
@@ -84,14 +82,23 @@ module Capybara::Cuprite
       def stop
         return unless @pid
         kill
-        @out_thread.kill if @logger
-        close_io
         ObjectSpace.undefine_finalizer(self)
       end
 
       def restart
         stop
         start
+      end
+
+      def ws_url(try = 0)
+        @ws_url ||= begin
+          regexp = /DevTools listening on (ws:\/\/.*)/
+          sleep 0.1 until ws_url = @output.find { |s| s.match?(regexp) }
+          ws_url.match(regexp)[1].tap do
+            @out_thread.kill
+            close_io
+          end
+        end
       end
 
       private

@@ -1,7 +1,10 @@
+# frozen_string_literal: true
+
 require "base64"
 require "forwardable"
 require "cuprite/browser/process"
 require "cuprite/browser/client"
+require "cuprite/browser/page"
 
 module Capybara::Cuprite
   class Browser
@@ -11,27 +14,31 @@ module Capybara::Cuprite
       new(*args)
     end
 
+    attr_reader :process
     delegate [:command, :wait] => :@client
 
     def initialize(options = nil)
       options ||= {}
+      @logger = options[:logger]
       @process = Process.start(options)
-      @client  = Client.new(@process.host, @process.port, options[:logger])
+      @client = Client.new(@process.ws_url, @logger)
     end
 
     def visit(url)
-      command("Page.enable")
-      command("DOM.enable")
-      command("CSS.enable")
-      command("Runtime.enable")
+      @page = Page.new(self, @logger)
+      @page.command("Page.enable")
+      @page.command("DOM.enable")
+      @page.command("CSS.enable")
+      @page.command("Runtime.enable")
 
-      command("Page.navigate", url: url) do |response|
-        wait(event: "Page.frameStoppedLoading", params: { frameId: response["frameId"] })
+      response = @page.command("Page.navigate", url: url)
+      @page.wait(event: "Page.frameStoppedLoading") do |params|
+        params["frameId"] == response["frameId"]
       end
     end
 
     def current_url
-      response = command "Runtime.evaluate", expression: "location.href"
+      response = @page.command("Runtime.evaluate", expression: "location.href")
       response["result"]["value"]
     end
 
@@ -44,8 +51,8 @@ module Capybara::Cuprite
     end
 
     def body
-      response = command "DOM.getDocument", depth: 0
-      response = command "DOM.getOuterHTML", nodeId: response["root"]["nodeId"]
+      response = @page.command("DOM.getDocument", depth: 0)
+      response = @page.command("DOM.getOuterHTML", nodeId: response["root"]["nodeId"])
       response["outerHTML"]
     end
 
@@ -67,27 +74,27 @@ module Capybara::Cuprite
 
     def find(_, selector)
       results = []
-      command("DOM.getDocument", depth: 0) # Search doesn't work w/o it
-      response = command "DOM.performSearch", query: selector
+      @page.command("DOM.getDocument", depth: 0) # Search doesn't work w/o it
+      response = @page.command("DOM.performSearch", query: selector)
       search_id, count = response["searchId"], response["resultCount"]
 
       if count == 0
-        command "DOM.discardSearchResults", searchId: search_id
+        @page.command("DOM.discardSearchResults", searchId: search_id)
         return results
       end
 
-      response = command "DOM.getSearchResults", searchId: search_id, fromIndex: 0, toIndex: count
+      response = @page.command("DOM.getSearchResults", searchId: search_id, fromIndex: 0, toIndex: count)
       results = response["nodeIds"].map do |node_id|
-        node = command("DOM.describeNode", nodeId: node_id)["node"]
+        node = @page.command("DOM.describeNode", nodeId: node_id)["node"]
         next if node["nodeType"] != 1 # "nodeType":3, "nodeName":"#text" for eg
         node["nodeId"] = node_id
         node["selector"] = selector
         [nil, node] # FIXME: page_id
       end.compact
 
-      # response = command("DOM.querySelectorAll", nodeId: response["root"]["nodeId"], selector: selector)
+      # response = @page.command("DOM.querySelectorAll", nodeId: response["root"]["nodeId"], selector: selector)
       # results = response["nodeIds"].map do |id|
-      #   node = command("DOM.describeNode", nodeId: id)["node"]
+      #   node = @page.command("DOM.describeNode", nodeId: id)["node"]
       #   node["nodeId"] = id
       #   node["selector"] = selector
       #   [nil, node] # FIXME: page_id
@@ -106,7 +113,7 @@ module Capybara::Cuprite
 
     def visible_text(page_id, node)
       begin
-        resolved = command "DOM.resolveNode", nodeId: node["nodeId"]
+        resolved = @page.command("DOM.resolveNode", nodeId: node["nodeId"])
         object_id = resolved["object"]["objectId"]
       rescue BrowserError => e
         if e.message == "No node with given id found"
@@ -116,9 +123,10 @@ module Capybara::Cuprite
         raise
       end
 
-      response = command "Runtime.callFunctionOn", objectId: object_id, functionDeclaration: <<~JS
-        function () { return this.innerText; }
-      JS
+      response = @page.command("Runtime.callFunctionOn", objectId: object_id, functionDeclaration: %Q(
+        function () { return this.innerText }
+      ))
+
       response["result"]["value"]
     end
 
@@ -155,7 +163,7 @@ module Capybara::Cuprite
     end
 
     def visible?(page_id, node)
-      response = command "CSS.getComputedStyleForNode", nodeId: node["nodeId"]
+      response = @page.command("CSS.getComputedStyleForNode", nodeId: node["nodeId"])
       style = response["computedStyle"]
       display = style.find { |s| s["name"] == "display" }["value"]
       visibility = style.find { |s| s["name"] == "visibility" }["value"]
@@ -181,7 +189,7 @@ module Capybara::Cuprite
 
     # FIXME: *args
     def execute(expression, *args)
-      command "Runtime.evaluate", expression: expression
+      @page.command("Runtime.evaluate", expression: expression)
     end
 
     def within_frame(handle)
@@ -245,7 +253,7 @@ module Capybara::Cuprite
     end
 
     def click(page_id, node, keys = [], offset = {})
-      result = command "DOM.getContentQuads", nodeId: node["nodeId"]
+      result = @page.command("DOM.getContentQuads", nodeId: node["nodeId"])
       raise "Node is either not visible or not an HTMLElement" if result["quads"].size == 0
 
       # FIXME: Case when a few quad returned
@@ -262,9 +270,9 @@ module Capybara::Cuprite
 
 
       # command "click", page_id, node, keys, offset
-      command "Input.dispatchMouseEvent", type: "mouseMoved", x: x, y: y # hover then click?
-      command "Input.dispatchMouseEvent", type: "mousePressed", button: "left", x: x, y: y, clickCount: 1
-      command "Input.dispatchMouseEvent", type: "mouseReleased", button: "left", x: x, y: y, clickCount: 1
+      @page.command("Input.dispatchMouseEvent", type: "mouseMoved", x: x, y: y) # hover then click?
+      @page.command("Input.dispatchMouseEvent", type: "mousePressed", button: "left", x: x, y: y, clickCount: 1)
+      @page.command("Input.dispatchMouseEvent", type: "mouseReleased", button: "left", x: x, y: y, clickCount: 1)
     end
 
     def right_click(page_id, id, keys = [], offset = {})
@@ -276,7 +284,7 @@ module Capybara::Cuprite
     end
 
     def hover(page_id, node)
-      result = command "DOM.getContentQuads", nodeId: node["nodeId"]
+      result = @page.command("DOM.getContentQuads", nodeId: node["nodeId"])
       raise "Node is either not visible or not an HTMLElement" if result["quads"].size == 0
 
       # FIXME: Case when a few quad returned
@@ -291,7 +299,7 @@ module Capybara::Cuprite
       x /= 4
       y /= 4
 
-      command "Input.dispatchMouseEvent", type: "mouseMoved", x: x, y: y
+      @page.command("Input.dispatchMouseEvent", type: "mouseMoved", x: x, y: y)
       # command "hover", page_id, id
     end
 
@@ -312,8 +320,8 @@ module Capybara::Cuprite
     end
 
     def reset
-      # command "reset"
-      restart
+      @page.close
+      @page = nil
     end
 
     def scroll_to(left, top)
@@ -330,7 +338,7 @@ module Capybara::Cuprite
     def render_base64(format = "png", _options = {})
       # check_render_options!(options)
       # options[:full] = !!options[:full]
-      command("Page.captureScreenshot", format: format)["data"]
+      @page.command("Page.captureScreenshot", format: format)["data"]
     end
 
     def set_zoom_factor(zoom_factor)
