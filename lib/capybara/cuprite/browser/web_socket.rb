@@ -31,7 +31,13 @@ module Capybara::Cuprite
         Thread.abort_on_exception = true
 
         @thread = Thread.new do
-          @driver.parse(@sock.readpartial(512)) until @dead
+          begin
+            until @dead
+              data = @sock.readpartial(512)
+              @driver.parse(data)
+            end
+          rescue EOFError
+          end
         end
 
         @driver.start

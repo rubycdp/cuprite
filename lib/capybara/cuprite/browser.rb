@@ -168,7 +168,7 @@ module Capybara::Cuprite
       display = style.find { |s| s["name"] == "display" }["value"]
       visibility = style.find { |s| s["name"] == "visibility" }["value"]
       opacity = style.find { |s| s["name"] == "opacity" }["value"]
-      display == "none" || visibility == "hidden" || opacity == 0 ? false : true
+      display != "none" && visibility != "hidden" && opacity != "0"
     end
 
     def disabled?(page_id, id)
@@ -179,12 +179,16 @@ module Capybara::Cuprite
       command "click_coordinates", x, y
     end
 
-    def evaluate(script, *args)
-      command "evaluate", script, *args
+    # FIXME: *args
+    def evaluate(expression, *args)
+      # command "evaluate", script, *args
+      @page.command("Runtime.evaluate", expression: expression)
     end
 
-    def evaluate_async(script, wait_time, *args)
-      command "evaluate_async", script, wait_time, *args
+    # FIXME: *args
+    def evaluate_async(expression, wait_time, *args)
+      # command "evaluate_async", script, wait_time, *args
+      @page.command("Runtime.evaluate", expression: expression)
     end
 
     # FIXME: *args
@@ -268,6 +272,13 @@ module Capybara::Cuprite
       x /= 4
       y /= 4
 
+      resolved = @page.command("DOM.resolveNode", nodeId: node["nodeId"])
+      object_id = resolved["object"]["objectId"]
+      response = @page.command("Runtime.callFunctionOn", objectId: object_id, functionDeclaration: %Q(
+        function () { return this.scrollIntoView({block: 'center', inline: 'center', behavior: 'instant'}) }
+      ))
+
+      raise MouseEventFailed.new(node, nil) if x < 0 || y < 0
 
       # command "click", page_id, node, keys, offset
       @page.command("Input.dispatchMouseEvent", type: "mouseMoved", x: x, y: y) # hover then click?
@@ -320,6 +331,7 @@ module Capybara::Cuprite
     end
 
     def reset
+      return unless @page # FIXME: When @page is nil?
       @page.close
       @page = nil
     end

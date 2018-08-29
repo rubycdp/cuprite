@@ -10,6 +10,7 @@ require "spec_helper"
 describe Capybara::Session do
   context "with cuprite driver" do
     before { @session = TestSessions::Cuprite }
+    after { @session.reset! } # FIXME: Remove when uncomment capybara
 
     describe Capybara::Cuprite::Node do
       it "raises an error if the element has been removed from the DOM" do
