@@ -17,6 +17,8 @@ module Capybara::Cuprite
         "headless" => true,
         "disable-gpu" => true,
         "window-size" => "1024,768",
+        "hide-scrollbars" => true,
+        "mute-audio" => true,
         "remote-debugging-port" => BROWSER_PORT,
         "remote-debugging-address" => BROWSER_HOST
       }.freeze

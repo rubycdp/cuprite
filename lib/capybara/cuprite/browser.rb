@@ -26,10 +26,7 @@ module Capybara::Cuprite
     end
 
     def visit(url)
-      response = @page.command("Page.navigate", url: url)
-      @page.wait(event: "Page.frameStoppedLoading") do |params|
-        params["frameId"] == response["frameId"]
-      end
+      @page.visit(url)
     end
 
     def current_url
@@ -69,7 +66,6 @@ module Capybara::Cuprite
 
     def find(_, selector)
       results = []
-      @page.command("DOM.getDocument", depth: 0) # Search doesn't work w/o it
       response = @page.command("DOM.performSearch", query: selector)
       search_id, count = response["searchId"], response["resultCount"]
 
@@ -81,19 +77,11 @@ module Capybara::Cuprite
       response = @page.command("DOM.getSearchResults", searchId: search_id, fromIndex: 0, toIndex: count)
       results = response["nodeIds"].map do |node_id|
         node = @page.command("DOM.describeNode", nodeId: node_id)["node"]
-        next if node["nodeType"] != 1 # "nodeType":3, "nodeName":"#text" for eg
+        next if node["nodeType"] != 1 # nodeType: 3, nodeName: "#text" for example
         node["nodeId"] = node_id
         node["selector"] = selector
         [nil, node] # FIXME: page_id
       end.compact
-
-      # response = @page.command("DOM.querySelectorAll", nodeId: response["root"]["nodeId"], selector: selector)
-      # results = response["nodeIds"].map do |id|
-      #   node = @page.command("DOM.describeNode", nodeId: id)["node"]
-      #   node["nodeId"] = id
-      #   node["selector"] = selector
-      #   [nil, node] # FIXME: page_id
-      # end
 
       Array(results)
     end
@@ -268,7 +256,7 @@ module Capybara::Cuprite
           this.scrollIntoViewIfNeeded();
 
           if (!isInViewport(this)) {
-            this.scrollIntoView();
+            this.scrollIntoView({block: 'center', inline: 'center', behavior: 'instant'});
             return isInViewport(this);
           }
 
@@ -346,10 +334,6 @@ module Capybara::Cuprite
     def reset
       @page.close if @page
       @page = Page.new(self, @logger)
-      @page.command("Page.enable")
-      @page.command("DOM.enable")
-      @page.command("CSS.enable")
-      @page.command("Runtime.enable")
     end
 
     def scroll_to(left, top)
@@ -378,7 +362,7 @@ module Capybara::Cuprite
     end
 
     def resize(width, height)
-      command "resize", width, height
+      @page.resize(width, height)
     end
 
     def send_keys(page_id, id, keys)

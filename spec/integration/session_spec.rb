@@ -315,6 +315,7 @@ describe Capybara::Session do
       end
     end
 
+    # FIXME started to fail
     it "has no trouble clicking elements when the size of a document changes" do
       @session.visit("/cuprite/long_page")
       @session.find(:css, "#penultimate").click
