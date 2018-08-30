@@ -22,15 +22,10 @@ module Capybara::Cuprite
       @logger = options[:logger]
       @process = Process.start(options)
       @client = Client.new(@process.ws_url, @logger)
+      reset
     end
 
     def visit(url)
-      @page = Page.new(self, @logger)
-      @page.command("Page.enable")
-      @page.command("DOM.enable")
-      @page.command("CSS.enable")
-      @page.command("Runtime.enable")
-
       response = @page.command("Page.navigate", url: url)
       @page.wait(event: "Page.frameStoppedLoading") do |params|
         params["frameId"] == response["frameId"]
@@ -182,18 +177,20 @@ module Capybara::Cuprite
     # FIXME: *args
     def evaluate(expression, *args)
       # command "evaluate", script, *args
-      @page.command("Runtime.evaluate", expression: expression)
+      result = @page.command("Runtime.evaluate", expression: expression)
+      puts result
+      result["result"]["value"]
     end
 
     # FIXME: *args
     def evaluate_async(expression, wait_time, *args)
       # command "evaluate_async", script, wait_time, *args
-      @page.command("Runtime.evaluate", expression: expression)
+      @page.command("Runtime.evaluate", expression: expression)["result"]["value"]
     end
 
     # FIXME: *args
     def execute(expression, *args)
-      @page.command("Runtime.evaluate", expression: expression)
+      @page.command("Runtime.evaluate", expression: expression)["result"]["value"]
     end
 
     def within_frame(handle)
@@ -257,10 +254,34 @@ module Capybara::Cuprite
     end
 
     def click(page_id, node, keys = [], offset = {})
+      resolved = @page.command("DOM.resolveNode", nodeId: node["nodeId"])
+      result = @page.command("Runtime.callFunctionOn", objectId: resolved["object"]["objectId"], functionDeclaration: %Q(
+        function () {
+          isInViewport = function(node) {
+            rect = node.getBoundingClientRect();
+            return rect.top >= 0 &&
+                   rect.left >= 0 &&
+                   rect.bottom <= window.innerHeight &&
+                   rect.right <= window.innerWidth;
+          }
+
+          this.scrollIntoViewIfNeeded();
+
+          if (!isInViewport(this)) {
+            this.scrollIntoView();
+            return isInViewport(this);
+          }
+
+          return true;
+        }
+      ))["result"]
+
+      raise MouseEventFailed.new(node, nil) unless result["value"]
+
       result = @page.command("DOM.getContentQuads", nodeId: node["nodeId"])
       raise "Node is either not visible or not an HTMLElement" if result["quads"].size == 0
 
-      # FIXME: Case when a few quad returned
+      # FIXME: Case when a few quads returned
       quads = result["quads"].map do |quad|
         [{x: quad[0], y: quad[1]},
          {x: quad[2], y: quad[3]},
@@ -271,14 +292,6 @@ module Capybara::Cuprite
       x, y = quads[0].inject([0, 0]) { |b, p| [b[0] + p[:x], b[1] + p[:y]] }
       x /= 4
       y /= 4
-
-      resolved = @page.command("DOM.resolveNode", nodeId: node["nodeId"])
-      object_id = resolved["object"]["objectId"]
-      response = @page.command("Runtime.callFunctionOn", objectId: object_id, functionDeclaration: %Q(
-        function () { return this.scrollIntoView({block: 'center', inline: 'center', behavior: 'instant'}) }
-      ))
-
-      raise MouseEventFailed.new(node, nil) if x < 0 || y < 0
 
       # command "click", page_id, node, keys, offset
       @page.command("Input.dispatchMouseEvent", type: "mouseMoved", x: x, y: y) # hover then click?
@@ -331,9 +344,12 @@ module Capybara::Cuprite
     end
 
     def reset
-      return unless @page # FIXME: When @page is nil?
-      @page.close
-      @page = nil
+      @page.close if @page
+      @page = Page.new(self, @logger)
+      @page.command("Page.enable")
+      @page.command("DOM.enable")
+      @page.command("CSS.enable")
+      @page.command("Runtime.enable")
     end
 
     def scroll_to(left, top)
