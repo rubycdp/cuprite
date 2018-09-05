@@ -8,17 +8,18 @@ module Capybara::Cuprite
     class Client
       extend Forwardable
 
-      delegate close: :@web_socket
+      delegate [:close, :subscribe, :messages] => :@web_socket
 
       def initialize(ws_url, logger)
         @command_id = 0
+        @logger = logger
         @web_socket = WebSocket.new(ws_url, logger)
       end
 
       def command(method, params = {})
         message = build_message(method, params)
         @web_socket.send_message(message)
-        response = wait_response(message[:id])
+        response = wait(message[:id])
         handle(response)
       rescue DeadClient
         # FIXME:
@@ -26,35 +27,30 @@ module Capybara::Cuprite
         raise
       end
 
-      def wait(sec = 0.1, event:)
+
+      def wait(type = nil, params = {}, idle = 0.1)
         loop do
-          filter_by(method: event).each do |message|
-            return message if yield(message["params"])
-          end
-          sleep(sec)
+          message = case type
+                    when String
+                      messages.find { |m| m["method"] == type && params.all? { |k, v| m["params"][k.to_s] == v } }
+                    when Integer
+                      messages.find { |m| m["id"] == type }
+                    else
+                      raise ArgumentError.new("First parameter should be `id: Integer` or `event: String`")
+                    end
+
+          return message if message
+
+          sleep(idle)
         end
       end
 
       private
 
-      def wait_response(id, sec = 0.1)
-        loop do
-          message = filter_by(id: id)&.first
-          return message if message
-          sleep(sec)
-        end
-      end
-
       def handle(message)
         error, response = message.values_at("error", "result")
         raise BrowserError.new(error) if error
         response
-      end
-
-      def filter_by(id: nil, method: nil)
-        @web_socket.messages.select do |message|
-          id ? message["id"] == id : message["method"] == method
-        end
       end
 
       def build_message(method, params)

@@ -27,8 +27,7 @@ Capybara.javascript_driver = :cuprite
 
 If you were previously using the `:rack_test` driver, be aware that
 your app will now run in a separate thread and this can have
-consequences for transactional tests. [See the Capybara README for more
-detail](https://github.com/jnicklas/capybara/blob/master/README.md#transactions-and-database-setup).
+consequences for transactional tests. [See the Capybara README for more detail](https://github.com/jnicklas/capybara/blob/master/README.md#transactions-and-database-setup).
 
 ## Installing Chromium ##
 

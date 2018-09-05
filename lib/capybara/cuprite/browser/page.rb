@@ -8,7 +8,7 @@ module Capybara::Cuprite
     class Page
       extend Forwardable
 
-      delegate [:command, :wait] => :@client
+      delegate [:command, :wait, :subscribe] => :@client
 
       def initialize(browser, logger)
         @browser, @logger = browser, logger
@@ -25,20 +25,19 @@ module Capybara::Cuprite
         command("DOM.enable")
         command("CSS.enable")
         command("Runtime.enable")
+
+        subscribe "Page.frameStoppedLoading" do
+          # `DOM.performSearch` doesn't work without getting #document node first.
+          # It returns node with nodeId 1 and nodeType 9 from which descend the
+          # tree and we save it in a variable because if we call that again root
+          # node will change the id and all subsequent nodes have to change id too.
+          command("DOM.getDocument", depth: 0)["root"]
+        end
       end
 
       def visit(url)
         response = command("Page.navigate", url: url)
-        wait(event: "Page.frameStoppedLoading") do |params|
-          params["frameId"] == response["frameId"]
-        end
-
-        # `DOM.performSearch` doesn't work without getting #document node first.
-        # It returns node with nodeId 1 and nodeType 9 from which descend the
-        # tree and we save it in a variable because if we call that again root
-        # node will change the id and all subsequent nodes have to change id too.
-        @root = command("DOM.getDocument", depth: 0)["root"]
-
+        wait("Page.frameStoppedLoading", frameId: response["frameId"])
         true
       end
 

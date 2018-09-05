@@ -23,6 +23,7 @@ module Capybara::Cuprite
 
         @messages   = []
         @dead       = false
+        @subscribed = {}
 
         @driver.on(:message, &method(:on_message))
         @driver.on(:error, &method(:on_error))
@@ -52,6 +53,12 @@ module Capybara::Cuprite
       def on_message(event)
         @logger.write "    <<< #{event.data}\n\n"
         data = JSON.parse(event.data)
+
+        # FIXME: Thread pool workaround for now
+        if block = @subscribed[data["method"]]
+          Thread.new { block.call }
+        end
+
         @messages << data
       end
 
@@ -67,6 +74,11 @@ module Capybara::Cuprite
         @logger.write "<<< #{event.code}, #{event.reason}\n\n"
         @dead = true
         @thread.kill
+      end
+
+      def subscribe(event, &block)
+        @subscribed[event] = block
+        true
       end
 
       def write(data)
