@@ -25,11 +25,13 @@ module TestSessions
       @messages = []
     end
 
-    def puts(message)
-      @messages << message
+    def write(message)
+      if ENV["DEBUG"]
+        puts message
+      else
+        @messages << message
+      end
     end
-
-    alias_method :write, :puts
   end
 
   def self.logger
@@ -59,9 +61,7 @@ RSpec.configure do |config|
   end
 
   config.after do |example|
-    if ENV["DEBUG"]
-      puts TestSessions.logger.messages
-    elsif ENV["TRAVIS"] && example.exception
+    if ENV["TRAVIS"] && example.exception
       example.exception.message << "\n\nDebug info:\n" + TestSessions.logger.messages.join("\n") unless example.exception.message.frozen?
     end
   end
