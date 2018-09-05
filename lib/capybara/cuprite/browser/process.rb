@@ -9,7 +9,7 @@ module Capybara::Cuprite
 
       BROWSER_PATH = "chrome"
       BROWSER_HOST = "127.0.0.1"
-      BROWSER_PORT = "9222"
+      BROWSER_PORT = "0"
 
       # Chromium command line options
       # https://peter.sh/experiments/chromium-command-line-switches/
@@ -48,14 +48,9 @@ module Capybara::Cuprite
         end
       end
 
-      attr_reader :host, :port
-
       def initialize(options)
         @path    = Cliver.detect(options[:path] || BROWSER_PATH)
         @options = DEFAULT_OPTIONS.merge(options.fetch(:browser, {}))
-
-        @host = @options["remote-debugging-address"]
-        @port = @options["remote-debugging-port"]
       end
 
       def start
@@ -92,14 +87,22 @@ module Capybara::Cuprite
         start
       end
 
-      def ws_url(try = 0)
+      def host
+        @host ||= ws_url.host
+      end
+
+      def port
+        @port ||= ws_url.port
+      end
+
+      def ws_url
         @ws_url ||= begin
           regexp = /DevTools listening on (ws:\/\/.*)/
-          sleep 0.1 until ws_url = @output.find { |s| s.match?(regexp) }
-          ws_url.match(regexp)[1].tap do
-            @out_thread.kill
-            close_io
-          end
+          sleep 0.1 until url = @output.find { |s| s.match?(regexp) }
+          ws_url = Addressable::URI.parse(url.match(regexp)[1])
+          @out_thread.kill
+          close_io
+          ws_url
         end
       end
 
