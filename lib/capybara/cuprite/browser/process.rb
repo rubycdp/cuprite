@@ -14,11 +14,15 @@ module Capybara::Cuprite
       # Chromium command line options
       # https://peter.sh/experiments/chromium-command-line-switches/
       DEFAULT_OPTIONS = {
-        "headless" => true,
-        "disable-gpu" => true,
+        "headless" => nil,
+        "disable-gpu" => nil,
         "window-size" => "1024,768",
-        "hide-scrollbars" => true,
-        "mute-audio" => true,
+        "hide-scrollbars" => nil,
+        "mute-audio" => nil,
+        # Note: --no-sandbox is not needed if you properly setup a user in the container.
+        # https://github.com/ebidel/lighthouse-ci/blob/master/builder/Dockerfile#L35-L40
+        # "no-sandbox" => nil,
+        "disable-web-security" => nil,
         "remote-debugging-port" => BROWSER_PORT,
         "remote-debugging-address" => BROWSER_HOST
       }.freeze
@@ -70,7 +74,7 @@ module Capybara::Cuprite
         end
 
         redirect_stdout do
-          cmd = [@path] + @options.map { |k, v| v == true ? "--#{k}" : "--#{k}=#{v}" if v }
+          cmd = [@path] + @options.map { |k, v| v.nil? ? "--#{k}" : "--#{k}=#{v}" }
           @pid = ::Process.spawn(*cmd, process_options)
           ObjectSpace.define_finalizer(self, self.class.process_killer(@pid))
         end
