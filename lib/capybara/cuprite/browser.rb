@@ -10,6 +10,11 @@ module Capybara::Cuprite
   class Browser
     extend Forwardable
 
+    class NullLogger
+      def write(_message)
+      end
+    end
+
     def self.start(*args)
       new(*args)
     end
@@ -19,8 +24,8 @@ module Capybara::Cuprite
 
     def initialize(options = nil)
       options ||= {}
-      @logger = options[:logger]
       @process = Process.start(options)
+      @logger = options.fetch(:logger, NullLogger.new)
       @client = Client.new(@process.ws_url, @logger)
       reset
     end

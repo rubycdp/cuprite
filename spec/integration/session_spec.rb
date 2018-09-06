@@ -1057,8 +1057,7 @@ describe Capybara::Session do
         let(:script) do
           <<-RUBY
             require "capybara/cuprite"
-            server = Capybara::Cuprite::Server.start(server)
-            browser = Capybara::Cuprite::Client.new(server)
+            browser = Capybara::Cuprite::Browser.start
             browser.visit("http://example.com")
             puts "Please type enter"
             sleep 1
