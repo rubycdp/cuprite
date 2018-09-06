@@ -15,12 +15,12 @@ module Capybara::Cuprite
 
     def command(name, *args)
       browser.send(name, page_id, id, *args)
-    rescue BrowserError => error
-      case error.name
+    rescue BrowserError => e
+      case e.message
       when "Cuprite.ObsoleteNode"
-        raise ObsoleteNode.new(self, error.response)
+        raise ObsoleteNode.new(self, e.response)
       when "Cuprite.MouseEventFailed"
-        raise MouseEventFailed.new(self, error.response)
+        raise MouseEventFailed.new(self, e.response)
       else
         raise
       end

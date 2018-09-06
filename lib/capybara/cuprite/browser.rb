@@ -91,8 +91,10 @@ module Capybara::Cuprite
       Array(results)
     end
 
-    def find_within(page_id, id, method, selector)
-      command "find_within", page_id, id, method, selector
+    def find_within(page_id, node, method, selector)
+      selector = selector.sub(/\A\.\/\//, "/")
+      selector = "(#{node["selector"]})#{selector}"
+      find(method, selector).map { |p, n| n }
     end
 
     def all_text(page_id, id)
@@ -146,8 +148,8 @@ module Capybara::Cuprite
       command "select_file", page_id, id, value
     end
 
-    def tag_name(page_id, id)
-      command("tag_name", page_id, id).downcase
+    def tag_name(page_id, node)
+      node["nodeName"].downcase
     end
 
     def visible?(page_id, node)
@@ -159,8 +161,13 @@ module Capybara::Cuprite
       display != "none" && visibility != "hidden" && opacity != "0"
     end
 
-    def disabled?(page_id, id)
-      command "disabled", page_id, id
+    def disabled?(page_id, node)
+      resolved = @page.command("DOM.resolveNode", nodeId: node["nodeId"])
+      result = @page.command("Runtime.callFunctionOn", objectId: resolved["object"]["objectId"], functionDeclaration: %Q(
+        function () { return _cuprite.isDisabled(this) }
+      ))["result"]
+
+      result["value"]
     end
 
     def click_coordinates(x, y)
@@ -249,24 +256,7 @@ module Capybara::Cuprite
     def click(page_id, node, keys = [], offset = {})
       resolved = @page.command("DOM.resolveNode", nodeId: node["nodeId"])
       result = @page.command("Runtime.callFunctionOn", objectId: resolved["object"]["objectId"], functionDeclaration: %Q(
-        function () {
-          isInViewport = function(node) {
-            rect = node.getBoundingClientRect();
-            return rect.top >= 0 &&
-                   rect.left >= 0 &&
-                   rect.bottom <= window.innerHeight &&
-                   rect.right <= window.innerWidth;
-          }
-
-          this.scrollIntoViewIfNeeded();
-
-          if (!isInViewport(this)) {
-            this.scrollIntoView({block: 'center', inline: 'center', behavior: 'instant'});
-            return isInViewport(this);
-          }
-
-          return true;
-        }
+        function () { return _cuprite.scrollIntoViewport(this); }
       ))["result"]
 
       raise MouseEventFailed.new(node, nil) unless result["value"]
@@ -328,8 +318,13 @@ module Capybara::Cuprite
       command "drag_by", page_id, id, x, y
     end
 
-    def select(page_id, id, value)
-      command "select", page_id, id, value
+    def select(page_id, node, value)
+      resolved = @page.command("DOM.resolveNode", nodeId: node["nodeId"])
+      result = @page.command("Runtime.callFunctionOn", objectId: resolved["object"]["objectId"], functionDeclaration: %Q(
+        function () { return _cuprite.select(this, #{value}); }
+      ))["result"]
+
+      result["value"]
     end
 
     def trigger(page_id, id, event)
@@ -374,8 +369,13 @@ module Capybara::Cuprite
       command "send_keys", page_id, id, normalize_keys(keys)
     end
 
-    def path(page_id, id)
-      command "path", page_id, id
+    def path(page_id, node)
+      resolved = @page.command("DOM.resolveNode", nodeId: node["nodeId"])
+      result = @page.command("Runtime.callFunctionOn", objectId: resolved["object"]["objectId"], functionDeclaration: %Q(
+        function () { return _cuprite.path(this); }
+      ))["result"]
+
+      result["value"]
     end
 
     def network_traffic(type = nil)
