@@ -92,7 +92,7 @@ module Capybara::Cuprite
     end
 
     def find_within(page_id, node, method, selector)
-      selector = selector.sub(/\A\.\/\//, "/")
+      selector = selector.sub(/\A\.\/\//, "//")
       selector = "(#{node["selector"]})#{selector}"
       find(method, selector).map { |p, n| n }
     end
