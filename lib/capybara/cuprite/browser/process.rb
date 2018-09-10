@@ -53,7 +53,16 @@ module Capybara::Cuprite
       end
 
       def initialize(options)
-        @path    = Cliver.detect(options[:path] || BROWSER_PATH)
+        exe = options[:path] || BROWSER_PATH
+        @path = Cliver.detect(exe)
+
+        unless @path
+          message = "Could not find an executable `#{exe}`. Try to make it " \
+                    "available on the PATH or set environment varible for " \
+                    "example BROWSER_PATH=\"/Applications/Chromium.app/Contents/MacOS/Chromium\""
+          raise Cliver::Dependency::NotFound.new(message)
+        end
+
         @options = DEFAULT_OPTIONS.merge(options.fetch(:browser, {}))
       end
 
