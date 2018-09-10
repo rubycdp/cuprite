@@ -356,7 +356,6 @@ describe Capybara::Session do
       expect(@session.evaluate_script("null")).to be_nil
       expect(@session.evaluate_script("false")).to be false
       expect(@session.evaluate_script("true")).to be true
-      # FIXME: why only "bar" returned?
       expect(@session.evaluate_script(%({foo: "bar"}))).to eq("foo" => "bar")
     end
 

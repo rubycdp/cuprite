@@ -176,21 +176,23 @@ module Capybara::Cuprite
 
     # FIXME: *args
     def evaluate(expression, *args)
-      # command "evaluate", script, *args
-      result = @page.command("Runtime.evaluate", expression: expression)
-      puts result
+      expr = "(#{expression.sub(/;?\z/, "")})"
+      result = @page.command("Runtime.evaluate", expression: expr, returnByValue: true)
+      result["result"]["value"]
+    end
+
+    # FIXME: *args, wait_time, async
+    def evaluate_async(expression, wait_time, *args)
+      expr = "(#{expression.sub(/;?\z/, "")})"
+      result = @page.command("Runtime.evaluate", expression: expr, returnByValue: true)
       result["result"]["value"]
     end
 
     # FIXME: *args
-    def evaluate_async(expression, wait_time, *args)
-      # command "evaluate_async", script, wait_time, *args
-      @page.command("Runtime.evaluate", expression: expression)["result"]["value"]
-    end
-
-    # FIXME: *args
     def execute(expression, *args)
-      @page.command("Runtime.evaluate", expression: expression)["result"]["value"]
+      expr = "(#{expression.sub(/;?\z/, "")})"
+      result = @page.command("Runtime.evaluate", expression: expr, returnByValue: false)
+      result["result"]["value"]
     end
 
     def within_frame(handle)
