@@ -97,8 +97,14 @@ module Capybara::Cuprite
       find(method, selector).map { |p, n| n }
     end
 
-    def all_text(page_id, id)
-      command "all_text", page_id, id
+    def all_text(page_id, node)
+      resolved = @page.command("DOM.resolveNode", nodeId: node["nodeId"])
+      object_id = resolved["object"]["objectId"]
+      response = @page.command("Runtime.callFunctionOn", objectId: object_id, functionDeclaration: %Q(
+        function () { return this.textContent }
+      ))
+
+      response["result"]["value"]
     end
 
     def visible_text(page_id, node)
