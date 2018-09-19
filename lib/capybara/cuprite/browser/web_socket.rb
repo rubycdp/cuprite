@@ -54,9 +54,8 @@ module Capybara::Cuprite
         @logger.write "    <<< #{event.data}\n\n"
         data = JSON.parse(event.data)
 
-        # FIXME: Thread pool workaround for now
         if block = @subscribed[data["method"]]
-          Thread.new { block.call }
+          Thread.new { block.call(data["params"]) }
         end
 
         @messages << data

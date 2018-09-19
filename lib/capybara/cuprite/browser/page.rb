@@ -26,11 +26,21 @@ module Capybara::Cuprite
       extend Forwardable
 
       delegate [:command, :wait, :subscribe] => :@client
+      delegate targets: :@browser
 
-      def initialize(browser, logger)
-        @browser, @logger = browser, logger
-        @context_id = @browser.command("Target.createBrowserContext")["browserContextId"]
-        @target_id  = @browser.command("Target.createTarget", url: "about:blank", browserContextId: @context_id)["targetId"]
+      attr_reader :target, :context_id
+
+      def initialize(target, browser, logger)
+        @target, @browser, @logger = target, browser, logger
+
+        if @target
+          @context_id, @target_id = @target.values_at("browserContextId", "targetId")
+        else
+          @context_id = @browser.command("Target.createBrowserContext")["browserContextId"]
+          @target_id  = @browser.command("Target.createTarget", url: "about:blank", browserContextId: @context_id)["targetId"]
+          @target = { "targetId" => @target_id, "browserContextId" => @context_id }
+        end
+
         @session_id = @browser.command("Target.attachToTarget", targetId: @target_id)["sessionId"]
 
         host = @browser.process.host
@@ -42,9 +52,9 @@ module Capybara::Cuprite
         command("DOM.enable")
         command("CSS.enable")
         command("Runtime.enable")
-
         command("Page.addScriptToEvaluateOnNewDocument", source: read("index.js"))
 
+        subscribe("Page.windowOpen") { targets.refresh }
         subscribe "Page.frameStoppedLoading" do
           # `DOM.performSearch` doesn't work without getting #document node first.
           # It returns node with nodeId 1 and nodeType 9 from which descend the
@@ -63,7 +73,6 @@ module Capybara::Cuprite
       def close
         @browser.command("Target.detachFromTarget", sessionId: @session_id)
         @browser.command("Target.closeTarget", targetId: @target_id)
-        @browser.command("Target.disposeBrowserContext", browserContextId: @context_id)
         @client.close
       end
 
