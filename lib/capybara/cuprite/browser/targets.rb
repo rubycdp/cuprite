@@ -3,6 +3,8 @@
 module Capybara::Cuprite
   class Browser
     class Targets
+      attr_reader :page
+
       def initialize(browser, logger)
         @mutex = Mutex.new
         @browser, @logger = browser, logger
@@ -20,15 +22,7 @@ module Capybara::Cuprite
         @mutex.synchronize do
           targets.reject do |target|
             @targets.key?(target["targetId"])
-          end.each { |t| puts "="*100 + t.inspect; push(t) }
-        end
-      end
-
-      def page
-        @page ||= begin
-          page = Page.new(nil, @browser, @logger)
-          push(page.target, page: page)
-          page
+          end.each { |t| push(t) }
         end
       end
 
@@ -88,6 +82,9 @@ module Capybara::Cuprite
 
         @default = targets.first
         push(@default)
+
+        @page = Page.new(nil, @browser, @logger)
+        push(@page.target, page: @page)
       end
 
       private
