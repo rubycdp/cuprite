@@ -61,7 +61,7 @@ module Capybara::Cuprite
     end
 
     def title
-      command "title"
+      evaluate("document.title")
     end
 
     def frame_title

@@ -3,53 +3,53 @@
 module Capybara::Cuprite
   class Browser
     class Targets
-      attr_reader :page
-
       def initialize(browser, logger)
         @mutex = Mutex.new
         @browser, @logger = browser, logger
+        @_default = targets.first["targetId"]
         reset
       end
 
-      def push(target, page: nil)
-        target = target.slice("targetId", "browserContextId")
-        @targets[target["targetId"]] = target
-        @pages[target["targetId"]] = page if page
-        true
+      def push(target_id, page = nil)
+        @targets[target_id] = page
       end
 
       def refresh
         @mutex.synchronize do
-          targets.reject do |target|
-            @targets.key?(target["targetId"])
-          end.each { |t| push(t) }
+          targets.each { |t| push(t["targetId"]) if !default?(t) && !has?(t) }
         end
       end
 
+      def page
+        raise NoSuchWindowError unless @page
+        @page
+      end
 
       def window_handle
-        @page.target
+        page.target_id
       end
 
       def window_handles
-        @mutex.synchronize { @targets.values }
+        @mutex.synchronize { @targets.keys }
       end
 
-      def switch_to_window(target)
-        target_id = target["targetId"]
-        @page = @pages[target_id]
-        @page ||= Page.new(target, @browser, @logger)
-        @pages[target_id] = @page
+      def switch_to_window(target_id)
+        @page = @targets[target_id]
+        @page ||= Page.new(target_id, @browser, @logger)
+        @targets[target_id] ||= @page
       end
 
       def open_new_window
-        command "open_new_window"
+        target_id = @browser.command("Target.createTarget", url: "about:blank", browserContextId: @_context_id)["targetId"]
+        page = Page.new(target_id, @browser, @logger)
+        push(target_id, page)
+        target_id
       end
 
-      def close_window(target)
-        target_id = target["targetId"]
-        @pages[target_id].close
-        @pages[target_id] = nil
+      def close_window(target_id)
+        page = @targets.delete(target_id)
+        @page = nil if page && @page == page
+        page&.close
       end
 
       def find_window_handle(locator)
@@ -69,28 +69,34 @@ module Capybara::Cuprite
         switch_to_window(original)
       end
 
-
       def reset
         if @page
           @page.close
-          @browser.command("Target.disposeBrowserContext",
-                           browserContextId: @page.context_id)
+          @browser.command("Target.disposeBrowserContext", browserContextId: @_context_id)
         end
 
-        @pages, @targets = {}, {}
         @page = nil
+        @targets = {}
+        @_context_id = nil
 
-        @default = targets.first
-        push(@default)
-
-        @page = Page.new(nil, @browser, @logger)
-        push(@page.target, page: @page)
+        @_context_id = @browser.command("Target.createBrowserContext")["browserContextId"]
+        target_id = @browser.command("Target.createTarget", url: "about:blank", browserContextId: @_context_id)["targetId"]
+        @page = Page.new(target_id, @browser, @logger)
+        push(target_id, @page)
       end
 
       private
 
       def targets
         @browser.command("Target.getTargets")["targetInfos"]
+      end
+
+      def default?(target)
+        @_default == target["targetId"]
+      end
+
+      def has?(target)
+        @targets.key?(target["targetId"])
       end
     end
   end

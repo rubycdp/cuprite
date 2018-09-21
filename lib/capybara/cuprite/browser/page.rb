@@ -28,20 +28,21 @@ module Capybara::Cuprite
       delegate [:command, :wait, :subscribe] => :@client
       delegate targets: :@browser
 
-      attr_reader :target, :context_id
+      attr_reader :target_id
 
-      def initialize(target, browser, logger)
-        @target, @browser, @logger = target, browser, logger
+      def initialize(target_id, browser, logger)
+        @target_id = target_id
+        @browser, @logger = browser, logger
 
-        if @target
-          @context_id, @target_id = @target.values_at("browserContextId", "targetId")
-        else
-          @context_id = @browser.command("Target.createBrowserContext")["browserContextId"]
-          @target_id  = @browser.command("Target.createTarget", url: "about:blank", browserContextId: @context_id)["targetId"]
-          @target = { "targetId" => @target_id, "browserContextId" => @context_id }
+        begin
+          @session_id = @browser.command("Target.attachToTarget", targetId: @target_id)["sessionId"]
+        rescue BrowserError => e
+          if e.message == "No target with given id found"
+            raise NoSuchWindowError
+          else
+            raise
+          end
         end
-
-        @session_id = @browser.command("Target.attachToTarget", targetId: @target_id)["sessionId"]
 
         host = @browser.process.host
         port = @browser.process.port
@@ -55,18 +56,24 @@ module Capybara::Cuprite
         command("Page.addScriptToEvaluateOnNewDocument", source: read("index.js"))
 
         subscribe("Page.windowOpen") { targets.refresh }
-        subscribe "Page.frameStoppedLoading" do
+        subscribe("Page.frameStartedLoading") do |params|
+          # Remember the first frame started loading since it's the main one
+          @frame_id ||= params["frameId"]
+        end
+        subscribe("Page.frameStoppedLoading") do |params|
           # `DOM.performSearch` doesn't work without getting #document node first.
           # It returns node with nodeId 1 and nodeType 9 from which descend the
           # tree and we save it in a variable because if we call that again root
           # node will change the id and all subsequent nodes have to change id too.
-          command("DOM.getDocument", depth: 0)["root"]
+          if params["frameId"] == @frame_id
+            command("DOM.getDocument", depth: 0)["root"]
+          end
         end
       end
 
       def visit(url)
-        response = command("Page.navigate", url: url)
-        wait("Page.frameStoppedLoading", frameId: response["frameId"])
+        frame_id = command("Page.navigate", url: url)["frameId"]
+        wait("Page.frameStoppedLoading", frameId: frame_id)
         true
       end
 
