@@ -40,9 +40,10 @@ module Capybara::Cuprite
       end
 
       def switch_to_window(target_id)
-        @page = @targets[target_id]
-        @page ||= Page.new(target_id, @browser, @logger)
-        @targets[target_id] ||= @page
+        page = @targets[target_id]
+        page ||= Page.new(target_id, @browser, @logger)
+        @targets[target_id] ||= page
+        @page = page
       end
 
       def open_new_window
