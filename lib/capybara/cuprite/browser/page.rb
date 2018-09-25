@@ -55,6 +55,16 @@ module Capybara::Cuprite
         command("Runtime.enable")
         command("Page.addScriptToEvaluateOnNewDocument", source: read("index.js"))
 
+        response = command("Page.getNavigationHistory")
+        if response.dig("entries", 0, "transitionType") != "typed"
+          # If we create page by clicking links, submiting forms and so on it
+          # opens a new window for which `Page.frameStoppedLoading` event never
+          # occurs and thus search for nodes cannot be completed. Here we check
+          # the history and if the event for example `link` then content is
+          # already loaded and we can try to get the document.
+          command("DOM.getDocument", depth: 0)["root"]
+        end
+
         subscribe("Page.windowOpen") { targets.refresh }
         subscribe("Page.frameStartedLoading") do |params|
           # Remember the first frame started loading since it's the main one
