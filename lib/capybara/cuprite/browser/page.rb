@@ -80,6 +80,10 @@ module Capybara::Cuprite
       def close
         @browser.command("Target.detachFromTarget", sessionId: @session_id)
         @browser.command("Target.closeTarget", targetId: @target_id)
+        close_connection
+      end
+
+      def close_connection
         @client.close
       end
 

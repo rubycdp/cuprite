@@ -7,6 +7,12 @@ module Capybara::Cuprite
         @mutex = Mutex.new
         @browser, @logger = browser, logger
         @_default = targets.first["targetId"]
+
+        @browser.subscribe("Target.detachedFromTarget") do |params|
+          page = remove_page(params["targetId"])
+          page&.close_connection
+        end
+
         reset
       end
 
@@ -47,9 +53,7 @@ module Capybara::Cuprite
       end
 
       def close_window(target_id)
-        page = @targets.delete(target_id)
-        @page = nil if page && @page == page
-        page&.close
+        remove_page(target_id)&.close
       end
 
       def find_window_handle(locator)
@@ -86,6 +90,12 @@ module Capybara::Cuprite
       end
 
       private
+
+      def remove_page(target_id)
+        page = @targets.delete(target_id)
+        @page = nil if page && @page == page
+        page
+      end
 
       def targets
         @browser.command("Target.getTargets")["targetInfos"]

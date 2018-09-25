@@ -21,7 +21,7 @@ module Capybara::Cuprite
     end
 
     attr_reader :process, :targets
-    delegate %i(command wait) => :@client
+    delegate %i(command subscribe wait) => :@client
     delegate %i(window_handle window_handles switch_to_window open_new_window
                 close_window find_window_handle within_window reset page) => :@targets
 
