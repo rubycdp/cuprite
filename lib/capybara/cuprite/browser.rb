@@ -133,16 +133,29 @@ module Capybara::Cuprite
       command "delete_text", page_id, id
     end
 
-    def property(page_id, id, name)
-      command "property", page_id, id, name.to_s
+    def property(page_id, node, name)
+      resolved = page.command("DOM.resolveNode", nodeId: node["nodeId"])
+      object_id = resolved["object"]["objectId"]
+      page.command("Runtime.callFunctionOn", objectId: object_id, functionDeclaration: %Q(
+        function () { return this["#{name}"] }
+      )).dig("result", "value")
     end
 
-    def attributes(page_id, id)
-      command "attributes", page_id, id
+    def attributes(page_id, node)
+      resolved = page.command("DOM.resolveNode", nodeId: node["nodeId"])
+      object_id = resolved["object"]["objectId"]
+      value = page.command("Runtime.callFunctionOn", objectId: object_id, functionDeclaration: %Q(
+        function () { return _cuprite.getAttributes(this) }
+      )).dig("result", "value")
+      JSON.parse(value)
     end
 
-    def attribute(page_id, id, name)
-      command "attribute", page_id, id, name.to_s
+    def attribute(page_id, node, name)
+      resolved = page.command("DOM.resolveNode", nodeId: node["nodeId"])
+      object_id = resolved["object"]["objectId"]
+      page.command("Runtime.callFunctionOn", objectId: object_id, functionDeclaration: %Q(
+        function () { return _cuprite.getAttribute(this, "#{name}") }
+      )).dig("result", "value")
     end
 
     def value(page_id, id)

@@ -911,7 +911,7 @@ describe Capybara::Session do
       end
 
       it "gets property outerHTML" do
-        expect(@session.find(:css, ".some_other_class").native.property("outerHTML")).to eq "<div class='some_other_class'><p>foobar</p></div>"
+        expect(@session.find(:css, ".some_other_class").native.property("outerHTML")).to eq %(<div class="some_other_class"><p>foobar</p></div>)
       end
 
       it "gets non existent property" do
