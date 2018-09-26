@@ -88,7 +88,7 @@ module Capybara::Cuprite
         next if node["nodeType"] != 1 # nodeType: 3, nodeName: "#text" for example
         node["nodeId"] = node_id
         node["selector"] = selector
-        [nil, node] # FIXME: page_id
+        [page.target_id, node]
       end.compact
 
       Array(results)

@@ -27,11 +27,15 @@ module Capybara::Cuprite
     end
 
     def parents
-      command(:parents).map { |parent_id| self.class.new(driver, page_id, parent_id) }
+      command(:parents).map do |parent_id|
+        self.class.new(driver, page_id, parent_id)
+      end
     end
 
     def find(method, selector)
-      command(:find_within, method, selector).map { |id| self.class.new(driver, page_id, id) }
+      command(:find_within, method, selector).map do |id|
+        self.class.new(driver, page_id, id)
+      end
     end
 
     def find_xpath(selector)
