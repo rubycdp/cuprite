@@ -844,15 +844,6 @@ describe Capybara::Session do
       @session.attach_file "file", __FILE__
     end
 
-    it "logs mouse event co-ordinates" do
-      @session.visit("/")
-      @session.find(:css, "a").click
-
-      position = JSON.parse(TestSessions.logger.messages.last)["response"]["position"]
-      expect(position["x"]).to_not be_nil
-      expect(position["y"]).to_not be_nil
-    end
-
     it "throws an error on an invalid selector" do
       @session.visit "/cuprite/table"
       expect { @session.find(:css, "table tr:last") }.to raise_error(Capybara::Cuprite::InvalidSelector)
