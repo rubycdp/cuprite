@@ -28,7 +28,7 @@ module Capybara::Cuprite
       delegate [:command, :wait, :subscribe] => :@client
       delegate targets: :@browser
 
-      attr_reader :target_id
+      attr_reader :target_id, :execution_context_id
 
       def initialize(target_id, browser, logger)
         @target_id = target_id
@@ -49,36 +49,8 @@ module Capybara::Cuprite
         ws_url = "ws://#{host}:#{port}/devtools/page/#{@target_id}"
         @client = Client.new(ws_url, @logger)
 
-        command("Page.enable")
-        command("DOM.enable")
-        command("CSS.enable")
-        command("Runtime.enable")
-        command("Page.addScriptToEvaluateOnNewDocument", source: read("index.js"))
-
-        response = command("Page.getNavigationHistory")
-        if response.dig("entries", 0, "transitionType") != "typed"
-          # If we create page by clicking links, submiting forms and so on it
-          # opens a new window for which `Page.frameStoppedLoading` event never
-          # occurs and thus search for nodes cannot be completed. Here we check
-          # the history and if the event for example `link` then content is
-          # already loaded and we can try to get the document.
-          command("DOM.getDocument", depth: 0)["root"]
-        end
-
-        subscribe("Page.windowOpen") { targets.refresh }
-        subscribe("Page.frameStartedLoading") do |params|
-          # Remember the first frame started loading since it's the main one
-          @frame_id ||= params["frameId"]
-        end
-        subscribe("Page.frameStoppedLoading") do |params|
-          # `DOM.performSearch` doesn't work without getting #document node first.
-          # It returns node with nodeId 1 and nodeType 9 from which descend the
-          # tree and we save it in a variable because if we call that again root
-          # node will change the id and all subsequent nodes have to change id too.
-          if params["frameId"] == @frame_id
-            command("DOM.getDocument", depth: 0)["root"]
-          end
-        end
+        subscribe_events
+        prepare_page
       end
 
       def visit(url)
@@ -108,6 +80,44 @@ module Capybara::Cuprite
 
       def read(filename)
         File.read(File.expand_path("javascripts/#{filename}", __dir__))
+      end
+
+      def subscribe_events
+        subscribe("Runtime.executionContextCreated") do |params|
+          @execution_context_id = params.dig("context", "id")
+        end
+        subscribe("Page.windowOpen") { targets.refresh }
+        subscribe("Page.frameStartedLoading") do |params|
+          # Remember the first frame started loading since it's the main one
+          @frame_id ||= params["frameId"]
+        end
+        subscribe("Page.frameStoppedLoading") do |params|
+          # `DOM.performSearch` doesn't work without getting #document node first.
+          # It returns node with nodeId 1 and nodeType 9 from which descend the
+          # tree and we save it in a variable because if we call that again root
+          # node will change the id and all subsequent nodes have to change id too.
+          if params["frameId"] == @frame_id
+            command("DOM.getDocument", depth: 0)["root"]
+          end
+        end
+      end
+
+      def prepare_page
+        command("Page.enable")
+        command("DOM.enable")
+        command("CSS.enable")
+        command("Runtime.enable")
+        command("Page.addScriptToEvaluateOnNewDocument", source: read("index.js"))
+
+        response = command("Page.getNavigationHistory")
+        if response.dig("entries", 0, "transitionType") != "typed"
+          # If we create page by clicking links, submiting forms and so on it
+          # opens a new window for which `Page.frameStoppedLoading` event never
+          # occurs and thus search for nodes cannot be completed. Here we check
+          # the history and if the event for example `link` then content is
+          # already loaded and we can try to get the document.
+          command("DOM.getDocument", depth: 0)["root"]
+        end
       end
     end
   end

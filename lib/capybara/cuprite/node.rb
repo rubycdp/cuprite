@@ -2,11 +2,11 @@
 
 module Capybara::Cuprite
   class Node < Capybara::Driver::Node
-    attr_reader :page_id, :id
+    attr_reader :target_id, :node
 
-    def initialize(driver, page_id, id)
+    def initialize(driver, target_id, node)
       super(driver, self)
-      @page_id, @id = page_id, id
+      @target_id, @node = target_id, node
     end
 
     def browser
@@ -14,7 +14,7 @@ module Capybara::Cuprite
     end
 
     def command(name, *args)
-      browser.send(name, page_id, id, *args)
+      browser.send(name, @target_id, @node, *args)
     rescue BrowserError => e
       case e.message
       when "Cuprite.ObsoleteNode"
@@ -28,13 +28,13 @@ module Capybara::Cuprite
 
     def parents
       command(:parents).map do |parent_id|
-        self.class.new(driver, page_id, parent_id)
+        self.class.new(driver, @target_id, parent_id)
       end
     end
 
     def find(method, selector)
-      command(:find_within, method, selector).map do |id|
-        self.class.new(driver, page_id, id)
+      command(:find_within, method, selector).map do |node|
+        self.class.new(driver, @target_id, node)
       end
     end
 
@@ -157,7 +157,7 @@ module Capybara::Cuprite
     end
 
     def drag_to(other)
-      command :drag, other.id
+      command :drag, other.node
     end
 
     def drag_by(x, y)
@@ -169,7 +169,10 @@ module Capybara::Cuprite
     end
 
     def ==(other)
-      (page_id == other.page_id) && command(:equals, other.id)
+      # We compare backendNodeId because once nodeId is sent to frontend backend
+      # never returns same nodeId sending 0. In other words frontend is
+      # responsible for keeping track of node ids.
+      @target_id == other.target_id && @node["backendNodeId"] == other.node["backendNodeId"]
     end
 
     def send_keys(*keys)
@@ -181,6 +184,10 @@ module Capybara::Cuprite
       command :path
     end
 
+    def inspect
+      %(#<#{self.class} @target_id="#{@target_id}" @node="#{@node}">)
+    end
+
     # @api private
     def to_json(*)
       JSON.generate as_json
@@ -188,7 +195,8 @@ module Capybara::Cuprite
 
     # @api private
     def as_json(*)
-      { ELEMENT: { page_id: @page_id, id: @id } }
+      # FIXME: Where this method is used and why attr is called id?
+      { ELEMENT: { target_id: @target_id, id: @node } }
     end
 
     private
