@@ -356,7 +356,19 @@ describe Capybara::Session do
       expect(@session.evaluate_script("null")).to be_nil
       expect(@session.evaluate_script("false")).to be false
       expect(@session.evaluate_script("true")).to be true
+      expect(@session.evaluate_script("undefined")).to eq("undefined")
+
+      expect(@session.evaluate_script("31337")).to eq(31337)
+      expect(@session.evaluate_script(%("string"))).to eq("string")
       expect(@session.evaluate_script(%({foo: "bar"}))).to eq("foo" => "bar")
+
+      expect(@session.evaluate_script("new Object")).to eq({})
+      expect(@session.evaluate_script("new Date(2012, 0)")).to eq("Sun Jan 01 2012 00:00:00 GMT+0400 (Moscow Standard Time)")
+      expect(@session.evaluate_script("new Object({a: 1})")).to eq({"a" => 1})
+      expect(@session.evaluate_script("new Array")).to eq([])
+      expect(@session.evaluate_script("new Function")).to eq("function anonymous(\n) {\n\n}")
+
+      expect { @session.evaluate_script(%(throw "smth")) }.to raise_error(Capybara::Cuprite::JavaScriptError)
     end
 
     it "can evaluate a statement ending with a semicolon" do

@@ -74,15 +74,29 @@ module Capybara::Cuprite
     def process(result:)
       object_id = result["objectId"]
 
-      if result["subtype"] == "node"
-        node = page.command("DOM.describeNode", objectId: object_id)["node"]
-        { "target_id" => page.target_id, "node" => node }
-      elsif result["subtype"] == "array"
-        traverse_with(object_id, []) { |base, k, v| base.insert(k.to_i, v) }
-      elsif result["type"] == "object" && result["className"] == "Object"
-        traverse_with(object_id, {}) { |base, k, v| base.merge(k => v) }
-      else
+      case result["type"]
+      when "boolean", "number", "string"
         result["value"]
+      when "undefined"
+        "undefined"
+      when "function"
+        result["description"]
+      when "object"
+        case result["subtype"]
+        when "node"
+          node = page.command("DOM.describeNode", objectId: object_id)["node"]
+          { "target_id" => page.target_id, "node" => node }
+        when "array"
+          traverse_with(object_id, []) { |base, k, v| base.insert(k.to_i, v) }
+        when "date"
+          result["description"]
+        when "error"
+          raise JavaScriptError.new(result, result["className"], result["description"])
+        when "null"
+          nil
+        else
+          traverse_with(object_id, {}) { |base, k, v| base.merge(k => v) }
+        end
       end
     end
 

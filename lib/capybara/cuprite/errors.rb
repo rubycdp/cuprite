@@ -13,19 +13,6 @@ module Capybara
       end
     end
 
-    class JSErrorItem
-      attr_reader :message, :stack
-
-      def initialize(message, stack)
-        @message = message
-        @stack   = stack
-      end
-
-      def to_s
-        [message, stack].join("\n")
-      end
-    end
-
     class BrowserError < ClientError
       def code
         response["code"]
@@ -36,17 +23,12 @@ module Capybara
       end
     end
 
-    class JavascriptError < ClientError
-      def javascript_errors
-        response["args"].first.map { |data| JSErrorItem.new(data["message"], data["stack"]) }
-      end
+    class JavaScriptError < ClientError
+      attr_reader :message
 
-      def message
-        "One or more errors were raised in the Javascript code on the page. " \
-        "If you do not care about these errors, you can ignore them by " \
-        "setting js_errors: false in your Cuprite configuration (see " \
-        "documentation for details)." \
-        "\n\n#{javascript_errors.map(&:to_s).join("\n")}"
+      def initialize(response, error, message)
+        super(response)
+        @error, @message = error, message
       end
     end
 
