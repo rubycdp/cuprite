@@ -68,8 +68,8 @@ module Capybara::Cuprite
       command "frame_title"
     end
 
-    def parents(page_id, id)
-      command "parents", page_id, id
+    def parents(target_id, id)
+      command "parents", target_id, id
     end
 
     def find(_, selector)
@@ -94,13 +94,13 @@ module Capybara::Cuprite
       Array(results)
     end
 
-    def find_within(page_id, node, method, selector)
+    def find_within(target_id, node, method, selector)
       selector = selector.sub(/\A\.\/\//, "//")
       selector = "(#{node["selector"]})#{selector}"
       find(method, selector).map { |p, n| n }
     end
 
-    def all_text(page_id, node)
+    def all_text(target_id, node)
       resolved = page.command("DOM.resolveNode", nodeId: node["nodeId"])
       object_id = resolved["object"]["objectId"]
       response = page.command("Runtime.callFunctionOn", objectId: object_id, functionDeclaration: %Q(
@@ -110,7 +110,7 @@ module Capybara::Cuprite
       response["result"]["value"]
     end
 
-    def visible_text(page_id, node)
+    def visible_text(target_id, node)
       begin
         resolved = page.command("DOM.resolveNode", nodeId: node["nodeId"])
         object_id = resolved["object"]["objectId"]
@@ -129,11 +129,11 @@ module Capybara::Cuprite
       response["result"]["value"]
     end
 
-    def delete_text(page_id, id)
-      command "delete_text", page_id, id
+    def delete_text(target_id, id)
+      command "delete_text", target_id, id
     end
 
-    def property(page_id, node, name)
+    def property(target_id, node, name)
       resolved = page.command("DOM.resolveNode", nodeId: node["nodeId"])
       object_id = resolved["object"]["objectId"]
       page.command("Runtime.callFunctionOn", objectId: object_id, functionDeclaration: %Q(
@@ -141,7 +141,7 @@ module Capybara::Cuprite
       )).dig("result", "value")
     end
 
-    def attributes(page_id, node)
+    def attributes(target_id, node)
       resolved = page.command("DOM.resolveNode", nodeId: node["nodeId"])
       object_id = resolved["object"]["objectId"]
       value = page.command("Runtime.callFunctionOn", objectId: object_id, functionDeclaration: %Q(
@@ -150,7 +150,7 @@ module Capybara::Cuprite
       JSON.parse(value)
     end
 
-    def attribute(page_id, node, name)
+    def attribute(target_id, node, name)
       resolved = page.command("DOM.resolveNode", nodeId: node["nodeId"])
       object_id = resolved["object"]["objectId"]
       page.command("Runtime.callFunctionOn", objectId: object_id, functionDeclaration: %Q(
@@ -158,23 +158,23 @@ module Capybara::Cuprite
       )).dig("result", "value")
     end
 
-    def value(page_id, id)
-      command "value", page_id, id
+    def value(target_id, id)
+      command "value", target_id, id
     end
 
-    def set(page_id, id, value)
-      command "set", page_id, id, value
+    def set(target_id, id, value)
+      command "set", target_id, id, value
     end
 
-    def select_file(page_id, id, value)
-      command "select_file", page_id, id, value
+    def select_file(target_id, id, value)
+      command "select_file", target_id, id, value
     end
 
-    def tag_name(page_id, node)
+    def tag_name(target_id, node)
       node["nodeName"].downcase
     end
 
-    def visible?(page_id, node)
+    def visible?(target_id, node)
       response = page.command("CSS.getComputedStyleForNode", nodeId: node["nodeId"])
       style = response["computedStyle"]
       display = style.find { |s| s["name"] == "display" }["value"]
@@ -183,7 +183,7 @@ module Capybara::Cuprite
       display != "none" && visibility != "hidden" && opacity != "0"
     end
 
-    def disabled?(page_id, node)
+    def disabled?(target_id, node)
       resolved = page.command("DOM.resolveNode", nodeId: node["nodeId"])
       result = page.command("Runtime.callFunctionOn", objectId: resolved["object"]["objectId"], functionDeclaration: %Q(
         function () { return _cuprite.isDisabled(this) }
@@ -196,11 +196,31 @@ module Capybara::Cuprite
       command "click_coordinates", x, y
     end
 
-    # FIXME: *args
     def evaluate(expression, *args)
-      expr = "(#{expression.sub(/;?\z/, "")})"
-      result = page.command("Runtime.evaluate", expression: expr, returnByValue: true)
-      result["result"]["value"]
+      args = args.map do |arg|
+        if arg.is_a?(Node)
+          resolved = page.command("DOM.resolveNode", nodeId: arg.native.node["nodeId"])
+          { objectId: resolved["object"]["objectId"] }
+        else
+          { value: arg }
+        end
+      end
+
+      expression = "(#{expression.sub(/;?\z/, "")})"
+      result = page.command("Runtime.callFunctionOn", arguments: args, executionContextId: page.execution_context_id, functionDeclaration: %Q(
+        function() { return #{expression} }
+      ))["result"]
+
+      if result["subtype"] == "node" && result["objectId"]
+        node = page.command("DOM.describeNode", objectId: result["objectId"])["node"]
+        { "target_id" => page.target_id, "node" => node }
+      elsif result["className"] == "Object"
+        page.command("Runtime.getProperties", objectId: result["objectId"])["result"].reduce({}) do |base, p|
+          p["enumerable"] == true ? base.merge(p["name"] => p["value"]["value"]) : base
+        end
+      else
+        result["value"]
+      end
     end
 
     # FIXME: *args, wait_time, async
@@ -219,7 +239,7 @@ module Capybara::Cuprite
 
     def within_frame(handle)
       if handle.is_a?(Capybara::Node::Base)
-        command "push_frame", [handle.native.page_id, handle.native.id]
+        command "push_frame", [handle.native.target_id, handle.native.node]
       else
         command "push_frame", handle
       end
@@ -232,7 +252,7 @@ module Capybara::Cuprite
     def switch_to_frame(handle)
       case handle
       when Capybara::Node::Base
-        command "push_frame", [handle.native.page_id, handle.native.id]
+        command "push_frame", [handle.native.target_id, handle.native.node]
       when :parent
         command "pop_frame"
       when :top
@@ -240,7 +260,7 @@ module Capybara::Cuprite
       end
     end
 
-    def click(page_id, node, keys = [], offset = {})
+    def click(target_id, node, keys = [], offset = {})
       resolved = page.command("DOM.resolveNode", nodeId: node["nodeId"])
       result = page.command("Runtime.callFunctionOn", objectId: resolved["object"]["objectId"], functionDeclaration: %Q(
         function () { return _cuprite.scrollIntoViewport(this); }
@@ -263,21 +283,21 @@ module Capybara::Cuprite
       x /= 4
       y /= 4
 
-      # command "click", page_id, node, keys, offset
+      # command "click", target_id, node, keys, offset
       page.command("Input.dispatchMouseEvent", type: "mouseMoved", x: x, y: y) # hover then click?
       page.command("Input.dispatchMouseEvent", type: "mousePressed", button: "left", x: x, y: y, clickCount: 1)
       page.command("Input.dispatchMouseEvent", type: "mouseReleased", button: "left", x: x, y: y, clickCount: 1)
     end
 
-    def right_click(page_id, id, keys = [], offset = {})
-      command "right_click", page_id, id, keys, offset
+    def right_click(target_id, id, keys = [], offset = {})
+      command "right_click", target_id, id, keys, offset
     end
 
-    def double_click(page_id, id, keys = [], offset = {})
-      command "double_click", page_id, id, keys, offset
+    def double_click(target_id, id, keys = [], offset = {})
+      command "double_click", target_id, id, keys, offset
     end
 
-    def hover(page_id, node)
+    def hover(target_id, node)
       result = page.command("DOM.getContentQuads", nodeId: node["nodeId"])
       raise "Node is either not visible or not an HTMLElement" if result["quads"].size == 0
 
@@ -294,18 +314,18 @@ module Capybara::Cuprite
       y /= 4
 
       page.command("Input.dispatchMouseEvent", type: "mouseMoved", x: x, y: y)
-      # command "hover", page_id, id
+      # command "hover", target_id, id
     end
 
-    def drag(page_id, id, other_id)
-      command "drag", page_id, id, other_id
+    def drag(target_id, id, other_id)
+      command "drag", target_id, id, other_id
     end
 
-    def drag_by(page_id, id, x, y)
-      command "drag_by", page_id, id, x, y
+    def drag_by(target_id, id, x, y)
+      command "drag_by", target_id, id, x, y
     end
 
-    def select(page_id, node, value)
+    def select(target_id, node, value)
       resolved = page.command("DOM.resolveNode", nodeId: node["nodeId"])
       result = page.command("Runtime.callFunctionOn", objectId: resolved["object"]["objectId"], functionDeclaration: %Q(
         function () { return _cuprite.select(this, #{value}); }
@@ -314,8 +334,8 @@ module Capybara::Cuprite
       result["value"]
     end
 
-    def trigger(page_id, id, event)
-      command "trigger", page_id, id, event.to_s
+    def trigger(target_id, id, event)
+      command "trigger", target_id, id, event.to_s
     end
 
     def scroll_to(left, top)
@@ -347,11 +367,11 @@ module Capybara::Cuprite
       page.resize(width, height)
     end
 
-    def send_keys(page_id, id, keys)
-      command "send_keys", page_id, id, normalize_keys(keys)
+    def send_keys(target_id, id, keys)
+      command "send_keys", target_id, id, normalize_keys(keys)
     end
 
-    def path(page_id, node)
+    def path(target_id, node)
       resolved = page.command("DOM.resolveNode", nodeId: node["nodeId"])
       result = page.command("Runtime.callFunctionOn", objectId: resolved["object"]["objectId"], functionDeclaration: %Q(
         function () { return _cuprite.path(this); }
@@ -372,10 +392,6 @@ module Capybara::Cuprite
       args << user if user
       args << password if password
       command("set_proxy", *args)
-    end
-
-    def equals(page_id, id, other_id)
-      command("equals", page_id, id, other_id)
     end
 
     def get_headers
