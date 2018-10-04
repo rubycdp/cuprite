@@ -610,13 +610,13 @@ module Capybara::Cuprite
           @driver.execute_script "setTimeout(function() { omg }, 0)"
           sleep 0.01
           @driver.execute_script ""
-        end.to raise_error(JavascriptError, /ReferenceError.*omg/)
+        end.to raise_error(JavaScriptError, /ReferenceError.*omg/)
       end
 
       it "propagates a synchronous Javascript error on the page to a ruby exception" do
         expect do
           @driver.execute_script "omg"
-        end.to raise_error(JavascriptError, /ReferenceError.*omg/)
+        end.to raise_error(JavaScriptError, /ReferenceError.*omg/)
       end
 
       it "does not re-raise a Javascript error if it is rescued" do
@@ -624,14 +624,14 @@ module Capybara::Cuprite
           @driver.execute_script "setTimeout(function() { omg }, 0)"
           sleep 0.01
           @driver.execute_script ""
-        end.to raise_error(JavascriptError)
+        end.to raise_error(JavaScriptError)
 
         # should not raise again
         expect(@driver.evaluate_script("1+1")).to eq(2)
       end
 
       it "propagates a Javascript error during page load to a ruby exception" do
-        expect { @session.visit "/cuprite/js_error" }.to raise_error(JavascriptError)
+        expect { @session.visit "/cuprite/js_error" }.to raise_error(JavaScriptError)
       end
 
       it "does not propagate a Javascript error to ruby if error raising disabled" do
