@@ -24,6 +24,7 @@ module Capybara::Cuprite
     delegate %i(command subscribe wait) => :@client
     delegate %i(window_handle window_handles switch_to_window open_new_window
                 close_window find_window_handle within_window reset page) => :@targets
+    delegate %i(evaluate evaluate_async execute) => :@evaluate
 
     def initialize(options = nil)
       options ||= {}
@@ -31,6 +32,7 @@ module Capybara::Cuprite
       @logger = options.fetch(:logger, NullLogger.new)
       @client = Client.new(@process.ws_url, @logger)
       @targets = Targets.new(self, @logger)
+      @evaluate = Evaluate.new(@targets)
     end
 
     def visit(url)
@@ -194,47 +196,6 @@ module Capybara::Cuprite
 
     def click_coordinates(x, y)
       command "click_coordinates", x, y
-    end
-
-    def evaluate(expression, *args)
-      args = args.map do |arg|
-        if arg.is_a?(Node)
-          resolved = page.command("DOM.resolveNode", nodeId: arg.native.node["nodeId"])
-          { objectId: resolved["object"]["objectId"] }
-        else
-          { value: arg }
-        end
-      end
-
-      expression = "(#{expression.sub(/;?\z/, "")})"
-      result = page.command("Runtime.callFunctionOn", arguments: args, executionContextId: page.execution_context_id, functionDeclaration: %Q(
-        function() { return #{expression} }
-      ))["result"]
-
-      if result["subtype"] == "node" && result["objectId"]
-        node = page.command("DOM.describeNode", objectId: result["objectId"])["node"]
-        { "target_id" => page.target_id, "node" => node }
-      elsif result["className"] == "Object"
-        page.command("Runtime.getProperties", objectId: result["objectId"])["result"].reduce({}) do |base, p|
-          p["enumerable"] == true ? base.merge(p["name"] => p["value"]["value"]) : base
-        end
-      else
-        result["value"]
-      end
-    end
-
-    # FIXME: *args, wait_time, async
-    def evaluate_async(expression, wait_time, *args)
-      expr = "(#{expression.sub(/;?\z/, "")})"
-      result = page.command("Runtime.evaluate", expression: expr, returnByValue: true)
-      result["result"]["value"]
-    end
-
-    # FIXME: *args
-    def execute(expression, *args)
-      expr = "(#{expression.sub(/;?\z/, "")})"
-      result = page.command("Runtime.evaluate", expression: expr, returnByValue: false)
-      result["result"]["value"]
     end
 
     def within_frame(handle)
