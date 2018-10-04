@@ -13,18 +13,31 @@ module Capybara::Cuprite
     end
 
     def evaluate(expr, *args)
+      expr = prepare_expression(expr)
       response = call(expr, {}, *args)
       process(result: response)
     end
 
-    # FIXME: *args, wait_time, async
-    def evaluate_async(expression, wait_time, *args)
-      expr = "(#{expression.sub(/;?\z/, "")})"
-      result = page.command("Runtime.evaluate", expression: expr, returnByValue: true)
-      result["result"]["value"]
+    def evaluate_async(expr, wait_time, *args)
+      options = { awaitPromise: true,
+                  functionDeclaration: %Q(
+                    function() {
+                      return new Promise((resolve, reject) => {
+                        try {
+                          arguments[arguments.length] = function(r) { resolve(r) }
+                          #{expr}
+                        } catch(error) {
+                          reject(error)
+                        }
+                      });
+                    }
+                  ) }
+      response = call(expr, options, *args)
+      process(result: response)
     end
 
     def execute(expr, *args)
+      expr = prepare_expression(expr)
       call(expr, { returnByValue: true }, *args)
       true
     end
@@ -33,7 +46,6 @@ module Capybara::Cuprite
 
     def call(expr, options, *args)
       args = prepare_args(args)
-      expr = prepare_expression(expr)
       default_options = { arguments: args,
                           executionContextId: page.execution_context_id,
                           functionDeclaration: %Q(
@@ -65,14 +77,20 @@ module Capybara::Cuprite
       if result["subtype"] == "node"
         node = page.command("DOM.describeNode", objectId: object_id)["node"]
         { "target_id" => page.target_id, "node" => node }
-      elsif result["className"] == "Object"
-        response = page.command("Runtime.getProperties", objectId: object_id)
-        response["result"].reduce(Hash.new) do |base, property|
-          next(base) unless property["enumerable"]
-          base.merge(property["name"] => property.dig("value", "value"))
-        end
+      elsif result["subtype"] == "array"
+        traverse_with(object_id, []) { |base, k, v| base.insert(k.to_i, v) }
+      elsif result["type"] == "object" && result["className"] == "Object"
+        traverse_with(object_id, {}) { |base, k, v| base.merge(k => v) }
       else
         result["value"]
+      end
+    end
+
+    def traverse_with(object_id, object)
+      response = page.command("Runtime.getProperties", objectId: object_id)
+      response["result"].reduce(object) do |base, prop|
+        next(base) unless prop["enumerable"]
+        yield(base, prop["name"], prop.dig("value", "value"))
       end
     end
   end
