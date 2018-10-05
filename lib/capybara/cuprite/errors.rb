@@ -24,11 +24,11 @@ module Capybara
     end
 
     class JavaScriptError < ClientError
-      attr_reader :message
+      attr_reader :class_name, :message
 
-      def initialize(response, error, message)
-        super(response)
-        @error, @message = error, message
+      def initialize(response)
+        super
+        @class_name, @message = response.values_at("className", "description")
       end
     end
 
@@ -59,17 +59,13 @@ module Capybara
     end
 
     class InvalidSelector < ClientError
-      def method
-        response["args"][0]
-      end
-
-      def selector
-        response["args"][1]
+      def initialize(response, method, selector)
+        super(response)
+        @method, @selector = method, selector
       end
 
       def message
-        "The browser raised a syntax error while trying to evaluate " \
-          "#{method} selector #{selector.inspect}"
+        "Browser raised error trying to find #{@method}: #{@selector.inspect}"
       end
     end
 
