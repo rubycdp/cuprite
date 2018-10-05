@@ -52,7 +52,9 @@ module Capybara::Cuprite
                             function() { return #{expr} }
                           ) }
       options = default_options.merge(options)
-      page.command("Runtime.callFunctionOn", **options)["result"]
+      page.command("Runtime.callFunctionOn", **options)["result"].tap do |response|
+        raise JavaScriptError.new(response) if response["subtype"] == "error"
+      end
     end
 
     def prepare_args(args)
@@ -90,8 +92,6 @@ module Capybara::Cuprite
           traverse_with(object_id, []) { |base, k, v| base.insert(k.to_i, v) }
         when "date"
           result["description"]
-        when "error"
-          raise JavaScriptError.new(result, result["className"], result["description"])
         when "null"
           nil
         else

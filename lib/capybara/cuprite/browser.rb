@@ -74,8 +74,19 @@ module Capybara::Cuprite
       command "parents", target_id, id
     end
 
-    def find(_, selector)
+    def find(method, selector)
       results = []
+
+      begin
+        response = execute("_cuprite.find('#{method}', '#{selector}')")
+      rescue JavaScriptError => e
+        if e.class_name == "InvalidSelector"
+          raise InvalidSelector.new(response, method, selector)
+        else
+          raise
+        end
+      end
+
       response = page.command("DOM.performSearch", query: selector)
       search_id, count = response["searchId"], response["resultCount"]
 
