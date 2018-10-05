@@ -78,7 +78,7 @@ module Capybara::Cuprite
       when "boolean", "number", "string"
         result["value"]
       when "undefined"
-        "undefined"
+        nil
       when "function"
         result["description"]
       when "object"

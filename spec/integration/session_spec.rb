@@ -356,7 +356,7 @@ describe Capybara::Session do
       expect(@session.evaluate_script("null")).to be_nil
       expect(@session.evaluate_script("false")).to be false
       expect(@session.evaluate_script("true")).to be true
-      expect(@session.evaluate_script("undefined")).to eq("undefined")
+      expect(@session.evaluate_script("undefined")).to eq(nil)
 
       expect(@session.evaluate_script("31337")).to eq(31337)
       expect(@session.evaluate_script(%("string"))).to eq("string")
