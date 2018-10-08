@@ -81,26 +81,36 @@ module Capybara::Cuprite
       when "object"
         case result["subtype"]
         when "node"
-          node = page.command("DOM.describeNode", objectId: object_id)["node"]
-          { "target_id" => page.target_id, "node" => node }
+          node_id = page.command("DOM.requestNode", objectId: object_id)["nodeId"]
+          node = page.command("DOM.describeNode", nodeId: node_id)["node"]
+          { "target_id" => page.target_id, "node" => node.merge("nodeId" => node_id) }
         when "array"
-          traverse_with(object_id, []) { |base, k, v| base.insert(k.to_i, v) }
+          reduce_properties(object_id, Array.new) do |memo, key, value|
+            next(memo) unless (Integer(key) rescue nil)
+            value = value["objectId"] ? process(result: value) : value["value"]
+            memo.insert(key.to_i, value)
+          end
         when "date"
           result["description"]
         when "null"
           nil
         else
-          traverse_with(object_id, {}) { |base, k, v| base.merge(k => v) }
+          reduce_properties(object_id, Hash.new) do |memo, key, value|
+            memo.merge(key => value)
+          end
         end
       end
     end
 
-    def traverse_with(object_id, object)
-      response = page.command("Runtime.getProperties", objectId: object_id)
-      response["result"].reduce(object) do |base, prop|
-        next(base) unless prop["enumerable"]
-        yield(base, prop["name"], prop.dig("value", "value"))
+    def reduce_properties(object_id, object)
+      properties(object_id).reduce(object) do |memo, prop|
+        next(memo) unless prop["enumerable"]
+        yield(memo, prop["name"], prop["value"])
       end
+    end
+
+    def properties(object_id)
+      page.command("Runtime.getProperties", objectId: object_id)["result"]
     end
   end
 end

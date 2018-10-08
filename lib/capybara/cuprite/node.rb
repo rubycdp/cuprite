@@ -185,7 +185,7 @@ module Capybara::Cuprite
     end
 
     def inspect
-      %(#<#{self.class} @target_id="#{@target_id}" @node="#{@node}">)
+      %(#<#{self.class} @target_id=#{@target_id.inspect} @node=#{@node.inspect}>)
     end
 
     # @api private

@@ -74,36 +74,20 @@ module Capybara::Cuprite
     end
 
     def find(method, selector)
-      results = []
-
       begin
-        response = execute("_cuprite.find(arguments[0], arguments[1])", method, selector)
+        evaluate("_cuprite.find(arguments[0], arguments[1])", method, selector).map do |element|
+          # nodeType: 3, nodeName: "#text" e.g.
+          target_id, node = element.values_at("target_id", "node")
+          next if node["nodeType"] != 1
+          node["selector"] = selector
+          [target_id, node]
+        end.compact
       rescue JavaScriptError => e
         if e.class_name == "InvalidSelector"
-          raise InvalidSelector.new(response, method, selector)
-        else
-          raise
+          raise InvalidSelector.new(e.response, method, selector)
         end
+        raise
       end
-
-      response = page.command("DOM.performSearch", query: selector)
-      search_id, count = response["searchId"], response["resultCount"]
-
-      if count == 0
-        page.command("DOM.discardSearchResults", searchId: search_id)
-        return results
-      end
-
-      response = page.command("DOM.getSearchResults", searchId: search_id, fromIndex: 0, toIndex: count)
-      results = response["nodeIds"].map do |node_id|
-        node = page.command("DOM.describeNode", nodeId: node_id)["node"]
-        next if node["nodeType"] != 1 # nodeType: 3, nodeName: "#text" for example
-        node["nodeId"] = node_id
-        node["selector"] = selector
-        [page.target_id, node]
-      end.compact
-
-      Array(results)
     end
 
     def find_within(target_id, node, method, selector)
@@ -146,8 +130,8 @@ module Capybara::Cuprite
       page.evaluate(node, %Q(_cuprite.getAttribute(this, "#{name}")))
     end
 
-    def value(target_id, id)
-      command "value", target_id, id
+    def value(_target_id, node)
+      page.evaluate(node, "_cuprite.value(this)")
     end
 
     def set(target_id, id, value)
