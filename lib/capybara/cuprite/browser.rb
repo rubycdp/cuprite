@@ -113,61 +113,37 @@ module Capybara::Cuprite
     end
 
     def all_text(target_id, node)
-      resolved = page.command("DOM.resolveNode", nodeId: node["nodeId"])
-      object_id = resolved["object"]["objectId"]
-      response = page.command("Runtime.callFunctionOn", objectId: object_id, functionDeclaration: %Q(
-        function () { return this.textContent }
-      ))
-
-      response["result"]["value"]
+      page.evaluate(node, "this.textContent")
     end
 
     def visible_text(target_id, node)
       begin
-        resolved = page.command("DOM.resolveNode", nodeId: node["nodeId"])
-        object_id = resolved["object"]["objectId"]
+        page.evaluate(node, "this.innerText")
       rescue BrowserError => e
+        # FIXME ObsoleteNode first arg is node, so it should be in node class
         if e.message == "No node with given id found"
           raise ObsoleteNode.new(self, e.response)
         end
 
         raise
       end
-
-      response = page.command("Runtime.callFunctionOn", objectId: object_id, functionDeclaration: %Q(
-        function () { return this.innerText }
-      ))
-
-      response["result"]["value"]
     end
 
     def delete_text(target_id, id)
       command "delete_text", target_id, id
     end
 
-    def property(target_id, node, name)
-      resolved = page.command("DOM.resolveNode", nodeId: node["nodeId"])
-      object_id = resolved["object"]["objectId"]
-      page.command("Runtime.callFunctionOn", objectId: object_id, functionDeclaration: %Q(
-        function () { return this["#{name}"] }
-      )).dig("result", "value")
+    def property(_target_id, node, name)
+      page.evaluate(node, %Q(this["#{name}"]))
     end
 
     def attributes(target_id, node)
-      resolved = page.command("DOM.resolveNode", nodeId: node["nodeId"])
-      object_id = resolved["object"]["objectId"]
-      value = page.command("Runtime.callFunctionOn", objectId: object_id, functionDeclaration: %Q(
-        function () { return _cuprite.getAttributes(this) }
-      )).dig("result", "value")
+      value = page.evaluate(node, "_cuprite.getAttributes(this)")
       JSON.parse(value)
     end
 
     def attribute(target_id, node, name)
-      resolved = page.command("DOM.resolveNode", nodeId: node["nodeId"])
-      object_id = resolved["object"]["objectId"]
-      page.command("Runtime.callFunctionOn", objectId: object_id, functionDeclaration: %Q(
-        function () { return _cuprite.getAttribute(this, "#{name}") }
-      )).dig("result", "value")
+      page.evaluate(node, %Q(_cuprite.getAttribute(this, "#{name}")))
     end
 
     def value(target_id, id)
@@ -195,13 +171,8 @@ module Capybara::Cuprite
       display != "none" && visibility != "hidden" && opacity != "0"
     end
 
-    def disabled?(target_id, node)
-      resolved = page.command("DOM.resolveNode", nodeId: node["nodeId"])
-      result = page.command("Runtime.callFunctionOn", objectId: resolved["object"]["objectId"], functionDeclaration: %Q(
-        function () { return _cuprite.isDisabled(this) }
-      ))["result"]
-
-      result["value"]
+    def disabled?(_target_id, node)
+      page.evaluate(node, "_cuprite.isDisabled(this)")
     end
 
     def click_coordinates(x, y)
@@ -232,12 +203,8 @@ module Capybara::Cuprite
     end
 
     def click(target_id, node, keys = [], offset = {})
-      resolved = page.command("DOM.resolveNode", nodeId: node["nodeId"])
-      result = page.command("Runtime.callFunctionOn", objectId: resolved["object"]["objectId"], functionDeclaration: %Q(
-        function () { return _cuprite.scrollIntoViewport(this); }
-      ))["result"]
-
-      raise MouseEventFailed.new(node, nil) unless result["value"]
+      value = page.evaluate(node, "_cuprite.scrollIntoViewport(this)")
+      raise MouseEventFailed.new(node, nil) unless value
 
       result = page.command("DOM.getContentQuads", nodeId: node["nodeId"])
       raise "Node is either not visible or not an HTMLElement" if result["quads"].size == 0
@@ -296,13 +263,8 @@ module Capybara::Cuprite
       command "drag_by", target_id, id, x, y
     end
 
-    def select(target_id, node, value)
-      resolved = page.command("DOM.resolveNode", nodeId: node["nodeId"])
-      result = page.command("Runtime.callFunctionOn", objectId: resolved["object"]["objectId"], functionDeclaration: %Q(
-        function () { return _cuprite.select(this, #{value}); }
-      ))["result"]
-
-      result["value"]
+    def select(_target_id, node, value)
+      page.evaluate(node, "_cuprite.select(this, #{value})")
     end
 
     def trigger(target_id, id, event)
@@ -343,12 +305,7 @@ module Capybara::Cuprite
     end
 
     def path(target_id, node)
-      resolved = page.command("DOM.resolveNode", nodeId: node["nodeId"])
-      result = page.command("Runtime.callFunctionOn", objectId: resolved["object"]["objectId"], functionDeclaration: %Q(
-        function () { return _cuprite.path(this); }
-      ))["result"]
-
-      result["value"]
+      page.evaluate(node, "_cuprite.path(this)")
     end
 
     def network_traffic(type = nil)

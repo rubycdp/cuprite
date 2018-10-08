@@ -76,6 +76,14 @@ module Capybara::Cuprite
         command("Emulation.setDeviceMetricsOverride", width: width, height: height, deviceScaleFactor: 1, mobile: false)
       end
 
+      def evaluate(node, expr)
+        resolved = command("DOM.resolveNode", nodeId: node["nodeId"])
+        object_id = resolved.dig("object", "objectId")
+        command("Runtime.callFunctionOn", objectId: object_id, functionDeclaration: %Q(
+          function () { return #{expr} }
+        )).dig("result", "value")
+      end
+
       private
 
       def read(filename)
