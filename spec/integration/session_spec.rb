@@ -358,6 +358,7 @@ describe Capybara::Session do
       expect(@session.evaluate_script("true")).to be true
       expect(@session.evaluate_script("undefined")).to eq(nil)
 
+      expect(@session.evaluate_script("3;")).to eq(3)
       expect(@session.evaluate_script("31337")).to eq(31337)
       expect(@session.evaluate_script(%("string"))).to eq("string")
       expect(@session.evaluate_script(%({foo: "bar"}))).to eq("foo" => "bar")
@@ -369,10 +370,6 @@ describe Capybara::Session do
       expect(@session.evaluate_script("new Function")).to eq("function anonymous(\n) {\n\n}")
 
       expect { @session.evaluate_script(%(throw "smth")) }.to raise_error(Capybara::Cuprite::JavaScriptError)
-    end
-
-    it "can evaluate a statement ending with a semicolon" do
-      expect(@session.evaluate_script("3;")).to eq(3)
     end
 
     it "synchronises page loads properly" do

@@ -13,7 +13,6 @@ module Capybara::Cuprite
     end
 
     def evaluate(expr, *args)
-      expr = prepare_expression(expr)
       response = call(expr, {}, *args)
       process(result: response)
     end
@@ -24,7 +23,8 @@ module Capybara::Cuprite
                     function() {
                       return new Promise((resolve, reject) => {
                         try {
-                          arguments[arguments.length] = function(r) { resolve(r) }
+                          let callback = function(r) { resolve(r) }
+                          arguments[arguments.length] = callback
                           #{expr}
                         } catch(error) {
                           reject(error)
@@ -37,7 +37,6 @@ module Capybara::Cuprite
     end
 
     def execute(expr, *args)
-      expr = prepare_expression(expr)
       call(expr, { returnByValue: true }, *args)
       true
     end
@@ -67,10 +66,6 @@ module Capybara::Cuprite
           { value: arg }
         end
       end
-    end
-
-    def prepare_expression(expression)
-      "(#{expression.sub(/;?\z/, "")})"
     end
 
     def process(result:)
