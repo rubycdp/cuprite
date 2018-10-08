@@ -78,7 +78,7 @@ module Capybara::Cuprite
       results = []
 
       begin
-        response = execute("_cuprite.find('#{method}', '#{selector}')")
+        response = execute("_cuprite.find(arguments[0], arguments[1])", method, selector)
       rescue JavaScriptError => e
         if e.class_name == "InvalidSelector"
           raise InvalidSelector.new(response, method, selector)
