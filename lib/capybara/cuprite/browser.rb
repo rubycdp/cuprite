@@ -40,8 +40,7 @@ module Capybara::Cuprite
     end
 
     def current_url
-      response = page.command("Runtime.evaluate", expression: "location.href")
-      response["result"]["value"]
+      evaluate("location.href")
     end
 
     def frame_url
