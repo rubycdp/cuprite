@@ -4,6 +4,29 @@ require "forwardable"
 
 module Capybara::Cuprite
   class Evaluate
+    EXECUTE_OPTIONS = {
+      returnByValue: true
+    }.freeze
+    DEFAULT_OPTIONS = {
+      functionDeclaration: %Q(function() { return %s })
+    }.freeze
+    EVALUATE_ASYNC_OPTIONS = {
+      awaitPromise: true,
+      functionDeclaration: %Q(
+        function() {
+         return new Promise((cupriteResolve, cupriteReject) => {
+           try {
+             let cupriteCallback = function(r) { cupriteResolve(r) }
+             arguments[arguments.length] = cupriteCallback
+             %s
+           } catch(error) {
+             cupriteReject(error)
+           }
+         });
+        }
+      )
+    }.freeze
+
     extend Forwardable
 
     delegate %i(page) => :@targets
@@ -13,44 +36,30 @@ module Capybara::Cuprite
     end
 
     def evaluate(expr, *args)
-      response = call(expr, {}, *args)
-      process(result: response)
+      response = call(expr, nil, *args)
+      handle(response)
     end
 
-    def evaluate_async(expr, wait_time, *args)
-      options = { awaitPromise: true,
-                  functionDeclaration: %Q(
-                    function() {
-                      return new Promise((resolve, reject) => {
-                        try {
-                          let callback = function(r) { resolve(r) }
-                          arguments[arguments.length] = callback
-                          #{expr}
-                        } catch(error) {
-                          reject(error)
-                        }
-                      });
-                    }
-                  ) }
-      response = call(expr, options, *args)
-      process(result: response)
+    def evaluate_async(expr, _wait_time, *args)
+      response = call(expr, EVALUATE_ASYNC_OPTIONS, *args)
+      handle(response)
     end
 
     def execute(expr, *args)
-      call(expr, { returnByValue: true }, *args)
+      call(expr, EXECUTE_OPTIONS, *args)
       true
     end
 
     private
 
-    def call(expr, options, *args)
+    def call(expr, options = nil, *args)
+      options ||= {}
       args = prepare_args(args)
-      default_options = { arguments: args,
-                          executionContextId: page.execution_context_id,
-                          functionDeclaration: %Q(
-                            function() { return #{expr} }
-                          ) }
-      options = default_options.merge(options)
+
+      options = DEFAULT_OPTIONS.merge(options)
+      options[:functionDeclaration] = options[:functionDeclaration] % expr
+      options = options.merge(arguments: args, executionContextId: page.execution_context_id)
+
       page.command("Runtime.callFunctionOn", **options)["result"].tap do |response|
         raise JavaScriptError.new(response) if response["subtype"] == "error"
       end
@@ -62,55 +71,93 @@ module Capybara::Cuprite
           node_id = arg.native.node["nodeId"]
           resolved = page.command("DOM.resolveNode", nodeId: node_id)
           { objectId: resolved["object"]["objectId"] }
+        elsif arg.is_a?(Hash) && arg["objectId"]
+          { objectId: arg["objectId"] }
         else
           { value: arg }
         end
       end
     end
 
-    def process(result:)
-      object_id = result["objectId"]
-
-      case result["type"]
+    def handle(response, cleanup = true)
+      case response["type"]
       when "boolean", "number", "string"
-        result["value"]
+        response["value"]
       when "undefined"
         nil
       when "function"
-        result["description"]
+        response["description"]
       when "object"
-        case result["subtype"]
+        case response["subtype"]
         when "node"
-          node_id = page.command("DOM.requestNode", objectId: object_id)["nodeId"]
+          node_id = page.command("DOM.requestNode", objectId: response["objectId"])["nodeId"]
           node = page.command("DOM.describeNode", nodeId: node_id)["node"]
           { "target_id" => page.target_id, "node" => node.merge("nodeId" => node_id) }
         when "array"
-          reduce_properties(object_id, Array.new) do |memo, key, value|
+          reduce_properties(response["objectId"], Array.new) do |memo, key, value|
             next(memo) unless (Integer(key) rescue nil)
-            value = value["objectId"] ? process(result: value) : value["value"]
+            value = value["objectId"] ? handle(value, false) : value["value"]
             memo.insert(key.to_i, value)
           end
         when "date"
-          result["description"]
+          response["description"]
         when "null"
           nil
         else
-          reduce_properties(object_id, Hash.new) do |memo, key, value|
-            memo.merge(key => value["value"])
+          reduce_properties(response["objectId"], Hash.new) do |memo, key, value|
+            value = value["objectId"] ? handle(value, false) : value["value"]
+            memo.merge(key => value)
           end
         end
       end
+    ensure
+      clean if cleanup
     end
 
     def reduce_properties(object_id, object)
-      properties(object_id).reduce(object) do |memo, prop|
-        next(memo) unless prop["enumerable"]
-        yield(memo, prop["name"], prop["value"])
+      if visited?(object_id)
+        "(cyclic structure)"
+      else
+        properties(object_id).reduce(object) do |memo, prop|
+          next(memo) unless prop["enumerable"]
+          yield(memo, prop["name"], prop["value"])
+        end
       end
     end
 
     def properties(object_id)
       page.command("Runtime.getProperties", objectId: object_id)["result"]
+    end
+
+    # Every `Runtime.getProperties` call on the same object returns new object
+    # id each time {"objectId":"{\"injectedScriptId\":1,\"id\":1}"} and it's
+    # impossible to check that two objects are actually equal. This workaround
+    # does equality check only in JS runtime. `_cuprite` can be inavailable here
+    # if page is about:blank for example.
+    def visited?(object_id)
+      expr = %Q(
+        let object = arguments[0];
+        let callback = arguments[1];
+
+        if (window._cupriteVisitedObjects === undefined) {
+          window._cupriteVisitedObjects = [];
+        }
+
+        let visited = window._cupriteVisitedObjects;
+        if (visited.some(o => o === object)) {
+          callback(true);
+        } else {
+          visited.push(object);
+          callback(false);
+        }
+      )
+
+      response = call(expr, EVALUATE_ASYNC_OPTIONS, { "objectId" => object_id })
+      handle(response, false)
+    end
+
+    def clean
+      execute("delete window._cupriteVisitedObjects")
     end
   end
 end
