@@ -372,6 +372,29 @@ describe Capybara::Session do
       expect { @session.evaluate_script(%(throw "smth")) }.to raise_error(Capybara::Cuprite::JavaScriptError)
     end
 
+    it "ignores cyclic structure errors in evaluate_script" do
+      code = <<-JS
+        (function() {
+          var a = {};
+          var b = {};
+          var c = {};
+          c.a = a;
+          a.a = a;
+          a.b = b;
+          a.c = c;
+          return a;
+        })()
+      JS
+
+      expect(@session.evaluate_script(code)).to eq(
+        "a" => "(cyclic structure)",
+        "b" => {},
+        "c" => {
+          "a" => "(cyclic structure)"
+        }
+      )
+    end
+
     it "synchronises page loads properly" do
       @session.visit "/cuprite/index"
       @session.click_link "JS redirect"
@@ -525,22 +548,6 @@ describe Capybara::Session do
 
         expect(@session.status_code).to eq(402)
       end
-    end
-
-    it "ignores cyclic structure errors in evaluate_script" do
-      code = <<-JS
-        (function() {
-          var a = {};
-          var b = {};
-          var c = {};
-          c.a = a;
-          a.a = a;
-          a.b = b;
-          a.c = c;
-          return a;
-        })()
-      JS
-      expect(@session.evaluate_script(code)).to eq("a" => "(cyclic structure)", "b" => {}, "c" => { "a" => "(cyclic structure)" })
     end
 
     if Capybara::VERSION.to_f < 3.0
