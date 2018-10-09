@@ -96,7 +96,7 @@ module Capybara::Cuprite
           nil
         else
           reduce_properties(object_id, Hash.new) do |memo, key, value|
-            memo.merge(key => value)
+            memo.merge(key => value["value"])
           end
         end
       end
