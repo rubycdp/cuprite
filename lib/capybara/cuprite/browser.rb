@@ -74,26 +74,13 @@ module Capybara::Cuprite
     end
 
     def find(method, selector)
-      begin
-        evaluate("_cuprite.find(arguments[0], arguments[1])", method, selector).map do |element|
-          # nodeType: 3, nodeName: "#text" e.g.
-          target_id, node = element.values_at("target_id", "node")
-          next if node["nodeType"] != 1
-          node["selector"] = selector
-          [target_id, node]
-        end.compact
-      rescue JavaScriptError => e
-        if e.class_name == "InvalidSelector"
-          raise InvalidSelector.new(e.response, method, selector)
-        end
-        raise
-      end
+      find_all(method, selector)
     end
 
-    def find_within(target_id, node, method, selector)
-      selector = selector.sub(/\A\.\/\//, "//")
-      selector = "(#{node["selector"]})#{selector}"
-      find(method, selector).map { |p, n| n }
+    def find_within(_target_id, node, method, selector)
+      resolved = page.command("DOM.resolveNode", nodeId: node["nodeId"])
+      object_id = resolved.dig("object", "objectId")
+      find_all(method, selector, { "objectId" => object_id })
     end
 
     def all_text(target_id, node)
@@ -146,13 +133,8 @@ module Capybara::Cuprite
       node["nodeName"].downcase
     end
 
-    def visible?(target_id, node)
-      response = page.command("CSS.getComputedStyleForNode", nodeId: node["nodeId"])
-      style = response["computedStyle"]
-      display = style.find { |s| s["name"] == "display" }["value"]
-      visibility = style.find { |s| s["name"] == "visibility" }["value"]
-      opacity = style.find { |s| s["name"] == "opacity" }["value"]
-      display != "none" && visibility != "hidden" && opacity != "0"
+    def visible?(_target_id, node)
+      page.evaluate(node, "_cuprite.isVisible(this)")
     end
 
     def disabled?(_target_id, node)
@@ -405,6 +387,28 @@ module Capybara::Cuprite
       return if !options[:full] || !options.key?(:selector)
       warn "Ignoring :selector in #render since :full => true was given at #{caller(1..1).first}"
       options.delete(:selector)
+    end
+
+    def find_all(method, selector, within = nil)
+      begin
+        elements = if within
+          evaluate("_cuprite.find(arguments[0], arguments[1], arguments[2])", method, selector, within)
+        else
+          evaluate("_cuprite.find(arguments[0], arguments[1])", method, selector)
+        end
+
+        elements.map do |element|
+          # nodeType: 3, nodeName: "#text" e.g.
+          target_id, node = element.values_at("target_id", "node")
+          next if node["nodeType"] != 1
+          within ? node : [target_id, node]
+        end.compact
+      rescue JavaScriptError => e
+        if e.class_name == "InvalidSelector"
+          raise InvalidSelector.new(e.response, method, selector)
+        end
+        raise
+      end
     end
   end
 end
