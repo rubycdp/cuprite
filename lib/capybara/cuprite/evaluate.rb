@@ -16,11 +16,12 @@ module Capybara::Cuprite
         function() {
          return new Promise((cupriteResolve, cupriteReject) => {
            try {
-             let cupriteCallback = function(r) { cupriteResolve(r) }
-             arguments[arguments.length] = cupriteCallback
+             let cupriteCallback = function(r) { cupriteResolve(r) };
+             arguments[arguments.length] = cupriteCallback;
+             arguments.length = arguments.length + 1;
              %s
            } catch(error) {
-             cupriteReject(error)
+             cupriteReject(error);
            }
          });
         }
