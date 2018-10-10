@@ -3,7 +3,7 @@
 require "spec_helper"
 
 module Capybara::Cuprite
-  describe Driver do
+  describe Driver, skip: true do
     context "with no options" do
       subject { Driver.new(nil) }
 

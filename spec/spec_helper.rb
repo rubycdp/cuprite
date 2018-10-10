@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-PUMPKINHEAD_ROOT = File.expand_path("..", __dir__)
-$:.unshift(PUMPKINHEAD_ROOT + "/lib")
+CUPRITE_ROOT = File.expand_path("..", __dir__)
+$:.unshift(CUPRITE_ROOT + "/lib")
 
 require "bundler/setup"
 

@@ -170,7 +170,7 @@ describe Capybara::Session do
       end
     end
 
-    describe "Node#set" do
+    describe "Node#set", skip: true do
       before do
         @session.visit("/cuprite/with_js")
         @session.find(:css, "#change_me").set("Hello!")
@@ -338,19 +338,19 @@ describe Capybara::Session do
       expect(@session).to have_content("Hello world")
     end
 
-    # FIXME: hangs
-    # it "handles window.confirm(), returning true unconditionally" do
-    #   @session.visit "/"
-    #   expect(@session.evaluate_script(%(window.confirm("foo")))).to be true
-    # end
+    it "handles window.confirm(), returning true unconditionally" do
+      skip
+      @session.visit "/"
+      expect(@session.evaluate_script(%(window.confirm("foo")))).to be true
+    end
 
-    # FIXME: hangs
-    # it "handles window.prompt(), returning the default value or null" do
-    #   @session.visit "/"
-    #   # Disabling because I"m not sure this is really valid
-    #   # expect(@session.evaluate_script("window.prompt()")).to be_nil
-    #   expect(@session.evaluate_script(%(window.prompt("foo", "default")))).to eq("default")
-    # end
+    it "handles window.prompt(), returning the default value or null" do
+      skip
+      @session.visit "/"
+      # Disabling because I"m not sure this is really valid
+      # expect(@session.evaluate_script("window.prompt()")).to be_nil
+      expect(@session.evaluate_script(%(window.prompt("foo", "default")))).to eq("default")
+    end
 
     it "handles evaluate_script values properly" do
       expect(@session.evaluate_script("null")).to be_nil
@@ -423,6 +423,7 @@ describe Capybara::Session do
       end
 
       it "fixes some weird layout issue that we are not entirely sure about the reason for" do
+        skip
         @session.visit "/cuprite/datepicker"
         @session.find(:css, "#datepicker").set("2012-05-11")
         @session.click_link "some link"
@@ -432,7 +433,7 @@ describe Capybara::Session do
         expect { @session.find(:css, "#myrect").click }.not_to raise_error
       end
 
-      context "with #two overlapping #one" do
+      context "with #two overlapping #one", skip: true do
         before do
           @session.execute_script <<-JS
             var two = document.getElementById("two")
@@ -451,7 +452,7 @@ describe Capybara::Session do
           }
         end
 
-        it "clicks in the centre of an element" do
+        it "clicks in the center of an element" do
           expect do
             @session.find(:css, "#one").click
           end.to raise_error(Capybara::Cuprite::MouseEventFailed) { |error|
@@ -459,7 +460,7 @@ describe Capybara::Session do
           }
         end
 
-        it "clicks in the centre of an element within the viewport, if part is outside the viewport" do
+        it "clicks in the center of an element within the viewport, if part is outside the viewport" do
           @session.driver.resize(200, 200)
 
           expect do
@@ -470,7 +471,7 @@ describe Capybara::Session do
         end
       end
 
-      context "with #svg overlapping #one" do
+      context "with #svg overlapping #one", skip: true do
         before do
           @session.execute_script <<-JS
             var two = document.getElementById("svg")
@@ -490,7 +491,7 @@ describe Capybara::Session do
         end
       end
 
-      context "with image maps" do
+      context "with image maps", skip: true do
         before do
           @session.visit("/cuprite/image_map")
         end
@@ -513,7 +514,7 @@ describe Capybara::Session do
       end
     end
 
-    context "double click tests" do
+    context "double click tests", skip: true do
       before do
         @session.visit "/cuprite/double_click_test"
       end
@@ -530,7 +531,7 @@ describe Capybara::Session do
       end
     end
 
-    context "status code support", status_code_support: true do
+    context "status code support", status_code_support: true, skip: true do
       it "determines status code when an user goes to a page by using a link on it" do
         @session.visit "/cuprite/with_different_resources"
 
@@ -602,7 +603,7 @@ describe Capybara::Session do
       end
     end
 
-    context "dragging support" do
+    context "dragging support", skip: true do
       before do
         @session.visit "/cuprite/drag"
       end
@@ -631,7 +632,7 @@ describe Capybara::Session do
       end
     end
 
-    context "window switching support" do
+    context "window switching support", skip: true do
       it "waits for the window to load" do
         @session.visit "/"
 
@@ -674,7 +675,7 @@ describe Capybara::Session do
       end
     end
 
-    context "frame support" do
+    context "frame support", skip: true do
       it "supports selection by index" do
         @session.visit "/cuprite/frames"
 
@@ -856,6 +857,7 @@ describe Capybara::Session do
     end
 
     it "handles obsolete node during an attach_file" do
+      skip
       @session.visit "/cuprite/attach_file"
       @session.attach_file "file", __FILE__
     end
@@ -871,6 +873,7 @@ describe Capybara::Session do
     end
 
     it "should submit form" do
+      skip
       @session.visit("/cuprite/send_keys")
       @session.find(:css, "#without_submit_button").trigger("submit")
       expect(@session.find(:css, "#without_submit_button input").value).to eq("Submitted")
@@ -934,12 +937,13 @@ describe Capybara::Session do
     end
 
     it "knows about its parents" do
+      skip
       @session.visit "/cuprite/simple"
       parents = @session.find(:css, "#nav").native.parents
       expect(parents.map(&:tag_name)).to eq %w[li ul body html]
     end
 
-    context "SVG tests" do
+    context "SVG tests", skip: true do
       before do
         @session.visit "/cuprite/svg_test"
       end
@@ -949,7 +953,7 @@ describe Capybara::Session do
       end
     end
 
-    context "modals" do
+    context "modals", skip: true do
       it "matches on partial strings" do
         @session.visit "/cuprite/with_js"
         expect do
@@ -1004,6 +1008,7 @@ describe Capybara::Session do
     end
 
     it "can go back when history state has been pushed" do
+      skip
       @session.visit("/")
       @session.execute_script(%(window.history.pushState({foo: "bar"}, "title", "bar2.html");))
       expect(@session).to have_current_path("/bar2.html")
@@ -1012,6 +1017,7 @@ describe Capybara::Session do
     end
 
     it "can go forward when history state is used" do
+      skip
       @session.visit("/")
       @session.execute_script(%(window.history.pushState({foo: "bar"}, "title", "bar2.html");))
       expect(@session).to have_current_path("/bar2.html")
