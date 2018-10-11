@@ -5,7 +5,8 @@ require "forwardable"
 module Capybara::Cuprite
   class Evaluate
     EXECUTE_OPTIONS = {
-      returnByValue: true
+      returnByValue: true,
+      functionDeclaration: %Q(function() { %s })
     }.freeze
     DEFAULT_OPTIONS = {
       functionDeclaration: %Q(function() { return %s })
