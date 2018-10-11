@@ -6,8 +6,8 @@ class TestApp
   configure do
     set :protection, except: :frame_options
   end
-  POLTERGEIST_VIEWS  = File.dirname(__FILE__) + "/views"
-  POLTERGEIST_PUBLIC = File.dirname(__FILE__) + "/public"
+  CUPRITE_VIEWS  = File.dirname(__FILE__) + "/views"
+  CUPRITE_PUBLIC = File.dirname(__FILE__) + "/public"
 
   helpers do
     def requires_credentials(login, password)
@@ -24,17 +24,17 @@ class TestApp
 
   get "/cuprite/test.js" do
     content_type :js
-    File.read("#{POLTERGEIST_PUBLIC}/test.js")
+    File.read("#{CUPRITE_PUBLIC}/test.js")
   end
 
   get "/cuprite/jquery.min.js" do
     content_type :js
-    File.read("#{POLTERGEIST_PUBLIC}/jquery-1.11.3.min.js")
+    File.read("#{CUPRITE_PUBLIC}/jquery-1.11.3.min.js")
   end
 
   get "/cuprite/jquery-ui.min.js" do
     content_type :js
-    File.read("#{POLTERGEIST_PUBLIC}/jquery-ui-1.11.4.min.js")
+    File.read("#{CUPRITE_PUBLIC}/jquery-ui-1.11.4.min.js")
   end
 
   get "/cuprite/unexist.png" do
@@ -96,6 +96,6 @@ class TestApp
   protected
 
   def render_view(view)
-    erb File.read("#{POLTERGEIST_VIEWS}/#{view}.erb")
+    erb File.read("#{CUPRITE_VIEWS}/#{view}.erb")
   end
 end
