@@ -2,15 +2,14 @@
 
 require "spec_helper"
 
-# skip = []
-# skip << :windows if ENV["TRAVIS"]
-# skip << :download # Browser doesn't support downloading files
-# Capybara::SpecHelper.run_specs TestSessions::Cuprite, "Cuprite", capybara_skip: skip
+skip = []
+skip << :windows if ENV["TRAVIS"]
+skip << :download # Browser doesn't support downloading files
+Capybara::SpecHelper.run_specs TestSessions::Cuprite, "Cuprite", capybara_skip: skip
 
 describe Capybara::Session do
   context "with cuprite driver" do
     before { @session = TestSessions::Cuprite }
-    after { @session.reset! } # FIXME: Remove when uncomment capybara
 
     describe Capybara::Cuprite::Node do
       it "raises an error if the element has been removed from the DOM" do
