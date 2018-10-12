@@ -70,8 +70,6 @@ RSpec.configure do |config|
     case metadata[:full_description]
     when /^Capybara::Session Cuprite #select input with datalist should select an option/
       metadata[:pending] = "Browser does not support datalist"
-    when /^Capybara::Session Cuprite #click_button should follow permanent redirects that maintain method/
-      metadata[:pending] = "Browser does not support 308 HTTP response code"
     end
   end
 
