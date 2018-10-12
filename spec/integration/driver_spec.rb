@@ -226,6 +226,29 @@ module Capybara::Cuprite
       end
     end
 
+    describe "#save_screenshot parameters" do
+      let(:format) { :png }
+      let(:file_path) { CUPRITE_ROOT + "/spec/tmp/screenshot.#{format}" }
+
+      before(:each) { FileUtils.rm_f file_path }
+
+      it 'save screenshot with default parameters' do
+        @session.visit("/")
+
+        screenshot_path = @driver.save_screenshot(file_path)
+
+        expect(File).to exist(file_path)
+      end
+
+      it 'raising unsupported format error' do
+        @session.visit("/")
+
+        expect {
+          @driver.save_screenshot(file_path, format: 'gif')
+        }.to raise_error("Unsupported screenshot format")
+      end
+    end
+
     describe "#save_screenshot", skip: true do
       let(:format) { :png }
       let(:file) { CUPRITE_ROOT + "/spec/tmp/screenshot.#{format}" }

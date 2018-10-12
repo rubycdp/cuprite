@@ -242,16 +242,16 @@ module Capybara::Cuprite
     end
 
     def render(path, _options = {})
-      # check_render_options!(options)
-      # options[:full] = !!options[:full]
-      data = Base64.decode64(render_base64)
-      File.open(path.to_s, "w") { |f| f.write(data) }
+      format = _options[:format] || 'png'
+      base64 = render_base64(format, _options)
+      data = Base64.decode64(base64)
+      File.open(path, "w") { |file| file.write(data) }
     end
 
-    def render_base64(format = "png", _options = {})
-      # check_render_options!(options)
-      # options[:full] = !!options[:full]
-      page.command("Page.captureScreenshot", format: format)["data"]
+    def render_base64(format = 'png', _options = {})
+      raise "Unsupported screenshot format" unless %w(jpeg png).include?(format.to_s)
+      render_options = filter_render_options(_options)
+      page.command("Page.captureScreenshot", render_options)["data"]
     end
 
     def set_zoom_factor(zoom_factor)
@@ -383,10 +383,8 @@ module Capybara::Cuprite
 
     private
 
-    def check_render_options!(options)
-      return if !options[:full] || !options.key?(:selector)
-      warn "Ignoring :selector in #render since :full => true was given at #{caller(1..1).first}"
-      options.delete(:selector)
+    def filter_render_options(options = {})
+      options.slice *%i(format quality clip fromSurface)
     end
 
     def find_all(method, selector, within = nil)
