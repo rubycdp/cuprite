@@ -5,3 +5,4 @@ source "https://rubygems.org"
 gemspec
 
 gem "puma"
+gem "capybara", path: "../capybara"
