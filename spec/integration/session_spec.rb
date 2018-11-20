@@ -337,14 +337,12 @@ describe Capybara::Session do
       expect(@session).to have_content("Hello world")
     end
 
-    it "handles window.confirm(), returning true unconditionally" do
-      skip
+    it "handles window.confirm(), returning true unconditionally", skip: true do
       @session.visit "/"
       expect(@session.evaluate_script(%(window.confirm("foo")))).to be true
     end
 
-    it "handles window.prompt(), returning the default value or null" do
-      skip
+    it "handles window.prompt(), returning the default value or null", skip: true do
       @session.visit "/"
       # Disabling because I"m not sure this is really valid
       # expect(@session.evaluate_script("window.prompt()")).to be_nil
@@ -421,8 +419,7 @@ describe Capybara::Session do
         end
       end
 
-      it "fixes some weird layout issue that we are not entirely sure about the reason for" do
-        skip
+      it "fixes some weird layout issue that we are not entirely sure about the reason for", skip: true do
         @session.visit "/cuprite/datepicker"
         @session.find(:css, "#datepicker").set("2012-05-11")
         @session.click_link "some link"
@@ -631,7 +628,7 @@ describe Capybara::Session do
       end
     end
 
-    context "window switching support", skip: true do
+    context "window switching support" do
       it "waits for the window to load" do
         @session.visit "/"
 
@@ -855,8 +852,7 @@ describe Capybara::Session do
       end
     end
 
-    it "handles obsolete node during an attach_file" do
-      skip
+    it "handles obsolete node during an attach_file", skip: true do
       @session.visit "/cuprite/attach_file"
       @session.attach_file "file", __FILE__
     end
@@ -871,8 +867,7 @@ describe Capybara::Session do
       expect { @session.find(:xpath, "#remove_me") }.to raise_error(Capybara::Cuprite::InvalidSelector)
     end
 
-    it "should submit form" do
-      skip
+    it "should submit form", skip: true do
       @session.visit("/cuprite/send_keys")
       @session.find(:css, "#without_submit_button").trigger("submit")
       expect(@session.find(:css, "#without_submit_button input").value).to eq("Submitted")
@@ -935,8 +930,7 @@ describe Capybara::Session do
       )
     end
 
-    it "knows about its parents" do
-      skip
+    it "knows about its parents", skip: true do
       @session.visit "/cuprite/simple"
       parents = @session.find(:css, "#nav").native.parents
       expect(parents.map(&:tag_name)).to eq %w[li ul body html]
@@ -1006,8 +1000,7 @@ describe Capybara::Session do
       end
     end
 
-    it "can go back when history state has been pushed" do
-      skip
+    it "can go back when history state has been pushed", skip: true do
       @session.visit("/")
       @session.execute_script(%(window.history.pushState({foo: "bar"}, "title", "bar2.html");))
       expect(@session).to have_current_path("/bar2.html")
@@ -1015,8 +1008,7 @@ describe Capybara::Session do
       expect(@session).to have_current_path("/")
     end
 
-    it "can go forward when history state is used" do
-      skip
+    it "can go forward when history state is used", skip: true do
       @session.visit("/")
       @session.execute_script(%(window.history.pushState({foo: "bar"}, "title", "bar2.html");))
       expect(@session).to have_current_path("/bar2.html")
