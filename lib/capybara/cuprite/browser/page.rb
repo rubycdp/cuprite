@@ -91,6 +91,9 @@ module Capybara::Cuprite
       end
 
       def subscribe_events
+        subscribe("Runtime.consoleAPICalled") do |params|
+          params["args"].each { |r| @logger.write(r["value"]) }
+        end
         subscribe("Runtime.executionContextCreated") do |params|
           @execution_context_id = params.dig("context", "id")
         end
@@ -115,6 +118,7 @@ module Capybara::Cuprite
         command("DOM.enable")
         command("CSS.enable")
         command("Runtime.enable")
+        command("Log.enable")
         command("Page.addScriptToEvaluateOnNewDocument", source: read("index.js"))
 
         response = command("Page.getNavigationHistory")
