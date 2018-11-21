@@ -181,19 +181,13 @@ RSpec.configure do |config|
         should be false after the field has been filled in with the given value
         should be true after the field has been filled in with a different value
         #dismiss_confirm
-        #become_closed
-        #switch_to_window
-        #windows
-        Capybara::Window
         #within_window
-        #window_opened_by
         should get the title of the top level browsing context
         should encode complex field names, like array[][value]
         #attach_file
         should not find element if it appears after given wait duration
         #accept_alert
         should raise an error
-        should be modified by switching to another window
         should select self by clicking the label if no locator specified
         #dismiss_prompt
         #refresh
@@ -219,6 +213,8 @@ RSpec.configure do |config|
         can match select box approximately
         should return the unmodified page source
         should return the current state of the page
+        should raise error when invoked inside `within_frame` as it's nonsense
+        should be able to fullscreen the window
       REGEXP
 
       metadata[:skip] = true if metadata[:full_description].match?(/#{regexes}/)

@@ -95,7 +95,12 @@ module Capybara::Cuprite
           params["args"].each { |r| @logger.write(r["value"]) }
         end
         subscribe("Runtime.executionContextCreated") do |params|
-          @execution_context_id = params.dig("context", "id")
+          @execution_context_id ||= params.dig("context", "id")
+        end
+        subscribe("Runtime.executionContextDestroyed") do |params|
+          if @execution_context_id == params["executionContextId"]
+            @execution_context_id = nil
+          end
         end
         subscribe("Page.windowOpen") { targets.refresh }
         subscribe("Page.frameStartedLoading") do |params|
