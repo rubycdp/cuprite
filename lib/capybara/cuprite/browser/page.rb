@@ -157,7 +157,17 @@ module Capybara::Cuprite
           # opens a new window for which `Page.frameStoppedLoading` event never
           # occurs and thus search for nodes cannot be completed. Here we check
           # the history and if the event for example `link` then content is
-          # already loaded and we can try to get the document.
+          # already loaded and we can try to get the document. It is not only
+          # true for this event in particular, see other issues:
+          # https://github.com/GoogleChrome/puppeteer/issues/1443
+          # https://github.com/ChromeDevTools/devtools-protocol/issues/77
+          # https://github.com/cyrus-and/chrome-remote-interface/issues/319
+          # We also evaluate script manually because `Page.addScriptToEvaluateOnNewDocument`
+          # doesn't work in popup windows.
+
+          command("Runtime.evaluate", expression: read("index.js"),
+                                      contextId: @execution_context_id,
+                                      returnByValue: true)
           command("DOM.getDocument", depth: 0)["root"]
         end
       end
