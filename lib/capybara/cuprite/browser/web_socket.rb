@@ -55,7 +55,7 @@ module Capybara::Cuprite
         data = JSON.parse(event.data)
 
         if block = @subscribed[data["method"]]
-          Thread.new { block.call(data["params"]) }
+          Thread.new { block.call(data["params"]) }.join
         end
 
         @messages << data

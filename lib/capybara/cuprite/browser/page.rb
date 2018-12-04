@@ -25,14 +25,16 @@ module Capybara::Cuprite
     class Page
       extend Forwardable
 
-      delegate [:command, :wait, :subscribe] => :@client
+      delegate [:wait, :subscribe] => :@client
       delegate targets: :@browser
 
-      attr_reader :target_id, :execution_context_id
+      attr_reader :target_id
 
       def initialize(target_id, browser, logger)
         @target_id = target_id
         @browser, @logger = browser, logger
+        @query_root_node = false
+        @execution_context_mutex = Mutex.new
 
         begin
           @session_id = @browser.command("Target.attachToTarget", targetId: @target_id)["sessionId"]
@@ -84,6 +86,22 @@ module Capybara::Cuprite
         )).dig("result", "value")
       end
 
+      def execution_context_id
+        @execution_context_mutex.synchronize { @execution_context_id }
+      end
+
+      def command(*args)
+        if @query_root_node
+          begin
+            @client.command("DOM.getDocument", depth: 0)["root"]
+          ensure
+            @query_root_node = false
+          end
+        end
+
+        @client.command(*args)
+      end
+
       private
 
       def read(filename)
@@ -96,11 +114,19 @@ module Capybara::Cuprite
         end
         subscribe("Runtime.executionContextCreated") do |params|
           @execution_context_id ||= params.dig("context", "id")
+          @execution_context_mutex.unlock if @execution_context_mutex.locked?
         end
         subscribe("Runtime.executionContextDestroyed") do |params|
           if @execution_context_id == params["executionContextId"]
+            @execution_context_mutex.lock
             @execution_context_id = nil
           end
+        end
+        subscribe("Runtime.executionContextsCleared") do
+          # If we didn't have time to set context id at the beginning we have
+          # to set lock and release it when we set something.
+          @execution_context_id = nil
+          @execution_context_mutex.lock
         end
         subscribe("Page.windowOpen") { targets.refresh }
         subscribe("Page.frameStartedLoading") do |params|
@@ -112,9 +138,8 @@ module Capybara::Cuprite
           # It returns node with nodeId 1 and nodeType 9 from which descend the
           # tree and we save it in a variable because if we call that again root
           # node will change the id and all subsequent nodes have to change id too.
-          if params["frameId"] == @frame_id
-            command("DOM.getDocument", depth: 0)["root"]
-          end
+          # `command` is not allowed in the block as it will deadlock the process.
+          @query_root_node = true if params["frameId"] == @frame_id
         end
       end
 
