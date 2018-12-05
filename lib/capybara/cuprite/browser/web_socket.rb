@@ -46,12 +46,12 @@ module Capybara::Cuprite
 
       def send_message(data)
         json = data.to_json
-        @logger.write ">>> #{json}"
+        @logger.write "\n\n>>> #{json}"
         @driver.text(json)
       end
 
       def on_message(event)
-        @logger.write "    <<< #{event.data}\n\n"
+        @logger.write "    <<< #{event.data}\n"
         data = JSON.parse(event.data)
 
         if block = @subscribed[data["method"]]

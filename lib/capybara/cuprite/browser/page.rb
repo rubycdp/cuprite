@@ -28,7 +28,7 @@ module Capybara::Cuprite
       delegate [:wait, :subscribe] => :@client
       delegate targets: :@browser
 
-      attr_reader :target_id
+      attr_reader :target_id, :status_code
 
       def initialize(target_id, browser, logger)
         @target_id = target_id
@@ -93,7 +93,7 @@ module Capybara::Cuprite
       def command(*args)
         if @query_root_node
           begin
-            @client.command("DOM.getDocument", depth: 0)["root"]
+            get_document
           ensure
             @query_root_node = false
           end
@@ -141,6 +141,18 @@ module Capybara::Cuprite
           # `command` is not allowed in the block as it will deadlock the process.
           @query_root_node = true if params["frameId"] == @frame_id
         end
+        subscribe("Network.requestWillBeSent") do |params|
+          @request_id = params["requestId"] if params["type"] == "Document"
+        end
+        subscribe("Network.responseReceived") do |params|
+          if params["requestId"] == @request_id
+            @status_code = params.dig("response", "status")
+          end
+        end
+        subscribe("Page.domContentEventFired") do |params|
+          # `Page.frameStoppedLoading` doesn't occur if status isn't success
+          @query_root_node = true if @status_code != 200
+        end
       end
 
       def prepare_page
@@ -149,6 +161,7 @@ module Capybara::Cuprite
         command("CSS.enable")
         command("Runtime.enable")
         command("Log.enable")
+        command("Network.enable")
         command("Page.addScriptToEvaluateOnNewDocument", source: read("index.js"))
 
         response = command("Page.getNavigationHistory")
@@ -168,8 +181,12 @@ module Capybara::Cuprite
           command("Runtime.evaluate", expression: read("index.js"),
                                       contextId: @execution_context_id,
                                       returnByValue: true)
-          command("DOM.getDocument", depth: 0)["root"]
+          get_document
         end
+      end
+
+      def get_document
+        @client.command("DOM.getDocument", depth: 0)["root"]
       end
     end
   end

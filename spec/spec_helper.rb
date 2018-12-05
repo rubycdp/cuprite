@@ -79,7 +79,6 @@ RSpec.configure do |config|
         should restrict scope to a fieldset given by id
         should restrict scope to a fieldset given by legend
         should return response headers
-        should return response codes
         should fill in a text field by id
         should fill in a text field by name
         should fill in a text field by label without for

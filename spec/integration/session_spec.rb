@@ -527,7 +527,7 @@ describe Capybara::Session do
       end
     end
 
-    context "status code support", status_code_support: true, skip: true do
+    context "status code support", status_code_support: true do
       it "determines status code when an user goes to a page by using a link on it" do
         @session.visit "/cuprite/with_different_resources"
 

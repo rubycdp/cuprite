@@ -48,7 +48,7 @@ module Capybara::Cuprite
     end
 
     def status_code
-      command "status_code"
+      page.status_code
     end
 
     def body
