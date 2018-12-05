@@ -37,7 +37,7 @@ Both are bad. Download it from official [source](https://www.chromium.org/gettin
 
 ## Known issues ##
 
-# Race condition:
+## Race condition: ##
 
 ```
 Failures:
