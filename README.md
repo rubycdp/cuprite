@@ -35,9 +35,9 @@ As Chromium is stopped being built as a package for Linux don't even try to
 install it this way because it will either be outdated or unofficial package.
 Both are bad. Download it from official [source](https://www.chromium.org/getting-involved/download-chromium).
 
-## Known issues ##
+## Known issues: ##
 
-## Race condition: ##
+### Race condition ###
 
 ```
 Failures:
