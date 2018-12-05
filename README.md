@@ -35,6 +35,27 @@ As Chromium is stopped being built as a package for Linux don't even try to
 install it this way because it will either be outdated or unofficial package.
 Both are bad. Download it from official [source](https://www.chromium.org/getting-involved/download-chromium).
 
+## Known issues ##
+
+# Race condition:
+
+Failures:
+
+  1) Capybara::Session with cuprite driver current_url returns about:blank when on about:blank
+     Failure/Error: raise BrowserError.new(error) if error
+
+     Capybara::Cuprite::BrowserError:
+       Cannot find context with specified id
+     # ./lib/capybara/cuprite/browser/client.rb:52:in `handle'
+     # ./lib/capybara/cuprite/browser/client.rb:23:in `command'
+     # ./lib/capybara/cuprite/browser/page.rb:102:in `command'
+     # ./lib/capybara/cuprite/evaluate.rb:65:in `call'
+     # ./lib/capybara/cuprite/evaluate.rb:41:in `evaluate'
+     # ./lib/capybara/cuprite/browser.rb:43:in `current_url'
+     # ./lib/capybara/cuprite/driver.rb:42:in `current_url'
+     # /home/route/Projects/Ruby/capybara/lib/capybara/session.rb:216:in `current_url'
+     # ./spec/integration/session_spec.rb:598:in `block (4 levels) in <top (required)>'
+
 ## License ##
 
 Copyright 2018 Machinio
