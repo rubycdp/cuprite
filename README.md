@@ -39,6 +39,7 @@ Both are bad. Download it from official [source](https://www.chromium.org/gettin
 
 # Race condition:
 
+```
 Failures:
 
   1) Capybara::Session with cuprite driver current_url returns about:blank when on about:blank
@@ -55,6 +56,7 @@ Failures:
      # ./lib/capybara/cuprite/driver.rb:42:in `current_url'
      # /home/route/Projects/Ruby/capybara/lib/capybara/session.rb:216:in `current_url'
      # ./spec/integration/session_spec.rb:598:in `block (4 levels) in <top (required)>'
+```
 
 ## License ##
 
