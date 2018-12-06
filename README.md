@@ -42,54 +42,47 @@ Both are bad. Download it from official [source](https://www.chromium.org/gettin
 ```
 Failures:
 
-  1) Capybara::Session with cuprite driver current_url returns about:blank when on about:blank
-     Failure/Error: raise BrowserError.new(error) if error
+1) Capybara::Session with cuprite driver current_url returns about:blank when on about:blank
+Failure/Error: raise BrowserError.new(error) if error
 
-     Capybara::Cuprite::BrowserError:
-       Cannot find context with specified id
-     # ./lib/capybara/cuprite/browser/client.rb:52:in `handle'
-     # ./lib/capybara/cuprite/browser/client.rb:23:in `command'
-     # ./lib/capybara/cuprite/browser/page.rb:102:in `command'
-     # ./lib/capybara/cuprite/evaluate.rb:65:in `call'
-     # ./lib/capybara/cuprite/evaluate.rb:41:in `evaluate'
-     # ./lib/capybara/cuprite/browser.rb:43:in `current_url'
-     # ./lib/capybara/cuprite/driver.rb:42:in `current_url'
-     # /home/route/Projects/Ruby/capybara/lib/capybara/session.rb:216:in `current_url'
-     # ./spec/integration/session_spec.rb:598:in `block (4 levels) in <top (required)>'
+Capybara::Cuprite::BrowserError: Cannot find context with specified id
+# ./lib/capybara/cuprite/browser/client.rb:52:in `handle'
+# ./lib/capybara/cuprite/browser/client.rb:23:in `command'
+# ./lib/capybara/cuprite/browser/page.rb:102:in `command'
+# ./lib/capybara/cuprite/evaluate.rb:65:in `call'
+# ./lib/capybara/cuprite/evaluate.rb:41:in `evaluate'
+# ./lib/capybara/cuprite/browser.rb:43:in `current_url'
+# ./lib/capybara/cuprite/driver.rb:42:in `current_url'
+# /home/route/Projects/Ruby/capybara/lib/capybara/session.rb:216:in `current_url'
+# ./spec/integration/session_spec.rb:598:in `block (4 levels) in <top (required)>'
 
 
-Failures:
+2) Capybara::Session with cuprite driver Capybara::Cuprite::Node raises an error if the element has been removed from the DOM
+Failure/Error: node = @session.find(:css, "#remove_me")
 
- 1) Capybara::Session with cuprite driver Capybara::Cuprite::Node raises an error if the element has been removed from the DOM
-    Failure/Error: node = @session.find(:css, "#remove_me")
+Capybara::ElementNotFound: Unable to find css "#remove_me"
+# /home/route/Projects/Ruby/capybara/lib/capybara/node/finders.rb:302:in `block in synced_resolve'
+# /home/route/Projects/Ruby/capybara/lib/capybara/node/base.rb:82:in `synchronize'
+# /home/route/Projects/Ruby/capybara/lib/capybara/node/finders.rb:293:in `synced_resolve'
+# /home/route/Projects/Ruby/capybara/lib/capybara/node/finders.rb:48:in `find'
+# /home/route/Projects/Ruby/capybara/lib/capybara/session.rb:732:in `block (2 levels) in <class:Session>'
+# ./spec/integration/session_spec.rb:17:in `block (4 levels) in <top (required)>'
 
-    Capybara::ElementNotFound:
-      Unable to find css "#remove_me"
-    # /home/route/Projects/Ruby/capybara/lib/capybara/node/finders.rb:302:in `block in synced_resolve'
-    # /home/route/Projects/Ruby/capybara/lib/capybara/node/base.rb:82:in `synchronize'
-    # /home/route/Projects/Ruby/capybara/lib/capybara/node/finders.rb:293:in `synced_resolve'
-    # /home/route/Projects/Ruby/capybara/lib/capybara/node/finders.rb:48:in `find'
-    # /home/route/Projects/Ruby/capybara/lib/capybara/session.rb:732:in `block (2 levels) in <class:Session>'
-    # ./spec/integration/session_spec.rb:17:in `block (4 levels) in <top (required)>'
+3) Capybara::Session with cuprite driver Capybara::Cuprite::Node when the element is not in the viewport and is then brought in clicks properly
+Failure/Error: expect { @session.click_link "O hai" }.to_not raise_error
 
-    2) Capybara::Session with cuprite driver Capybara::Cuprite::Node when the element is not in the viewport and is then brought in clicks properly
-       Failure/Error: expect { @session.click_link "O hai" }.to_not raise_error
-
-         expected no Exception, got #<Capybara::Cuprite::MouseEventFailed: Capybara::Cuprite::MouseEventFailed> with backtrace:
-           # ./lib/capybara/cuprite/browser.rb:173:in `click'
-           # ./lib/capybara/cuprite/node.rb:17:in `command'
-           # ./lib/capybara/cuprite/node.rb:144:in `click'
-           # /home/route/Projects/Ruby/capybara/lib/capybara/node/element.rb:156:in `block in click'
-           # /home/route/Projects/Ruby/capybara/lib/capybara/node/base.rb:82:in `synchronize'
-           # /home/route/Projects/Ruby/capybara/lib/capybara/node/element.rb:156:in `click'
-           # /home/route/Projects/Ruby/capybara/lib/capybara/node/actions.rb:41:in `click_link'
-           # /home/route/Projects/Ruby/capybara/lib/capybara/session.rb:732:in `block (2 levels) in <class:Session>'
-           # ./spec/integration/session_spec.rb:96:in `block (7 levels) in <top (required)>'
-           # ./spec/integration/session_spec.rb:96:in `block (6 levels) in <top (required)>'
-       # ./spec/integration/session_spec.rb:96:in `block (6 levels) in <top (required)>'
-
-Finished in 95 minutes 57 seconds (files took 1.34 seconds to load)
-1370 examples, 2 failures, 352 pending
+expected no Exception, got #<Capybara::Cuprite::MouseEventFailed: Capybara::Cuprite::MouseEventFailed> with backtrace:
+# ./lib/capybara/cuprite/browser.rb:173:in `click'
+# ./lib/capybara/cuprite/node.rb:17:in `command'
+# ./lib/capybara/cuprite/node.rb:144:in `click'
+# /home/route/Projects/Ruby/capybara/lib/capybara/node/element.rb:156:in `block in click'
+# /home/route/Projects/Ruby/capybara/lib/capybara/node/base.rb:82:in `synchronize'
+# /home/route/Projects/Ruby/capybara/lib/capybara/node/element.rb:156:in `click'
+# /home/route/Projects/Ruby/capybara/lib/capybara/node/actions.rb:41:in `click_link'
+# /home/route/Projects/Ruby/capybara/lib/capybara/session.rb:732:in `block (2 levels) in <class:Session>'
+# ./spec/integration/session_spec.rb:96:in `block (7 levels) in <top (required)>'
+# ./spec/integration/session_spec.rb:96:in `block (6 levels) in <top (required)>'
+# ./spec/integration/session_spec.rb:96:in `block (6 levels) in <top (required)>'
 ```
 
 ## License ##
