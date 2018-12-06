@@ -358,7 +358,7 @@ module Capybara::Cuprite
     end
 
     def refresh
-      command "refresh"
+      page.command("Page.reload")
     end
 
     def accept_confirm

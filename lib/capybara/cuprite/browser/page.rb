@@ -164,23 +164,23 @@ module Capybara::Cuprite
         command("Network.enable")
         command("Page.addScriptToEvaluateOnNewDocument", source: read("index.js"))
 
+        # https://github.com/GoogleChrome/puppeteer/issues/1443
+        # https://github.com/ChromeDevTools/devtools-protocol/issues/77
+        # https://github.com/cyrus-and/chrome-remote-interface/issues/319
+        # We also evaluate script just in case because
+        # `Page.addScriptToEvaluateOnNewDocument` doesn't work in popups.
+        command("Runtime.evaluate", expression: read("index.js"),
+                                    contextId: @execution_context_id,
+                                    returnByValue: true)
+
+
         response = command("Page.getNavigationHistory")
         if response.dig("entries", 0, "transitionType") != "typed"
           # If we create page by clicking links, submiting forms and so on it
           # opens a new window for which `Page.frameStoppedLoading` event never
           # occurs and thus search for nodes cannot be completed. Here we check
-          # the history and if the event for example `link` then content is
-          # already loaded and we can try to get the document. It is not only
-          # true for this event in particular, see other issues:
-          # https://github.com/GoogleChrome/puppeteer/issues/1443
-          # https://github.com/ChromeDevTools/devtools-protocol/issues/77
-          # https://github.com/cyrus-and/chrome-remote-interface/issues/319
-          # We also evaluate script manually because `Page.addScriptToEvaluateOnNewDocument`
-          # doesn't work in popup windows.
-
-          command("Runtime.evaluate", expression: read("index.js"),
-                                      contextId: @execution_context_id,
-                                      returnByValue: true)
+          # the history and if the transitionType for example `link` then
+          # content is already loaded and we can try to get the document.
           get_document
         end
       end

@@ -75,9 +75,6 @@ RSpec.configure do |config|
         should do nothing on anchor links
         should do nothing on URL+anchor links for the same page
         should fill in a field and click a button
-        should restrict scope to a fieldset given by id
-        should restrict scope to a fieldset given by legend
-        should return response headers
         should fill in a text field by id
         should fill in a text field by name
         should fill in a text field by label without for
@@ -86,8 +83,6 @@ RSpec.configure do |config|
         should fill in a textarea by label
         should fill in a textarea by name
         should fill in a password field by id
-        should handle HTML in a textarea
-        should handle newlines in a textarea
         should fill in a field with a custom type
         should fill in a field without a type
         should fill in a text field respecting its maxlength attribute
@@ -95,48 +90,33 @@ RSpec.configure do |config|
         should fill in a password field by label
         should fill in a field based on current value
         should fill in a field based on type
+        should fill the field even if the caret was not at the end
+        should fill in a date input
+        should fill in a time input
+        should fill in a datetime input
         should be able to fill in element called on when no locator passed
+        should restrict scope to a fieldset given by id
+        should restrict scope to a fieldset given by legend
+        should return response headers
+        should handle HTML in a textarea
+        should handle newlines in a textarea
         should wait for asynchronous load
         casts to string
         casts to string if field has maxlength
         fills in a field if default_set_options is nil
         should return the element filled in
-        should fill in a date input
-        should fill in a time input
-        should fill in a datetime input
         should only trigger onchange once
         should trigger change when clearing field
         should accept partial matches when false
         should fetch a response from the driver from the previous page
-        should return the url in a frame
-        should return the url in FrameTwo
-        should return the url in the main frame
-        should find the div in frameOne
-        should find the div in FrameTwo
-        should return to the parent frame when told to
-        should be able to switch to nested frames
-        should reset scope when changing frames
-        works if the frame is closed
-        can return to the top frame
-        should raise error if switching to parent unmatched inside `within` as it's nonsense
-        should raise error if switching to top inside a `within` in a frame as it's nonsense
-        should raise error if switching to top inside a nested `within` in a frame as it's nonsense
-        should find the text div in the main window after finding text in frameOne
-        should find the text div in the main window after finding text in frameTwo
-        should return the result of executing the block
-        should find the div given Element
-        should find the div given selector and locator
-        should default to the :frame selector kind when only options passed
-        should default to the :frame selector when no options passed
-        should find multiple nested frames
-        should return the title in a frame
-        should return the title in FrameTwo
-        should return the title in the main frame
+        #frame_url
+        #within_frame
+        #switch_to_frame
+        #frame_title
         should act like a session object
         should not swallow leading newlines for set content in textarea
         return any HTML content in textarea
         should allow assignment of field value
-        should fill the field even if the caret was not at the end
         should allow me to change the contents
         should allow me to set the contents
         should allow me to change the contents of a child element
@@ -169,10 +149,8 @@ RSpec.configure do |config|
         should accept the confirm
         should return the message presented
         should work with nested modals
-        resets page body
-        is synchronous
-        handles modals during unload
-        handles already open modals
+        #reset_session! handles modals during unload
+        #reset_session! handles already open modals
         should find the first element using the given locator
         should be true after the field has been filled in with the given value
         should be false after the field has been filled in with a different value
@@ -187,9 +165,8 @@ RSpec.configure do |config|
         #accept_alert
         should raise an error
         should select self by clicking the label if no locator specified
-        #dismiss_prompt
-        #refresh
         #accept_prompt
+        #dismiss_prompt
         doesn't prepend base tag to pages when asset_host is nil
         should return nil when nothing was found if count options allow no results
         should accept an XPath instance
