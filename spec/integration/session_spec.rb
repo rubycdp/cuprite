@@ -510,7 +510,7 @@ describe Capybara::Session do
       end
     end
 
-    context "double click tests", skip: true do
+    context "double click tests" do
       before do
         @session.visit "/cuprite/double_click_test"
       end

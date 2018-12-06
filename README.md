@@ -72,9 +72,24 @@ Failures:
     # /home/route/Projects/Ruby/capybara/lib/capybara/session.rb:732:in `block (2 levels) in <class:Session>'
     # ./spec/integration/session_spec.rb:17:in `block (4 levels) in <top (required)>'
 
-Finished in 95 minutes 57 seconds (files took 1.34 seconds to load)
-1370 examples, 1 failure, 359 pending
+    2) Capybara::Session with cuprite driver Capybara::Cuprite::Node when the element is not in the viewport and is then brought in clicks properly
+       Failure/Error: expect { @session.click_link "O hai" }.to_not raise_error
 
+         expected no Exception, got #<Capybara::Cuprite::MouseEventFailed: Capybara::Cuprite::MouseEventFailed> with backtrace:
+           # ./lib/capybara/cuprite/browser.rb:173:in `click'
+           # ./lib/capybara/cuprite/node.rb:17:in `command'
+           # ./lib/capybara/cuprite/node.rb:144:in `click'
+           # /home/route/Projects/Ruby/capybara/lib/capybara/node/element.rb:156:in `block in click'
+           # /home/route/Projects/Ruby/capybara/lib/capybara/node/base.rb:82:in `synchronize'
+           # /home/route/Projects/Ruby/capybara/lib/capybara/node/element.rb:156:in `click'
+           # /home/route/Projects/Ruby/capybara/lib/capybara/node/actions.rb:41:in `click_link'
+           # /home/route/Projects/Ruby/capybara/lib/capybara/session.rb:732:in `block (2 levels) in <class:Session>'
+           # ./spec/integration/session_spec.rb:96:in `block (7 levels) in <top (required)>'
+           # ./spec/integration/session_spec.rb:96:in `block (6 levels) in <top (required)>'
+       # ./spec/integration/session_spec.rb:96:in `block (6 levels) in <top (required)>'
+
+Finished in 95 minutes 57 seconds (files took 1.34 seconds to load)
+1370 examples, 2 failures, 352 pending
 ```
 
 ## License ##

@@ -125,12 +125,6 @@ RSpec.configure do |config|
         should drag and drop if scrolling is needed
         should drag a link
         should allow hovering on an element that needs to be scrolled into view
-        should allow modifiers
-        should allow multiple modifiers
-        should allow to adjust the click offset
-        should double click an element
-        should allow to adjust the offset
-        should right click an element
         should send a string of keys to an element
         should send special characters
         should allow for multiple simultaneous keys

@@ -169,56 +169,27 @@ module Capybara::Cuprite
     end
 
     def click(target_id, node, keys = [], offset = {})
-      value = page.evaluate(node, "_cuprite.scrollIntoViewport(this)")
-      raise MouseEventFailed.new(node, nil) unless value
-
-      result = page.command("DOM.getContentQuads", nodeId: node["nodeId"])
-      raise "Node is either not visible or not an HTMLElement" if result["quads"].size == 0
-
-      # FIXME: Case when a few quads returned
-      quads = result["quads"].map do |quad|
-        [{x: quad[0], y: quad[1]},
-         {x: quad[2], y: quad[3]},
-         {x: quad[4], y: quad[5]},
-         {x: quad[6], y: quad[7]}]
-      end
-
-      x, y = quads[0].inject([0, 0]) { |b, p| [b[0] + p[:x], b[1] + p[:y]] }
-      x /= 4
-      y /= 4
-
-      # command "click", target_id, node, keys, offset
-      page.command("Input.dispatchMouseEvent", type: "mouseMoved", x: x, y: y) # hover then click?
-      page.command("Input.dispatchMouseEvent", type: "mousePressed", button: "left", x: x, y: y, clickCount: 1)
-      page.command("Input.dispatchMouseEvent", type: "mouseReleased", button: "left", x: x, y: y, clickCount: 1)
+      x, y, modifiers = prepare_before_click(node, keys, offset)
+      page.command("Input.dispatchMouseEvent", type: "mousePressed", modifiers: modifiers, button: "left", x: x, y: y, clickCount: 1)
+      page.command("Input.dispatchMouseEvent", type: "mouseReleased", modifiers: modifiers, button: "left", x: x, y: y, clickCount: 1)
     end
 
-    def right_click(target_id, id, keys = [], offset = {})
-      command "right_click", target_id, id, keys, offset
+    def right_click(target_id, node, keys = [], offset = {})
+      x, y, modifiers = prepare_before_click(node, keys, offset)
+      page.command("Input.dispatchMouseEvent", type: "mousePressed", modifiers: modifiers, button: "right", x: x, y: y, clickCount: 1)
+      page.command("Input.dispatchMouseEvent", type: "mouseReleased", modifiers: modifiers, button: "right", x: x, y: y, clickCount: 1)
     end
 
-    def double_click(target_id, id, keys = [], offset = {})
-      command "double_click", target_id, id, keys, offset
+    def double_click(target_id, node, keys = [], offset = {})
+      x, y, modifiers = prepare_before_click(node, keys, offset)
+      page.command("Input.dispatchMouseEvent", type: "mousePressed", modifiers: modifiers, button: "left", x: x, y: y, clickCount: 2)
+      page.command("Input.dispatchMouseEvent", type: "mouseReleased", modifiers: modifiers, button: "left", x: x, y: y, clickCount: 2)
     end
 
+    # FIXME: target_id, keys, offset
     def hover(target_id, node)
-      result = page.command("DOM.getContentQuads", nodeId: node["nodeId"])
-      raise "Node is either not visible or not an HTMLElement" if result["quads"].size == 0
-
-      # FIXME: Case when a few quad returned
-      quads = result["quads"].map do |quad|
-        [{x: quad[0], y: quad[1]},
-         {x: quad[2], y: quad[3]},
-         {x: quad[4], y: quad[5]},
-         {x: quad[6], y: quad[7]}]
-      end
-
-      x, y = quads[0].inject([0, 0]) { |b, p| [b[0] + p[:x], b[1] + p[:y]] }
-      x /= 4
-      y /= 4
-
+      x, y = calculate_quads(node)
       page.command("Input.dispatchMouseEvent", type: "mouseMoved", x: x, y: y)
-      # command "hover", target_id, id
     end
 
     def drag(target_id, id, other_id)
@@ -409,6 +380,49 @@ module Capybara::Cuprite
         end
         raise
       end
+    end
+
+    def prepare_before_click(node, keys, offset)
+      value = page.evaluate(node, "_cuprite.scrollIntoViewport(this)")
+      raise MouseEventFailed.new(node, nil) unless value
+
+      x, y = calculate_quads(node, offset[:x], offset[:y])
+
+      click_modifiers = { alt: 1, ctrl: 2, control: 2, meta: 4, command: 4, shift: 8 }
+      modifiers = keys.map { |k| click_modifiers[k.to_sym] }.compact.reduce(0, :|)
+
+      page.command("Input.dispatchMouseEvent", type: "mouseMoved", x: x, y: y)
+
+      [x, y, modifiers]
+    end
+
+    def calculate_quads(node, offset_x = nil, offset_y = nil)
+      quads = get_content_quads(node)
+      offset_x, offset_y = offset_x.to_i, offset_y.to_i
+
+      if offset_x > 0 || offset_y > 0
+        point = quads.first
+        [point[:x] + offset_x, point[:y] + offset_y]
+      else
+        x, y = quads.inject([0, 0]) do |memo, point|
+          [memo[0] + point[:x],
+           memo[1] + point[:y]]
+        end
+        [x / 4, y / 4]
+      end
+    end
+
+    def get_content_quads(node)
+      result = page.command("DOM.getContentQuads", nodeId: node["nodeId"])
+      raise "Node is either not visible or not an HTMLElement" if result["quads"].size == 0
+
+      # FIXME: Case when a few quads returned
+      result["quads"].map do |quad|
+        [{x: quad[0], y: quad[1]},
+         {x: quad[2], y: quad[3]},
+         {x: quad[4], y: quad[5]},
+         {x: quad[6], y: quad[7]}]
+      end.first
     end
   end
 end
