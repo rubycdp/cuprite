@@ -89,7 +89,7 @@ module Capybara::Cuprite
 
     def visible_text(target_id, node)
       begin
-        page.evaluate(node, "this.innerText")
+        page.evaluate(node, "_cuprite.visibleText(this)")
       rescue BrowserError => e
         # FIXME ObsoleteNode first arg is node, so it should be in node class
         if e.message == "No node with given id found"

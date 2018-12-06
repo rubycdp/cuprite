@@ -56,6 +56,25 @@ Failures:
      # ./lib/capybara/cuprite/driver.rb:42:in `current_url'
      # /home/route/Projects/Ruby/capybara/lib/capybara/session.rb:216:in `current_url'
      # ./spec/integration/session_spec.rb:598:in `block (4 levels) in <top (required)>'
+
+
+Failures:
+
+ 1) Capybara::Session with cuprite driver Capybara::Cuprite::Node raises an error if the element has been removed from the DOM
+    Failure/Error: node = @session.find(:css, "#remove_me")
+
+    Capybara::ElementNotFound:
+      Unable to find css "#remove_me"
+    # /home/route/Projects/Ruby/capybara/lib/capybara/node/finders.rb:302:in `block in synced_resolve'
+    # /home/route/Projects/Ruby/capybara/lib/capybara/node/base.rb:82:in `synchronize'
+    # /home/route/Projects/Ruby/capybara/lib/capybara/node/finders.rb:293:in `synced_resolve'
+    # /home/route/Projects/Ruby/capybara/lib/capybara/node/finders.rb:48:in `find'
+    # /home/route/Projects/Ruby/capybara/lib/capybara/session.rb:732:in `block (2 levels) in <class:Session>'
+    # ./spec/integration/session_spec.rb:17:in `block (4 levels) in <top (required)>'
+
+Finished in 95 minutes 57 seconds (files took 1.34 seconds to load)
+1370 examples, 1 failure, 359 pending
+
 ```
 
 ## License ##

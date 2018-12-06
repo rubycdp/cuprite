@@ -72,7 +72,6 @@ RSpec.configure do |config|
       metadata[:pending] = "Browser does not support datalist"
     else
       regexes = <<~REGEXP.split("\n").map { |s| Regexp.quote(s.strip) }.join("|")
-        ignores invisible text if ancestor is invisible
         should do nothing on anchor links
         should do nothing on URL+anchor links for the same page
         should fill in a field and click a button
