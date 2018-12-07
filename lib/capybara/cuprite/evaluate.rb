@@ -31,7 +31,7 @@ module Capybara::Cuprite
 
     extend Forwardable
 
-    delegate %i(page) => :@targets
+    delegate page: :@targets
 
     def initialize(targets)
       @targets = targets

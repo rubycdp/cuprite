@@ -9,6 +9,7 @@ module Capybara::Cuprite
   require "cuprite/errors"
   require "cuprite/cookie"
   require "cuprite/evaluate"
+  require "cuprite/input"
 
   class << self
     def windows?
