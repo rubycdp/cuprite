@@ -161,7 +161,6 @@ RSpec.configure do |config|
         doesn't prepend base tag to pages when asset_host is nil
         should return nil when nothing was found if count options allow no results
         should accept an XPath instance
-        should be true if the given selector is on the page
         should be false if the given selector is not on the page
         prepends base tag with value from asset_host to the head
         should find element if it appears before given wait duration
