@@ -140,9 +140,7 @@ RSpec.configure do |config|
         should check via clicking the label with :for attribute if locator nil
         should check self via clicking the wrapping label if locator nil
         should not wait the full time if label can be clicked
-        should accept the confirm
-        should return the message presented
-        should work with nested modals
+        #accept_confirm
         #reset_session! handles modals during unload
         #reset_session! handles already open modals
         should find the first element using the given locator
@@ -157,7 +155,6 @@ RSpec.configure do |config|
         #attach_file
         should not find element if it appears after given wait duration
         #accept_alert
-        should raise an error
         should select self by clicking the label if no locator specified
         #accept_prompt
         #dismiss_prompt
