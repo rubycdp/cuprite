@@ -12,13 +12,15 @@ require "capybara/cuprite"
 require "support/test_app"
 
 Capybara.register_driver(:cuprite) do |app|
-  options = { logger: TestSessions.logger }
+  options = Hash.new
+  options.merge!(logger: TestSessions.debug_logger) if ENV["DEBUG"]
+  options.merge!(logger: TestSessions.logger) if ENV["TRAVIS"]
   options.merge!(path: ENV["BROWSER_PATH"]) if ENV["BROWSER_PATH"]
   Capybara::Cuprite::Driver.new(app, options)
 end
 
 module TestSessions
-  class SpecLogger
+  class TravisLogger
     attr_reader :messages
 
     def reset
@@ -34,8 +36,21 @@ module TestSessions
     end
   end
 
+  class DebugLogger
+    def reset
+    end
+
+    def write(message)
+      puts message
+    end
+  end
+
   def self.logger
-    @logger ||= SpecLogger.new
+    @logger ||= TravisLogger.new
+  end
+
+  def self.debug_logger
+    @debug_logger ||= DebugLogger.new
   end
 
   Cuprite = Capybara::Session.new(:cuprite, TestApp)

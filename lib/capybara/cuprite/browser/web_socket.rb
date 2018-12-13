@@ -45,12 +45,12 @@ module Capybara::Cuprite
 
       def send_message(data)
         json = data.to_json
-        @logger.write "\n\n>>> #{json}"
+        log "\n\n>>> #{json}"
         @driver.text(json)
       end
 
       def on_message(event)
-        @logger.write "    <<< #{event.data}\n"
+        log "    <<< #{event.data}\n"
         data = JSON.parse(event.data)
         @events << data
       end
@@ -64,13 +64,19 @@ module Capybara::Cuprite
       end
 
       def on_close(event)
-        @logger.write "<<< #{event.code}, #{event.reason}\n\n"
+        log "<<< #{event.code}, #{event.reason}\n\n"
         @dead = true
         @thread.kill
       end
 
       def write(data)
         @sock.write(data)
+      end
+
+      private
+
+      def log(message)
+        @logger.write(message) if @logger
       end
     end
   end

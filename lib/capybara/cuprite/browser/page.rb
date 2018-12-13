@@ -112,7 +112,7 @@ module Capybara::Cuprite
 
       def subscribe_events
         @client.subscribe("Runtime.consoleAPICalled") do |params|
-          params["args"].each { |r| @logger.write(r["value"]) }
+          params["args"].each { |r| @logger.write(r["value"]) } if @logger
         end
         @client.subscribe("Runtime.executionContextCreated") do |params|
           # Remember the first frame started loading since it's the main one
