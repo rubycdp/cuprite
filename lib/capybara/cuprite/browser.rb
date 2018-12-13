@@ -21,7 +21,7 @@ module Capybara::Cuprite
     end
 
     attr_reader :process, :targets
-    delegate %i(command subscribe wait) => :@client
+    delegate %i(command subscribe) => :@client
     delegate %i(window_handle window_handles switch_to_window open_new_window
                 close_window find_window_handle within_window reset page) => :@targets
     delegate %i(evaluate evaluate_async execute) => :@evaluate
@@ -303,7 +303,7 @@ module Capybara::Cuprite
     end
 
     def refresh
-      page.command("Page.reload")
+      page.refresh
     end
 
     def accept_confirm

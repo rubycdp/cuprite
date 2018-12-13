@@ -17,6 +17,7 @@ module Capybara::Cuprite
       x, y, modifiers = prepare_before_click(node, keys, offset)
       page.command("Input.dispatchMouseEvent", type: "mousePressed", modifiers: modifiers, button: "left", x: x, y: y, clickCount: 1)
       page.command("Input.dispatchMouseEvent", type: "mouseReleased", modifiers: modifiers, button: "left", x: x, y: y, clickCount: 1)
+      sleep(0.05) # FIXME: we have to wait for network event and then signal to thread
     end
 
     def right_click(target_id, node, keys = [], offset = {})

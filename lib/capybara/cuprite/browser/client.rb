@@ -1,25 +1,34 @@
 # frozen_string_literal: true
 
-require "forwardable"
 require "cuprite/browser/web_socket"
 
 module Capybara::Cuprite
   class Browser
     class Client
-      extend Forwardable
-
-      delegate [:close, :subscribe, :messages] => :@web_socket
-
       def initialize(ws_url, logger)
         @command_id = 0
         @logger = logger
-        @web_socket = WebSocket.new(ws_url, logger)
+        @subscribed = {}
+        @commands = Queue.new
+        @ws = WebSocket.new(ws_url, logger)
+
+        @thread = Thread.new do
+          until @dead
+            data = @ws.events.pop
+            if method = data["method"]
+              block = @subscribed[method]
+              block.call(data["params"]) if block
+            else
+              @commands << data
+            end
+          end
+        end
       end
 
       def command(method, params = {})
         message = build_message(method, params)
-        @web_socket.send_message(message)
-        response = wait(message[:id])
+        @ws.send_message(message)
+        response = @commands.pop
         handle(response)
       rescue DeadClient
         # FIXME:
@@ -27,22 +36,15 @@ module Capybara::Cuprite
         raise
       end
 
+      def subscribe(event, &block)
+        @subscribed[event] = block
+        true
+      end
 
-      def wait(type = nil, params = {}, idle = 0.1)
-        loop do
-          message = case type
-                    when String
-                      messages.find { |m| m["method"] == type && params.all? { |k, v| m["params"][k.to_s] == v } }
-                    when Integer
-                      messages.find { |m| m["id"] == type }
-                    else
-                      raise ArgumentError.new("First parameter should be `id: Integer` or `event: String`")
-                    end
-
-          return message if message
-
-          sleep(idle)
-        end
+      def close
+        @ws.close
+        @dead = true
+        @thread.kill
       end
 
       private

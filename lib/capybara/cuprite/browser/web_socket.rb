@@ -12,7 +12,7 @@ module Capybara::Cuprite
 
       delegate close: :@driver
 
-      attr_reader :url, :messages
+      attr_reader :url, :events
 
       def initialize(url, logger)
         @url    = url
@@ -21,9 +21,8 @@ module Capybara::Cuprite
         @sock   = TCPSocket.new(uri.host, uri.port)
         @driver = ::WebSocket::Driver.client(self)
 
-        @messages   = []
+        @events     = Queue.new
         @dead       = false
-        @subscribed = {}
 
         @driver.on(:message, &method(:on_message))
         @driver.on(:error, &method(:on_error))
@@ -53,12 +52,7 @@ module Capybara::Cuprite
       def on_message(event)
         @logger.write "    <<< #{event.data}\n"
         data = JSON.parse(event.data)
-
-        if block = @subscribed[data["method"]]
-          Thread.new { block.call(data["params"]) }.join
-        end
-
-        @messages << data
+        @events << data
       end
 
       # Not sure if CDP uses it at all as all errors go to on_message callback
@@ -73,11 +67,6 @@ module Capybara::Cuprite
         @logger.write "<<< #{event.code}, #{event.reason}\n\n"
         @dead = true
         @thread.kill
-      end
-
-      def subscribe(event, &block)
-        @subscribed[event] = block
-        true
       end
 
       def write(data)

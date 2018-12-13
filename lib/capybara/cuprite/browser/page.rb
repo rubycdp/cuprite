@@ -23,18 +23,20 @@ require "cuprite/browser/client"
 module Capybara::Cuprite
   class Browser
     class Page
+      TIMEOUT = 5
+
       extend Forwardable
 
-      delegate [:wait, :subscribe] => :@client
       delegate targets: :@browser
 
-      attr_reader :target_id, :status_code
+      attr_reader :target_id, :status_code, :execution_context_id
 
       def initialize(target_id, browser, logger)
+        @wait = false
         @target_id = target_id
         @browser, @logger = browser, logger
         @query_root_node = false
-        @execution_context_mutex = Mutex.new
+        @mutex, @resource = Mutex.new, ConditionVariable.new
 
         begin
           @session_id = @browser.command("Target.attachToTarget", targetId: @target_id)["sessionId"]
@@ -56,9 +58,8 @@ module Capybara::Cuprite
       end
 
       def visit(url)
-        frame_id = command("Page.navigate", url: url)["frameId"]
-        wait("Page.frameStoppedLoading", frameId: frame_id)
-        true
+        @wait = true
+        command("Page.navigate", url: url)["frameId"]
       end
 
       def close
@@ -86,72 +87,89 @@ module Capybara::Cuprite
         )).dig("result", "value")
       end
 
-      def execution_context_id
-        @execution_context_mutex.synchronize { @execution_context_id }
+      def refresh
+        @wait = true
+        command("Page.reload")
       end
 
       def command(*args)
-        if @query_root_node
-          begin
-            get_document
-          ensure
-            @query_root_node = false
+        @mutex.synchronize do
+          if @query_root_node
+            begin
+              get_document
+            ensure
+              @query_root_node = false
+            end
           end
-        end
 
-        @client.command(*args)
+          response = @client.command(*args)
+          @resource.wait(@mutex, TIMEOUT) if @wait
+          response
+        end
       end
 
       private
 
-      def read(filename)
-        File.read(File.expand_path("javascripts/#{filename}", __dir__))
-      end
-
       def subscribe_events
-        subscribe("Runtime.consoleAPICalled") do |params|
+        @client.subscribe("Runtime.consoleAPICalled") do |params|
           params["args"].each { |r| @logger.write(r["value"]) }
         end
-        subscribe("Runtime.executionContextCreated") do |params|
+        @client.subscribe("Runtime.executionContextCreated") do |params|
+          # Remember the first frame started loading since it's the main one
+          @frame_id = params.dig("context", "auxData", "frameId")
           @execution_context_id ||= params.dig("context", "id")
-          @execution_context_mutex.unlock if @execution_context_mutex.locked?
         end
-        subscribe("Runtime.executionContextDestroyed") do |params|
+        @client.subscribe("Runtime.executionContextDestroyed") do |params|
           if @execution_context_id == params["executionContextId"]
-            @execution_context_mutex.lock
             @execution_context_id = nil
           end
         end
-        subscribe("Runtime.executionContextsCleared") do
+        @client.subscribe("Runtime.executionContextsCleared") do
           # If we didn't have time to set context id at the beginning we have
           # to set lock and release it when we set something.
           @execution_context_id = nil
-          @execution_context_mutex.lock
         end
-        subscribe("Page.windowOpen") { targets.refresh }
-        subscribe("Page.frameStartedLoading") do |params|
-          # Remember the first frame started loading since it's the main one
-          @frame_id ||= params["frameId"]
+        @client.subscribe("Page.windowOpen") do
+          targets.refresh
+          sleep 0.3 # Dirty hack because new window doesn't have events at all
         end
-        subscribe("Page.frameStoppedLoading") do |params|
+        @client.subscribe("Page.frameStoppedLoading") do |params|
           # `DOM.performSearch` doesn't work without getting #document node first.
           # It returns node with nodeId 1 and nodeType 9 from which descend the
           # tree and we save it in a variable because if we call that again root
           # node will change the id and all subsequent nodes have to change id too.
           # `command` is not allowed in the block as it will deadlock the process.
-          @query_root_node = true if params["frameId"] == @frame_id
+          if params["frameId"] == @frame_id
+            @wait = false
+            @resource.signal
+            @query_root_node = true
+          end
         end
-        subscribe("Network.requestWillBeSent") do |params|
-          @request_id = params["requestId"] if params["type"] == "Document"
+        @client.subscribe("Network.requestWillBeSent") do |params|
+          if params["frameId"] == @frame_id
+            @wait = true
+
+            if params["type"] == "Document"
+              @request_id = params["requestId"]
+            end
+          end
         end
-        subscribe("Network.responseReceived") do |params|
+        @client.subscribe("Network.responseReceived") do |params|
           if params["requestId"] == @request_id
             @status_code = params.dig("response", "status")
           end
         end
-        subscribe("Page.domContentEventFired") do |params|
+        @client.subscribe("Page.navigatedWithinDocument") do
+          @wait = false
+          @resource.signal
+        end
+        @client.subscribe("Page.domContentEventFired") do |params|
           # `Page.frameStoppedLoading` doesn't occur if status isn't success
-          @query_root_node = true if @status_code != 200
+          if @status_code != 200
+            @wait = false
+            @resource.signal
+            @query_root_node = true
+          end
         end
       end
 
@@ -162,14 +180,14 @@ module Capybara::Cuprite
         command("Runtime.enable")
         command("Log.enable")
         command("Network.enable")
-        command("Page.addScriptToEvaluateOnNewDocument", source: read("index.js"))
+        command("Page.addScriptToEvaluateOnNewDocument", source: source)
 
         # https://github.com/GoogleChrome/puppeteer/issues/1443
         # https://github.com/ChromeDevTools/devtools-protocol/issues/77
         # https://github.com/cyrus-and/chrome-remote-interface/issues/319
         # We also evaluate script just in case because
         # `Page.addScriptToEvaluateOnNewDocument` doesn't work in popups.
-        command("Runtime.evaluate", expression: read("index.js"),
+        command("Runtime.evaluate", expression: source,
                                     contextId: @execution_context_id,
                                     returnByValue: true)
 
@@ -187,6 +205,10 @@ module Capybara::Cuprite
 
       def get_document
         @client.command("DOM.getDocument", depth: 0)["root"]
+      end
+
+      def source
+        @source ||= File.read(File.expand_path("javascripts/index.js", __dir__))
       end
     end
   end
