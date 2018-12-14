@@ -193,7 +193,7 @@ module Capybara::Cuprite
 
           request = @network_traffic.find { |r| r.id == params["requestId"] }
           params = params["response"].merge("id" => params["requestId"])
-          request.response_parts << NetworkTraffic::Response.new(params)
+          request.response = NetworkTraffic::Response.new(params)
         end
 
         @client.subscribe("Page.navigatedWithinDocument") do

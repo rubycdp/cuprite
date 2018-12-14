@@ -4,12 +4,10 @@ require "time"
 
 module Capybara::Cuprite::NetworkTraffic
   class Request
-    attr_reader :response_parts
-    attr_accessor :error
+    attr_accessor :response, :error
 
-    def initialize(data, response_parts = nil)
-      @data           = data
-      @response_parts = Array(response_parts)
+    def initialize(data)
+      @data = data
     end
 
     def id

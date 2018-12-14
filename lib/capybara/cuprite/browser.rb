@@ -254,7 +254,7 @@ module Capybara::Cuprite
     end
 
     def clear_memory_cache
-      command "clear_memory_cache"
+      page.command("Network.clearBrowserCache")
     end
 
     def go_back

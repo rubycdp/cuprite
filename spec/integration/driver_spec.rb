@@ -764,7 +764,7 @@ module Capybara::Cuprite
         @session.visit("/cuprite/with_js")
         request = @driver.network_traffic.last
 
-        expect(request.response_parts.last.status).to eq(200)
+        expect(request.response.status).to eq(200)
       end
 
       it "captures errors" do
@@ -815,29 +815,24 @@ module Capybara::Cuprite
       end
     end
 
-    context "memory cache clearing", skip: true do
-      before do
-        @driver.restart
-      end
+    it "can clear memory cache" do
+      @driver.clear_memory_cache
 
-      it "can clear memory cache when supported (>=2.0.0)" do
-        @driver.clear_memory_cache
+      @session.visit("/cuprite/cacheable")
+      first_request = @driver.network_traffic.last
+      expect(@driver.network_traffic.length).to eq(1)
+      expect(first_request.response.status).to eq(200)
 
-        @session.visit("/cuprite/cacheable")
-        first_request = @driver.network_traffic.last
-        expect(@driver.network_traffic.length).to eq(1)
-        expect(first_request.response_parts.last.status).to eq(200)
+      @session.refresh
+      expect(@driver.network_traffic.length).to eq(2)
+      expect(@driver.network_traffic.last.response.status).to eq(304)
 
-        @session.visit("/cuprite/cacheable")
-        expect(@driver.network_traffic.length).to eq(1)
+      @driver.clear_memory_cache
 
-        @driver.clear_memory_cache
-
-        @session.visit("/cuprite/cacheable")
-        another_request = @driver.network_traffic.last
-        expect(@driver.network_traffic.length).to eq(2)
-        expect(another_request.response_parts.last.status).to eq(200)
-      end
+      @session.refresh
+      another_request = @driver.network_traffic.last
+      expect(@driver.network_traffic.length).to eq(3)
+      expect(another_request.response.status).to eq(200)
     end
 
     context "status code support", skip: true do
