@@ -47,6 +47,34 @@ module Capybara::Cuprite
       end
     end
 
+    def click_coordinates(x, y)
+      page.command "click_coordinates", x, y
+    end
+
+    def drag(target_id, id, other_id)
+      page.command "drag", target_id, id, other_id
+    end
+
+    def drag_by(target_id, id, x, y)
+      page.command "drag_by", target_id, id, x, y
+    end
+
+    def select(_target_id, node, value)
+      page.evaluate(node, "_cuprite.select(this, #{value})")
+    end
+
+    def trigger(target_id, id, event)
+      page.command "trigger", target_id, id, event.to_s
+    end
+
+    def scroll_to(left, top)
+      page.command "scroll_to", left, top
+    end
+
+    def send_keys(target_id, id, keys)
+      page.command "send_keys", target_id, id, normalize_keys(keys)
+    end
+
     private
 
     def prepare_before_click(node, keys, offset)

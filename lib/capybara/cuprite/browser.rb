@@ -20,7 +20,7 @@ module Capybara::Cuprite
     delegate %i(window_handle window_handles switch_to_window open_new_window
                 close_window find_window_handle within_window reset page) => :@targets
     delegate %i(evaluate evaluate_async execute) => :@evaluate
-    delegate %i(click right_click double_click hover set) => :@input
+    delegate %i(click right_click double_click hover set click_coordinates drag drag_by select trigger scroll_to send_keys) => :@input
 
     def initialize(options = nil)
       options ||= {}
@@ -134,10 +134,6 @@ module Capybara::Cuprite
       page.evaluate(node, "_cuprite.isDisabled(this)")
     end
 
-    def click_coordinates(x, y)
-      command "click_coordinates", x, y
-    end
-
     def within_frame(handle)
       if handle.is_a?(Capybara::Node::Base)
         command "push_frame", [handle.native.target_id, handle.native.node]
@@ -159,26 +155,6 @@ module Capybara::Cuprite
       when :top
         command "pop_frame", true
       end
-    end
-
-    def drag(target_id, id, other_id)
-      command "drag", target_id, id, other_id
-    end
-
-    def drag_by(target_id, id, x, y)
-      command "drag_by", target_id, id, x, y
-    end
-
-    def select(_target_id, node, value)
-      page.evaluate(node, "_cuprite.select(this, #{value})")
-    end
-
-    def trigger(target_id, id, event)
-      command "trigger", target_id, id, event.to_s
-    end
-
-    def scroll_to(left, top)
-      command "scroll_to", left, top
     end
 
     def render(path, _options = {})
@@ -204,10 +180,6 @@ module Capybara::Cuprite
 
     def resize(width, height)
       page.resize(width, height)
-    end
-
-    def send_keys(target_id, id, keys)
-      command "send_keys", target_id, id, normalize_keys(keys)
     end
 
     def path(target_id, node)
