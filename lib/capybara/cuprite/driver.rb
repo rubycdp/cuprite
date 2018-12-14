@@ -6,7 +6,7 @@ module Capybara::Cuprite
   class Driver < Capybara::Driver::Base
     DEFAULT_TIMEOUT = 30
 
-    attr_reader :app
+    attr_reader :app, :options
 
     def initialize(app, options = {})
       @app     = app

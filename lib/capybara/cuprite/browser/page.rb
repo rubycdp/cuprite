@@ -29,7 +29,8 @@ module Capybara::Cuprite
 
       delegate targets: :@browser
 
-      attr_reader :target_id, :status_code, :execution_context_id
+      attr_reader :target_id, :status_code, :execution_context_id,
+                  :response_headers
 
       def initialize(target_id, browser, logger)
         @wait = false
@@ -156,6 +157,7 @@ module Capybara::Cuprite
         end
         @client.subscribe("Network.responseReceived") do |params|
           if params["requestId"] == @request_id
+            @response_headers = params.dig("response", "headers")
             @status_code = params.dig("response", "status")
           end
         end

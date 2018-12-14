@@ -90,7 +90,6 @@ RSpec.configure do |config|
     #within_window with an instance of Capybara::Window should leave correct scopes after execution in case of error
     #fullscreen should be able to fullscreen the window
     #click_link can download a file
-    #response_headers should return response headers
     #go_forward should fetch a response from the driver from the previous page
     #fill_in Date/Time should fill in a date input
     #fill_in Date/Time should fill in a time input

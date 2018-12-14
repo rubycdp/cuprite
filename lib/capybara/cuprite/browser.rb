@@ -23,13 +23,9 @@ module Capybara::Cuprite
     delegate %i(click right_click double_click hover set click_coordinates drag drag_by select trigger scroll_to send_keys) => :@input
 
     def initialize(options = nil)
-      options ||= {}
-      @process = Process.start(options)
-      @logger = options[:logger]
-      @client = Client.new(@process.ws_url, @logger)
-      @targets = Targets.new(self, @logger)
-      @evaluate = Evaluate.new(@targets)
-      @input = Input.new(@targets)
+      @options = Hash(options)
+      @logger = @options[:logger]
+      start
     end
 
     def visit(url)
@@ -217,7 +213,7 @@ module Capybara::Cuprite
     end
 
     def response_headers
-      command "response_headers"
+      page.response_headers
     end
 
     def cookies
@@ -293,7 +289,28 @@ module Capybara::Cuprite
       command "modal_message"
     end
 
+    def restart
+      stop
+      start
+    end
+
+    def stop
+      @client.close
+      @process.stop
+
+      @client = @process = nil
+      @targets = @evaluate = @input = nil
+    end
+
     private
+
+    def start
+      @process = Process.start(@options)
+      @client = Client.new(@process.ws_url, @logger)
+      @targets = Targets.new(self, @logger)
+      @evaluate = Evaluate.new(@targets)
+      @input = Input.new(@targets)
+    end
 
     def check_render_options!(options)
       return if !options[:full] || !options.key?(:selector)
