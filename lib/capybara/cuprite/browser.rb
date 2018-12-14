@@ -18,9 +18,11 @@ module Capybara::Cuprite
     attr_reader :process, :targets
     delegate %i(command subscribe) => :@client
     delegate %i(window_handle window_handles switch_to_window open_new_window
-                close_window find_window_handle within_window reset page) => :@targets
+                close_window find_window_handle within_window reset
+                page) => :@targets
     delegate %i(evaluate evaluate_async execute) => :@evaluate
-    delegate %i(click right_click double_click hover set click_coordinates drag drag_by select trigger scroll_to send_keys) => :@input
+    delegate %i(click right_click double_click hover set click_coordinates
+                drag drag_by select trigger scroll_to send_keys) => :@input
 
     def initialize(options = nil)
       @options = Hash(options)
@@ -183,10 +185,11 @@ module Capybara::Cuprite
     end
 
     def network_traffic(type = nil)
+      page.network_traffic(type)
     end
 
     def clear_network_traffic
-      command("clear_network_traffic")
+      page.clear_network_traffic
     end
 
     def set_proxy(ip, port, type, user, password)

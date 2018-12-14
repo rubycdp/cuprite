@@ -2,6 +2,9 @@
 
 require "forwardable"
 require "cuprite/browser/client"
+require "cuprite/network_traffic/error"
+require "cuprite/network_traffic/request"
+require "cuprite/network_traffic/response"
 
 # RemoteObjectId is from a JavaScript world, and corresponds to any JavaScript
 # object, including JS wrappers for DOM nodes. There is a way to convert between
@@ -38,6 +41,7 @@ module Capybara::Cuprite
         @browser, @logger = browser, logger
         @query_root_node = false
         @mutex, @resource = Mutex.new, ConditionVariable.new
+        @network_traffic = []
 
         begin
           @session_id = @browser.command("Target.attachToTarget", targetId: @target_id)["sessionId"]
@@ -93,6 +97,21 @@ module Capybara::Cuprite
         command("Page.reload")
       end
 
+      def network_traffic(type)
+        case type
+        when "all"
+          @network_traffic
+        when "blocked"
+          @network_traffic # when request blocked
+        else
+          @network_traffic # when not request blocked
+        end
+      end
+
+      def clear_network_traffic
+        @network_traffic = []
+      end
+
       def command(*args)
         @mutex.synchronize do
           if @query_root_node
@@ -115,25 +134,30 @@ module Capybara::Cuprite
         @client.subscribe("Runtime.consoleAPICalled") do |params|
           params["args"].each { |r| @logger.write(r["value"]) } if @logger
         end
+
         @client.subscribe("Runtime.executionContextCreated") do |params|
           # Remember the first frame started loading since it's the main one
           @frame_id = params.dig("context", "auxData", "frameId")
           @execution_context_id ||= params.dig("context", "id")
         end
+
         @client.subscribe("Runtime.executionContextDestroyed") do |params|
           if @execution_context_id == params["executionContextId"]
             @execution_context_id = nil
           end
         end
+
         @client.subscribe("Runtime.executionContextsCleared") do
           # If we didn't have time to set context id at the beginning we have
           # to set lock and release it when we set something.
           @execution_context_id = nil
         end
+
         @client.subscribe("Page.windowOpen") do
           targets.refresh
           sleep 0.3 # Dirty hack because new window doesn't have events at all
         end
+
         @client.subscribe("Page.frameStoppedLoading") do |params|
           # `DOM.performSearch` doesn't work without getting #document node first.
           # It returns node with nodeId 1 and nodeType 9 from which descend the
@@ -146,6 +170,7 @@ module Capybara::Cuprite
             @query_root_node = true
           end
         end
+
         @client.subscribe("Network.requestWillBeSent") do |params|
           if params["frameId"] == @frame_id
             @wait = true
@@ -154,17 +179,38 @@ module Capybara::Cuprite
               @request_id = params["requestId"]
             end
           end
+
+          id, time = params.values_at("requestId", "wallTime")
+          params = params["request"].merge("id" => id, "time" => time)
+          @network_traffic << NetworkTraffic::Request.new(params)
         end
+
         @client.subscribe("Network.responseReceived") do |params|
           if params["requestId"] == @request_id
             @response_headers = params.dig("response", "headers")
             @status_code = params.dig("response", "status")
           end
+
+          request = @network_traffic.find { |r| r.id == params["requestId"] }
+          params = params["response"].merge("id" => params["requestId"])
+          request.response_parts << NetworkTraffic::Response.new(params)
         end
+
         @client.subscribe("Page.navigatedWithinDocument") do
           @wait = false
           @resource.signal
         end
+
+        @client.subscribe("Log.entryAdded") do |params|
+          source = params.dig("entry", "source")
+          level = params.dig("entry", "level")
+          if source == "network" && level == "error"
+            id = params.dig("entry", "networkRequestId")
+            request = @network_traffic.find { |r| r.id == id }
+            request.error = NetworkTraffic::Error.new(params["entry"])
+          end
+        end
+
         @client.subscribe("Page.domContentEventFired") do |params|
           # `Page.frameStoppedLoading` doesn't occur if status isn't success
           if @status_code != 200

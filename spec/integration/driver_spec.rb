@@ -740,11 +740,7 @@ module Capybara::Cuprite
       end
     end
 
-    context "network traffic", skip: true do
-      before do
-        @driver.restart
-      end
-
+    context "network traffic" do
       it "keeps track of network traffic" do
         @session.visit("/cuprite/with_js")
         urls = @driver.network_traffic.map(&:url)
@@ -754,7 +750,7 @@ module Capybara::Cuprite
         expect(urls.grep(%r{/cuprite/test.js$}).size).to eq(1)
       end
 
-      it "keeps track of blocked network traffic" do
+      it "keeps track of blocked network traffic", skip: true do
         @driver.browser.url_blacklist = ["unwanted"]
 
         @session.visit "/cuprite/url_blacklist"
@@ -806,7 +802,7 @@ module Capybara::Cuprite
         expect(@driver.network_traffic.length).to eq(0)
       end
 
-      it "blocked requests get cleared along with network traffic" do
+      it "blocked requests get cleared along with network traffic", skip: true do
         @driver.browser.url_blacklist = ["unwanted"]
 
         @session.visit "/cuprite/url_blacklist"
