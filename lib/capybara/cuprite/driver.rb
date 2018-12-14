@@ -225,29 +225,20 @@ module Capybara::Cuprite
     end
 
     def set_cookie(name, value, options = {})
-      options[:name]  ||= name
-      options[:value] ||= value
-      options[:domain] ||= begin
-        if @started
-          URI.parse(browser.current_url).host
-        else
-          URI.parse(default_cookie_host).host || "127.0.0.1"
-        end
-      end
+      options[:name]   ||= name
+      options[:value]  ||= value
+      options[:domain] ||= default_domain
 
       browser.set_cookie(options)
     end
 
-    def remove_cookie(name)
-      browser.remove_cookie(name)
+    def remove_cookie(name, **options)
+      options[:domain] = default_domain if options.empty?
+      browser.remove_cookie(options.merge(name: name))
     end
 
     def clear_cookies
       browser.clear_cookies
-    end
-
-    def cookies_enabled=(flag)
-      browser.cookies_enabled = flag
     end
 
     def clear_memory_cache
@@ -338,6 +329,14 @@ module Capybara::Cuprite
     end
 
     private
+
+    def default_domain
+      if @started
+        URI.parse(browser.current_url).host
+      else
+        URI.parse(default_cookie_host).host || "127.0.0.1"
+      end
+    end
 
     def native_args(args)
       args.map { |arg| arg.is_a?(Capybara::Cuprite::Node) ? arg.native : arg }

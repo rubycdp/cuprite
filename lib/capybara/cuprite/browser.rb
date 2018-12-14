@@ -220,24 +220,21 @@ module Capybara::Cuprite
     end
 
     def cookies
-      Hash[command("cookies").map { |cookie| [cookie["name"], Cookie.new(cookie)] }]
+      page.command("Network.getAllCookies")["cookies"].map do |cookie|
+        [cookie["name"], Cookie.new(cookie)]
+      end.to_h
     end
 
     def set_cookie(cookie)
-      cookie[:expires] = cookie[:expires].to_i * 1000 if cookie[:expires]
-      command "set_cookie", cookie
+      page.command("Network.setCookie", **cookie)
     end
 
-    def remove_cookie(name)
-      command "remove_cookie", name
+    def remove_cookie(options)
+      page.command("Network.deleteCookies", **options)
     end
 
     def clear_cookies
-      command "clear_cookies"
-    end
-
-    def cookies_enabled=(flag)
-      command "cookies_enabled", !!flag
+      page.command("Network.clearBrowserCookies")
     end
 
     def set_http_auth(user, password)

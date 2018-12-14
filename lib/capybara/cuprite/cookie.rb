@@ -22,20 +22,26 @@ module Capybara::Cuprite
       @attributes["path"]
     end
 
+    def size
+      @attributes["size"]
+    end
+
     def secure?
       @attributes["secure"]
     end
 
     def httponly?
-      @attributes["httponly"]
+      @attributes["httpOnly"]
     end
 
-    def samesite
-      @attributes["samesite"]
+    def session?
+      @attributes["session"]
     end
 
     def expires
-      Time.at @attributes["expiry"] if @attributes["expiry"]
+      if @attributes["expires"] > 0
+        Time.at(@attributes["expires"])
+      end
     end
   end
 end

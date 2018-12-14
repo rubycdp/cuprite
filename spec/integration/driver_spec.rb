@@ -857,7 +857,7 @@ module Capybara::Cuprite
       end
     end
 
-    context "cookies support", skip: true do
+    context "cookies support" do
       it "returns set cookies" do
         @session.visit("/set_cookie")
 
@@ -866,9 +866,10 @@ module Capybara::Cuprite
         expect(cookie.value).to eq("test_cookie")
         expect(cookie.domain).to eq("127.0.0.1")
         expect(cookie.path).to eq("/")
+        expect(cookie.size).to eq(19)
         expect(cookie.secure?).to be false
         expect(cookie.httponly?).to be false
-        expect(cookie.samesite).to be_nil
+        expect(cookie.session?).to be true
         expect(cookie.expires).to be_nil
       end
 
@@ -917,7 +918,7 @@ module Capybara::Cuprite
       it "can set cookies with an expires time" do
         time = Time.at(Time.now.to_i + 10000)
         @session.visit "/"
-        @driver.set_cookie "foo", "bar", expires: time
+        @driver.set_cookie "foo", "bar", expires: time.to_i
         expect(@driver.cookies["foo"].expires).to eq(time)
       end
 
@@ -931,16 +932,6 @@ module Capybara::Cuprite
 
         @session.visit("http://127.0.0.1:#{port}/cuprite/get_cookie")
         expect(@driver.body).to include("127.0.0.1")
-      end
-
-      it "can enable and disable cookies" do
-        @driver.cookies_enabled = false
-        @session.visit("/set_cookie")
-        expect(@driver.cookies).to be_empty
-
-        @driver.cookies_enabled = true
-        @session.visit("/set_cookie")
-        expect(@driver.cookies).to_not be_empty
       end
 
       it "sets cookies correctly when Capybara.app_host is set" do
