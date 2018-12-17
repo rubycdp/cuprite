@@ -28,8 +28,6 @@ module Capybara::Cuprite
         @driver.on(:error, &method(:on_error))
         @driver.on(:close, &method(:on_close))
 
-        Thread.abort_on_exception = true
-
         @thread = Thread.new do
           begin
             until @dead
