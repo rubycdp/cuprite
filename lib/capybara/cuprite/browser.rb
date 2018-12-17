@@ -11,6 +11,8 @@ module Capybara::Cuprite
   class Browser
     extend Forwardable
 
+    attr_reader :headers
+
     def self.start(*args)
       new(*args)
     end
@@ -18,8 +20,7 @@ module Capybara::Cuprite
     attr_reader :process, :targets
     delegate %i(command subscribe) => :@client
     delegate %i(window_handle window_handles switch_to_window open_new_window
-                close_window find_window_handle within_window reset
-                page) => :@targets
+                close_window find_window_handle within_window page) => :@targets
     delegate %i(evaluate evaluate_async execute) => :@evaluate
     delegate %i(click right_click double_click hover set click_coordinates
                 drag drag_by select trigger scroll_to send_keys) => :@input
@@ -199,20 +200,36 @@ module Capybara::Cuprite
       command("set_proxy", *args)
     end
 
-    def get_headers
-      command "get_headers"
+    def headers=(headers)
+      @headers = {}
+      add_headers(headers)
     end
 
-    def set_headers(headers)
-      command "set_headers", headers
+    def add_headers(headers, permanent: true)
+      if headers["Referer"]
+        page.referrer = headers["Referer"]
+        headers.delete("Referer") unless permanent
+      end
+
+      @headers.merge!(headers)
+      user_agent = @headers["User-Agent"]
+      accept_language = @headers["Accept-Language"]
+
+      set_overrides(user_agent: user_agent, accept_language: accept_language)
+      page.command("Network.setExtraHTTPHeaders", headers: @headers)
     end
 
-    def add_headers(headers)
-      command "add_headers", headers
+    def add_header(header, permanent: true)
+      add_headers(header, permanent: permanent)
     end
 
-    def add_header(header, options = {})
-      command "add_header", header, options
+    def set_overrides(user_agent: nil, accept_language: nil, platform: nil)
+      options = Hash.new
+      options[:userAgent] = user_agent if user_agent
+      options[:acceptLanguage] = accept_language if accept_language
+      options[:platform] if platform
+
+      page.command("Network.setUserAgentOverride", **options) if !options.empty?
     end
 
     def response_headers
@@ -220,9 +237,8 @@ module Capybara::Cuprite
     end
 
     def cookies
-      page.command("Network.getAllCookies")["cookies"].map do |cookie|
-        [cookie["name"], Cookie.new(cookie)]
-      end.to_h
+      cookies = page.command("Network.getAllCookies")["cookies"]
+      cookies.map { |c| [c["name"], Cookie.new(c)] }.to_h
     end
 
     def set_cookie(cookie)
@@ -289,6 +305,11 @@ module Capybara::Cuprite
       command "modal_message"
     end
 
+    def reset
+      @headers = {}
+      @targets.reset
+    end
+
     def restart
       stop
       start
@@ -305,6 +326,7 @@ module Capybara::Cuprite
     private
 
     def start
+      @headers = {}
       @process = Process.start(@options)
       @client = Client.new(@process.ws_url, @logger)
       @targets = Targets.new(self, @logger)

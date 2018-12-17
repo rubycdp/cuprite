@@ -361,7 +361,7 @@ module Capybara::Cuprite
       end
     end
 
-    context "setting headers", skip: true do
+    context "setting headers" do
       it "allows headers to be set" do
         @driver.headers = {
           "Cookie" => "foo=bar",
@@ -384,7 +384,8 @@ module Capybara::Cuprite
         expect(@driver.evaluate_script("window.navigator.userAgent")).to eq("foo")
       end
 
-      it "sets headers for all HTTP requests" do
+      # FIXME: handle @wait 5sec after network request
+      it "sets headers for all HTTP requests", skip: true do
         @driver.headers = { "X-Omg" => "wat" }
         @session.visit "/"
         @driver.execute_script <<-JS
@@ -408,11 +409,11 @@ module Capybara::Cuprite
         expect(@driver.body).to include("APPENDED: true")
       end
 
-      it "sets headers on the initial request" do
+      it "sets headers on the initial request for referer only" do
         @driver.headers = { "PermanentA" => "a" }
         @driver.add_headers("PermanentB" => "b")
         @driver.add_header("Referer", "http://google.com", permanent: false)
-        @driver.add_header("TempA", "a", permanent: false)
+        @driver.add_header("TempA", "a", permanent: false) # simply ignored
 
         @session.visit("/cuprite/headers_with_ajax")
         initial_request = @session.find(:css, "#initial_request").text
@@ -426,25 +427,17 @@ module Capybara::Cuprite
         expect(ajax_request).to include("PERMANENTA: a")
         expect(ajax_request).to include("PERMANENTB: b")
         expect(ajax_request).to_not include("REFERER: http://google.com")
-        expect(ajax_request).to_not include("TEMPA: a")
+        expect(ajax_request).to include("TEMPA: a")
       end
 
-      it "keeps added headers on redirects by default" do
+      it "keeps added headers on redirects" do
         @driver.add_header("X-Custom-Header", "1", permanent: false)
         @session.visit("/cuprite/redirect_to_headers")
         expect(@driver.body).to include("X_CUSTOM_HEADER: 1")
       end
 
-      it "does not keep added headers on redirect when " \
-         "permanent is no_redirect" do
-        @driver.add_header("X-Custom-Header", "1", permanent: :no_redirect)
-
-        @session.visit("/cuprite/redirect_to_headers")
-        expect(@driver.body).not_to include("X_CUSTOM_HEADER: 1")
-      end
-
-      context "multiple windows" do
-        it "persists headers across popup windows" do
+      context "multiple windows", skip: true do
+        it "persists headers across popup windows", skip: true do
           @driver.headers = {
             "Cookie" => "foo=bar",
             "Host" => "foo.com",
@@ -458,7 +451,7 @@ module Capybara::Cuprite
           expect(@driver.body).to include("HOST: foo.com")
         end
 
-        it "sets headers in existing windows" do
+        it "sets headers in existing windows", skip: true do
           @session.open_new_window
           @driver.headers = {
             "Cookie" => "foo=bar",
@@ -669,7 +662,7 @@ module Capybara::Cuprite
         end
       end
 
-      context "Browser page settings" do
+      context "browser page settings" do
         it "can override defaults" do
           begin
             driver = Capybara::Cuprite::Driver.new(@session.app, page_settings: { userAgent: "PageSettingsOverride" }, logger: TestSessions.logger)

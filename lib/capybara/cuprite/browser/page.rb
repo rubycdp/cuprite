@@ -34,6 +34,7 @@ module Capybara::Cuprite
 
       attr_reader :target_id, :status_code, :execution_context_id,
                   :response_headers
+      attr_accessor :referrer
 
       def initialize(target_id, browser, logger)
         @wait = false
@@ -64,7 +65,9 @@ module Capybara::Cuprite
 
       def visit(url)
         @wait = true
-        command("Page.navigate", url: url)["frameId"]
+        options = { url: url }
+        options.merge!(referrer: referrer) if referrer
+        command("Page.navigate", **options)["frameId"]
       end
 
       def close

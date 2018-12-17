@@ -201,19 +201,19 @@ module Capybara::Cuprite
     end
 
     def headers
-      browser.get_headers
+      browser.headers
     end
 
     def headers=(headers)
-      browser.set_headers(headers)
+      browser.headers=(headers)
     end
 
     def add_headers(headers)
       browser.add_headers(headers)
     end
 
-    def add_header(name, value, options = {})
-      browser.add_header({ name => value }, { permanent: true }.merge(options))
+    def add_header(name, value, permanent: true)
+      browser.add_header({ name => value }, permanent: permanent)
     end
 
     def response_headers
