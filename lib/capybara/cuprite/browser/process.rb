@@ -27,8 +27,10 @@ module Capybara::Cuprite
         "remote-debugging-address" => BROWSER_HOST
       }.freeze
 
+      attr_reader :host, :port, :ws_url
+
       def self.start(*args)
-        new(*args).tap { |s| s.start }
+        new(*args).tap(&:start)
       end
 
       def self.process_killer(pid)
@@ -67,26 +69,41 @@ module Capybara::Cuprite
       end
 
       def start
-        @output = []
-        @read_io, @write_io = IO.pipe
-
-        @out_thread = Thread.new do
-          while !@read_io.eof? && (data = @read_io.readpartial(512))
-            @output << data
-          end
-        end
-
+        read_io, write_io = IO.pipe
         process_options = { in: File::NULL }
         process_options[:pgroup] = true unless Capybara::Cuprite.windows?
         if Capybara::Cuprite.mri?
-          process_options[:out] = process_options[:err] = @write_io
+          process_options[:out] = process_options[:err] = write_io
         end
 
-        redirect_stdout do
+        redirect_stdout(write_io) do
           cmd = [@path] + @options.map { |k, v| v.nil? ? "--#{k}" : "--#{k}=#{v}" }
           @pid = ::Process.spawn(*cmd, process_options)
           ObjectSpace.define_finalizer(self, self.class.process_killer(@pid))
         end
+
+        output = ""
+        attempts = 3
+        regexp = /DevTools listening on (ws:\/\/.*)/
+        loop do
+          begin
+            output += read_io.read_nonblock(512)
+          rescue IO::WaitReadable
+            attempts -= 1
+            break if attempts <= 0
+            IO.select([read_io], nil, nil, 1)
+            retry
+          end
+
+          if output.match?(regexp)
+            @ws_url = Addressable::URI.parse(output.match(regexp)[1])
+            @host = @ws_url.host
+            @port = @ws_url.port
+            break
+          end
+        end
+      ensure
+        close_io(read_io, write_io)
       end
 
       def stop
@@ -100,35 +117,16 @@ module Capybara::Cuprite
         start
       end
 
-      def host
-        @host ||= ws_url.host
-      end
-
-      def port
-        @port ||= ws_url.port
-      end
-
-      def ws_url
-        @ws_url ||= begin
-          regexp = /DevTools listening on (ws:\/\/.*)/
-          sleep 0.1 until url = @output.find { |s| s.match?(regexp) }
-          ws_url = Addressable::URI.parse(url.match(regexp)[1])
-          @out_thread.kill
-          close_io
-          ws_url
-        end
-      end
-
       private
 
-      def redirect_stdout
+      def redirect_stdout(write_io)
         if Capybara::Cuprite.mri?
           yield
         else
           begin
             prev = STDOUT.dup
-            $stdout = @write_io
-            STDOUT.reopen(@write_io)
+            $stdout = write_io
+            STDOUT.reopen(write_io)
             yield
           ensure
             STDOUT.reopen(prev)
@@ -143,8 +141,8 @@ module Capybara::Cuprite
         @pid = nil
       end
 
-      def close_io
-        [@write_io, @read_io].each do |io|
+      def close_io(*ios)
+        ios.each do |io|
           begin
             io.close unless io.closed?
           rescue IOError
