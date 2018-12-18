@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-require "forwardable"
 require "cuprite/browser/client"
 require "cuprite/network_traffic/error"
 require "cuprite/network_traffic/request"
@@ -28,13 +27,9 @@ module Capybara::Cuprite
     class Page
       TIMEOUT = 5
 
-      extend Forwardable
-
-      delegate targets: :@browser
-
+      attr_accessor :referrer
       attr_reader :target_id, :status_code, :execution_context_id,
                   :response_headers
-      attr_accessor :referrer
 
       def initialize(target_id, browser, logger)
         @wait = false
@@ -117,14 +112,7 @@ module Capybara::Cuprite
 
       def command(*args)
         @mutex.synchronize do
-          if @query_root_node
-            begin
-              get_document
-            ensure
-              @query_root_node = false
-            end
-          end
-
+          query_root_node
           response = @client.command(*args)
           @resource.wait(@mutex, TIMEOUT) if @wait
           response
@@ -139,7 +127,7 @@ module Capybara::Cuprite
         end
 
         @client.subscribe("Runtime.executionContextCreated") do |params|
-          # Remember the first frame started loading since it's the main one
+          # Remember the very first frame since it's the main one
           @frame_id = params.dig("context", "auxData", "frameId")
           @execution_context_id ||= params.dig("context", "id")
         end
@@ -157,7 +145,7 @@ module Capybara::Cuprite
         end
 
         @client.subscribe("Page.windowOpen") do
-          targets.refresh
+          @browser.targets.refresh
           sleep 0.3 # Dirty hack because new window doesn't have events at all
         end
 
@@ -174,11 +162,18 @@ module Capybara::Cuprite
           end
         end
 
+        @client.subscribe("Page.frameScheduledNavigation") do |params|
+          @wait = true if params["frameId"] == @frame_id
+        end
+
         @client.subscribe("Network.requestWillBeSent") do |params|
           if params["frameId"] == @frame_id
-            @wait = true
-
+            # Possible types:
+            # Document, Stylesheet, Image, Media, Font, Script, TextTrack, XHR,
+            # Fetch, EventSource, WebSocket, Manifest, SignedExchange, Ping,
+            # CSPViolationReport, Other
             if params["type"] == "Document"
+              @wait = true
               @request_id = params["requestId"]
             end
           end
@@ -260,6 +255,16 @@ module Capybara::Cuprite
 
       def source
         @source ||= File.read(File.expand_path("javascripts/index.js", __dir__))
+      end
+
+      def query_root_node
+        if @query_root_node
+          begin
+            get_document
+          ensure
+            @query_root_node = false
+          end
+        end
       end
     end
   end

@@ -38,6 +38,8 @@ module Capybara::Cuprite
           end
         end
 
+        @thread.priority = 1
+
         @driver.start
       end
 

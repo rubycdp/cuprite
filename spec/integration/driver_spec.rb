@@ -384,8 +384,7 @@ module Capybara::Cuprite
         expect(@driver.evaluate_script("window.navigator.userAgent")).to eq("foo")
       end
 
-      # FIXME: handle @wait 5sec after network request
-      it "sets headers for all HTTP requests", skip: true do
+      it "sets headers for all HTTP requests" do
         @driver.headers = { "X-Omg" => "wat" }
         @session.visit "/"
         @driver.execute_script <<-JS
