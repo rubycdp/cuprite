@@ -14,12 +14,12 @@ module Capybara::Cuprite
 
         @thread = Thread.new do
           until @dead
-            data = @ws.events.pop
-            if method = data["method"]
+            message = @ws.messages.pop
+            if method = message["method"]
               block = @subscribed[method]
-              block.call(data["params"]) if block
+              block.call(message["params"]) if block
             else
-              @commands << data
+              @commands << message
             end
           end
         end
