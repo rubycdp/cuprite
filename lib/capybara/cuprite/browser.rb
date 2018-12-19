@@ -19,20 +19,19 @@ module Capybara::Cuprite
 
     attr_reader :process, :targets
     delegate %i(command subscribe) => :@client
+    delegate %i(evaluate evaluate_async execute) => :@evaluate
     delegate %i(window_handle window_handles switch_to_window open_new_window
                 close_window find_window_handle within_window page) => :@targets
-    delegate %i(evaluate evaluate_async execute) => :@evaluate
-    delegate %i(click right_click double_click hover set click_coordinates
-                drag drag_by select trigger scroll_to send_keys) => :@input
+    delegate %i(visit status_code body all_text property attributes attribute
+                value visible? disabled? resize path network_traffic
+                clear_network_traffic response_headers refresh click right_click
+                double_click hover set click_coordinates drag drag_by select
+                trigger scroll_to send_keys) => :page
 
     def initialize(options = nil)
       @options = Hash(options)
       @logger = @options[:logger]
       start
-    end
-
-    def visit(url)
-      page.visit(url)
     end
 
     def current_url
@@ -41,16 +40,6 @@ module Capybara::Cuprite
 
     def frame_url
       command "frame_url"
-    end
-
-    def status_code
-      page.status_code
-    end
-
-    def body
-      response = page.command("DOM.getDocument", depth: 0)
-      response = page.command("DOM.getOuterHTML", nodeId: response["root"]["nodeId"])
-      response["outerHTML"]
     end
 
     def source
@@ -79,15 +68,11 @@ module Capybara::Cuprite
       find_all(method, selector, { "objectId" => object_id })
     end
 
-    def all_text(target_id, node)
-      page.evaluate(node, "this.textContent")
-    end
-
     def visible_text(target_id, node)
       begin
         page.evaluate(node, "_cuprite.visibleText(this)")
       rescue BrowserError => e
-        # FIXME ObsoleteNode first arg is node, so it should be in node class
+        # FIXME: ObsoleteNode first arg is node, so it should be in node class
         if e.message == "No node with given id found"
           raise ObsoleteNode.new(self, e.response)
         end
@@ -100,37 +85,12 @@ module Capybara::Cuprite
       command "delete_text", target_id, id
     end
 
-    def property(_target_id, node, name)
-      page.evaluate(node, %Q(this["#{name}"]))
-    end
-
-    def attributes(target_id, node)
-      value = page.evaluate(node, "_cuprite.getAttributes(this)")
-      JSON.parse(value)
-    end
-
-    def attribute(target_id, node, name)
-      page.evaluate(node, %Q(_cuprite.getAttribute(this, "#{name}")))
-    end
-
-    def value(_target_id, node)
-      page.evaluate(node, "_cuprite.value(this)")
-    end
-
     def select_file(target_id, id, value)
       command "select_file", target_id, id, value
     end
 
     def tag_name(target_id, node)
       node["nodeName"].downcase
-    end
-
-    def visible?(_target_id, node)
-      page.evaluate(node, "_cuprite.isVisible(this)")
-    end
-
-    def disabled?(_target_id, node)
-      page.evaluate(node, "_cuprite.isDisabled(this)")
     end
 
     def within_frame(handle)
@@ -177,22 +137,6 @@ module Capybara::Cuprite
       command "set_paper_size", size
     end
 
-    def resize(width, height)
-      page.resize(width, height)
-    end
-
-    def path(target_id, node)
-      page.evaluate(node, "_cuprite.path(this)")
-    end
-
-    def network_traffic(type = nil)
-      page.network_traffic(type)
-    end
-
-    def clear_network_traffic
-      page.clear_network_traffic
-    end
-
     def set_proxy(ip, port, type, user, password)
       args = [ip, port, type]
       args << user if user
@@ -230,10 +174,6 @@ module Capybara::Cuprite
       options[:platform] if platform
 
       page.command("Network.setUserAgentOverride", **options) if !options.empty?
-    end
-
-    def response_headers
-      page.response_headers
     end
 
     def cookies
@@ -281,10 +221,6 @@ module Capybara::Cuprite
       command "go_forward"
     end
 
-    def refresh
-      page.refresh
-    end
-
     def accept_confirm
       command "set_confirm_process", true
     end
@@ -320,7 +256,7 @@ module Capybara::Cuprite
       @process.stop
 
       @client = @process = nil
-      @targets = @evaluate = @input = nil
+      @targets = @evaluate = nil
     end
 
     private
@@ -331,7 +267,6 @@ module Capybara::Cuprite
       @client = Client.new(@process.ws_url, @logger)
       @targets = Targets.new(self, @logger)
       @evaluate = Evaluate.new(@targets)
-      @input = Input.new(@targets)
     end
 
     def check_render_options!(options)
