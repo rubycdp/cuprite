@@ -14,7 +14,7 @@ module Capybara::Cuprite
     end
 
     def command(name, *args)
-      browser.send(name, @target_id, @node, *args)
+      browser.send(name, @node, *args)
     rescue BrowserError => e
       case e.message
       when "Cuprite.ObsoleteNode"
@@ -121,7 +121,7 @@ module Capybara::Cuprite
     end
 
     def tag_name
-      @tag_name ||= command(:tag_name)
+      @tag_name ||= @node["nodeName"].downcase
     end
 
     def visible?

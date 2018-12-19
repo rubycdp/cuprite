@@ -54,21 +54,21 @@ module Capybara::Cuprite
       command "frame_title"
     end
 
-    def parents(target_id, id)
-      command "parents", target_id, id
+    def parents(node)
+      command "parents", node
     end
 
     def find(method, selector)
       find_all(method, selector)
     end
 
-    def find_within(_target_id, node, method, selector)
+    def find_within(node, method, selector)
       resolved = page.command("DOM.resolveNode", nodeId: node["nodeId"])
       object_id = resolved.dig("object", "objectId")
       find_all(method, selector, { "objectId" => object_id })
     end
 
-    def visible_text(target_id, node)
+    def visible_text(node)
       begin
         page.evaluate(node, "_cuprite.visibleText(this)")
       rescue BrowserError => e
@@ -81,16 +81,12 @@ module Capybara::Cuprite
       end
     end
 
-    def delete_text(target_id, id)
-      command "delete_text", target_id, id
+    def delete_text(node)
+      command "delete_text", node
     end
 
-    def select_file(target_id, id, value)
-      command "select_file", target_id, id, value
-    end
-
-    def tag_name(target_id, node)
-      node["nodeName"].downcase
+    def select_file(node, value)
+      command "select_file", node, value
     end
 
     def within_frame(handle)

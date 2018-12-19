@@ -75,32 +75,32 @@ module Capybara::Cuprite
         @client.close
       end
 
-      def click(target_id, node, keys = [], offset = {})
+      def click(node, keys = [], offset = {})
         x, y, modifiers = prepare_before_click(node, keys, offset)
         command("Input.dispatchMouseEvent", type: "mousePressed", modifiers: modifiers, button: "left", x: x, y: y, clickCount: 1)
         command("Input.dispatchMouseEvent", type: "mouseReleased", modifiers: modifiers, button: "left", x: x, y: y, clickCount: 1)
         sleep(0.05) # FIXME: we have to wait for network event and then signal to thread
       end
 
-      def right_click(target_id, node, keys = [], offset = {})
+      def right_click(node, keys = [], offset = {})
         x, y, modifiers = prepare_before_click(node, keys, offset)
         command("Input.dispatchMouseEvent", type: "mousePressed", modifiers: modifiers, button: "right", x: x, y: y, clickCount: 1)
         command("Input.dispatchMouseEvent", type: "mouseReleased", modifiers: modifiers, button: "right", x: x, y: y, clickCount: 1)
       end
 
-      def double_click(target_id, node, keys = [], offset = {})
+      def double_click(node, keys = [], offset = {})
         x, y, modifiers = prepare_before_click(node, keys, offset)
         command("Input.dispatchMouseEvent", type: "mousePressed", modifiers: modifiers, button: "left", x: x, y: y, clickCount: 2)
         command("Input.dispatchMouseEvent", type: "mouseReleased", modifiers: modifiers, button: "left", x: x, y: y, clickCount: 2)
       end
 
-      def hover(target_id, node)
+      def hover(node)
         x, y = calculate_quads(node)
         command("Input.dispatchMouseEvent", type: "mouseMoved", x: x, y: y)
       end
 
-      def set(target_id, node, value)
-        click(target_id, node)
+      def set(node, value)
+        click(node)
         evaluate(node, "this.value = ''")
         value.each_char do |char|
           command("Input.insertText", text: char)
@@ -113,28 +113,28 @@ module Capybara::Cuprite
         command "click_coordinates", x, y
       end
 
-      def drag(target_id, id, other_id)
-        command "drag", target_id, id, other_id
+      def drag(node, other_node)
+        command "drag", node, other_node
       end
 
-      def drag_by(target_id, id, x, y)
-        command "drag_by", target_id, id, x, y
+      def drag_by(node, x, y)
+        command "drag_by", node, x, y
       end
 
-      def select(_target_id, node, value)
+      def select(node, value)
         evaluate(node, "_cuprite.select(this, #{value})")
       end
 
-      def trigger(target_id, id, event)
-        command "trigger", target_id, id, event.to_s
+      def trigger(node, event)
+        command "trigger", node, event.to_s
       end
 
       def scroll_to(left, top)
         command "scroll_to", left, top
       end
 
-      def send_keys(target_id, id, keys)
-        command "send_keys", target_id, id, normalize_keys(keys)
+      def send_keys(node, keys)
+        command "send_keys", node, normalize_keys(keys)
       end
 
       def body
@@ -143,32 +143,32 @@ module Capybara::Cuprite
         response["outerHTML"]
       end
 
-      def all_text(target_id, node)
+      def all_text(node)
         evaluate(node, "this.textContent")
       end
 
-      def property(_target_id, node, name)
+      def property(node, name)
         evaluate(node, %Q(this["#{name}"]))
       end
 
-      def attributes(target_id, node)
+      def attributes(node)
         value = evaluate(node, "_cuprite.getAttributes(this)")
         JSON.parse(value)
       end
 
-      def attribute(target_id, node, name)
+      def attribute(node, name)
         evaluate(node, %Q(_cuprite.getAttribute(this, "#{name}")))
       end
 
-      def value(_target_id, node)
+      def value(node)
         evaluate(node, "_cuprite.value(this)")
       end
 
-      def visible?(_target_id, node)
+      def visible?(node)
         evaluate(node, "_cuprite.isVisible(this)")
       end
 
-      def disabled?(_target_id, node)
+      def disabled?(node)
         evaluate(node, "_cuprite.isDisabled(this)")
       end
 
@@ -179,7 +179,7 @@ module Capybara::Cuprite
         command("Emulation.setDeviceMetricsOverride", width: width, height: height, deviceScaleFactor: 1, mobile: false)
       end
 
-      def path(target_id, node)
+      def path(node)
         evaluate(node, "_cuprite.path(this)")
       end
 
