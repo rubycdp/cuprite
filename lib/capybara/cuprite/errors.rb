@@ -135,13 +135,9 @@ module Capybara
       end
     end
 
-    class DeadClient < Error
-      def initialize(message)
-        @message = message
-      end
-
-      def message
-        "Browser client died while processing #{@message}"
+    class DeadBrowser < Error
+      def initialize(message = "Chrome is dead")
+        super
       end
     end
   end

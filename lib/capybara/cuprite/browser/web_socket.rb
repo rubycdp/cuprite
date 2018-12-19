@@ -15,26 +15,22 @@ module Capybara::Cuprite
       attr_reader :url, :messages
 
       def initialize(url, logger)
-        @url    = url
-        @logger = logger
-        uri     = URI.parse(@url)
-        @sock   = TCPSocket.new(uri.host, uri.port)
-        @driver = ::WebSocket::Driver.client(self)
-
-        @messages   = Queue.new
-        @dead       = false
+        @url      = url
+        @logger   = logger
+        uri       = URI.parse(@url)
+        @sock     = TCPSocket.new(uri.host, uri.port)
+        @driver   = ::WebSocket::Driver.client(self)
+        @messages = Queue.new
 
         @driver.on(:message, &method(:on_message))
-        @driver.on(:error, &method(:on_error))
-        @driver.on(:close, &method(:on_close))
 
         @thread = Thread.new do
           begin
-            until @dead
-              data = @sock.readpartial(512)
+            while data = @sock.readpartial(512)
               @driver.parse(data)
             end
           rescue EOFError
+            @messages.close
           end
         end
 
@@ -53,20 +49,6 @@ module Capybara::Cuprite
         log "    <<< #{event.data}\n"
         data = JSON.parse(event.data)
         @messages.push(data)
-      end
-
-      # Not sure if CDP uses it at all as all errors go to on_message callback
-      # for example: {"error":{"code":-32000,"message":"No node with given id found"},"id":22}
-      # FIXME: Raise and close connection and then kill the browser as this
-      # would be the error not in the main thread?
-      def on_error(event)
-        raise event.inspect
-      end
-
-      def on_close(event)
-        log "<<< #{event.code}, #{event.reason}\n\n"
-        @dead = true
-        @thread.kill
       end
 
       def write(data)

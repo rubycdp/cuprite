@@ -27,7 +27,7 @@ module Capybara::Cuprite
         "remote-debugging-address" => BROWSER_HOST
       }.freeze
 
-      attr_reader :host, :port, :ws_url
+      attr_reader :host, :port, :ws_url, :pid
 
       def self.start(*args)
         new(*args).tap(&:start)

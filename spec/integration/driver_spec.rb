@@ -19,7 +19,6 @@ module Capybara::Cuprite
     end
 
     it "supports a custom path" do
-      skip
       begin
         file = CUPRITE_ROOT + "/spec/support/custom_chrome_called"
         path = CUPRITE_ROOT + "/spec/support/custom_chrome"
@@ -43,13 +42,13 @@ module Capybara::Cuprite
       end
     end
 
-    context "output redirection", skip: true do
+    context "output redirection" do
       let(:logger) { StringIO.new }
       let(:session) { Capybara::Session.new(:cuprite_with_logger, TestApp) }
 
       before do
         Capybara.register_driver :cuprite_with_logger do |app|
-          Capybara::Cuprite::Driver.new(app)
+          Capybara::Cuprite::Driver.new(app, logger: logger)
         end
       end
 
@@ -59,34 +58,15 @@ module Capybara::Cuprite
         session.visit("/cuprite/console_log")
         expect(logger.string).to include("Hello world")
       end
-
-      it "is threadsafe in how it captures console.log" do
-        pending("JRuby and Rubinius do not support the :out parameter to Process.spawn, so there is no threadsafe way to redirect output") unless Capybara::Cuprite.mri?
-
-        # Write something to STDOUT right before Process.spawn is called
-        allow(Process).to receive(:spawn).and_wrap_original do |m, *args|
-          STDOUT.puts "1"
-          $stdout.puts "2"
-          m.call(*args)
-        end
-
-        expect do
-          session.visit("/cuprite/console_log")
-        end.to output("1\n2\n").to_stdout_from_any_process
-
-        expect(logger.string).not_to match(/\d/)
-      end
     end
 
     it "raises an error and restarts the client if the client dies while executing a command" do
-      skip
-      expect { @driver.browser.command("exit") }.to raise_error(DeadClient)
+      expect { @driver.browser.crash }.to raise_error(DeadBrowser)
       @session.visit("/")
       expect(@driver.html).to include("Hello world")
     end
 
     it "quits silently before visit call" do
-      skip
       driver = Capybara::Cuprite::Driver.new(nil)
       expect { driver.quit }.not_to raise_error
     end
@@ -545,9 +525,8 @@ module Capybara::Cuprite
     unless Capybara::Cuprite.windows?
       # Not sure how to do this on Windows, so skipping
       it "supports quitting the session" do
-        skip
         driver = Capybara::Cuprite::Driver.new(nil)
-        pid = driver.server_pid
+        pid = driver.browser.process.pid
 
         expect(Process.kill(0, pid)).to eq(1)
         driver.quit

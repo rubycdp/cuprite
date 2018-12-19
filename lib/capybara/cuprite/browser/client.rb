@@ -13,15 +13,16 @@ module Capybara::Cuprite
         @ws = WebSocket.new(ws_url, logger)
 
         @thread = Thread.new do
-          until @dead
-            message = @ws.messages.pop
+          while message = @ws.messages.pop
             if method = message["method"]
               block = @subscribed[method]
               block.call(message["params"]) if block
             else
-              @commands << message
+              @commands.push(message)
             end
           end
+
+          @commands.close
         end
       end
 
@@ -29,11 +30,8 @@ module Capybara::Cuprite
         message = build_message(method, params)
         @ws.send_message(message)
         response = @commands.pop
+        raise DeadBrowser unless response
         handle(response)
-      rescue DeadClient
-        # FIXME:
-        restart
-        raise
       end
 
       def subscribe(event, &block)
@@ -43,7 +41,6 @@ module Capybara::Cuprite
 
       def close
         @ws.close
-        @dead = true
         @thread.kill
       end
 

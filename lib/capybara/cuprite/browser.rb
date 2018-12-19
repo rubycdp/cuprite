@@ -18,7 +18,7 @@ module Capybara::Cuprite
     end
 
     attr_reader :process, :targets
-    delegate %i(command subscribe) => :@client
+    delegate subscribe: :@client
     delegate %i(evaluate evaluate_async execute) => :@evaluate
     delegate %i(window_handle window_handles switch_to_window open_new_window
                 close_window find_window_handle within_window page) => :@targets
@@ -253,6 +253,17 @@ module Capybara::Cuprite
 
       @client = @process = nil
       @targets = @evaluate = nil
+    end
+
+    def crash
+      command("Browser.crash")
+    end
+
+    def command(*args)
+      @client.command(*args)
+    rescue DeadBrowser
+      restart
+      raise
     end
 
     private
