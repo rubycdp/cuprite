@@ -81,6 +81,12 @@ module Capybara::Cuprite
         sleep(0.05) # FIXME: we have to wait for network event and then signal to thread
       end
 
+      def click_coordinates(x, y)
+        command("Input.dispatchMouseEvent", type: "mousePressed", button: "left", x: x, y: y, clickCount: 1)
+        command("Input.dispatchMouseEvent", type: "mouseReleased", button: "left", x: x, y: y, clickCount: 1)
+        sleep(0.05) # FIXME: we have to wait for network event and then signal to thread
+      end
+
       def right_click(node, keys = [], offset = {})
         x, y, modifiers = prepare_before_click(node, keys, offset)
         command("Input.dispatchMouseEvent", type: "mousePressed", modifiers: modifiers, button: "right", x: x, y: y, clickCount: 1)
@@ -106,10 +112,6 @@ module Capybara::Cuprite
           # command("Input.dispatchKeyEvent", type: "keyDown", text: value, unmodifiedText: value)
           # command("Input.dispatchKeyEvent", type: "keyUp")
         end
-      end
-
-      def click_coordinates(x, y)
-        command "click_coordinates", x, y
       end
 
       def drag(node, other_node)

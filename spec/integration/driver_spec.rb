@@ -92,8 +92,7 @@ module Capybara::Cuprite
       expect(@session.current_window.size).to eq([1366, 768])
     end
 
-    it "allows custom maximization size" do
-      skip
+    it "allows custom maximization size", skip: true do
       begin
         @driver.options[:screen_size] = [1600, 1200]
         @session.visit("/")
@@ -104,8 +103,7 @@ module Capybara::Cuprite
       end
     end
 
-    it "allows the page to be scrolled" do
-      skip
+    it "allows the page to be scrolled", skip: true do
       @session.visit("/cuprite/long_page")
       @driver.resize(10, 10)
       @driver.scroll_to(200, 100)
@@ -114,8 +112,7 @@ module Capybara::Cuprite
       ).to eq([200, 100])
     end
 
-    it "supports specifying viewport size with an option" do
-      skip
+    it "supports specifying viewport size with an option", skip: true do
       begin
         Capybara.register_driver :cuprite_with_custom_window_size do |app|
           Capybara::Cuprite::Driver.new(
@@ -416,7 +413,7 @@ module Capybara::Cuprite
       end
 
       context "multiple windows", skip: true do
-        it "persists headers across popup windows", skip: true do
+        it "persists headers across popup windows" do
           @driver.headers = {
             "Cookie" => "foo=bar",
             "Host" => "foo.com",
@@ -430,7 +427,7 @@ module Capybara::Cuprite
           expect(@driver.body).to include("HOST: foo.com")
         end
 
-        it "sets headers in existing windows", skip: true do
+        it "sets headers in existing windows" do
           @session.open_new_window
           @driver.headers = {
             "Cookie" => "foo=bar",
@@ -495,14 +492,12 @@ module Capybara::Cuprite
     end
 
     it "supports clicking precise coordinates" do
-      skip
       @session.visit("/cuprite/click_coordinates")
       @driver.click(100, 150)
       expect(@driver.body).to include("x: 100, y: 150")
     end
 
-    it "supports executing multiple lines of javascript" do
-      skip
+    it "supports executing multiple lines of javascript", skip: true do
       @driver.execute_script <<-JS
         var a = 1
         var b = 2
@@ -511,8 +506,7 @@ module Capybara::Cuprite
       expect(@driver.evaluate_script("window.result")).to eq(3)
     end
 
-    it "operates a timeout when communicating with browser" do
-      skip
+    it "operates a timeout when communicating with browser", skip: true do
       begin
         prev_timeout = @driver.timeout
         @driver.timeout = 0.001
@@ -918,8 +912,7 @@ module Capybara::Cuprite
       end
     end
 
-    it "allows the driver to have a fixed port" do
-      skip
+    it "allows the driver to have a fixed port", skip: true do
       begin
         driver = Capybara::Cuprite::Driver.new(@driver.app, port: 12345)
         driver.visit session_url("/")
@@ -949,8 +942,7 @@ module Capybara::Cuprite
       end
     end
 
-    it "lists the open windows" do
-      skip
+    it "lists the open windows", skip: true do
       @session.visit "/"
 
       @session.execute_script <<-JS
@@ -1017,8 +1009,7 @@ module Capybara::Cuprite
       end
     end
 
-    it "resizes windows" do
-      skip
+    it "resizes windows", skip: true do
       @session.visit "/"
 
       popup1 = @session.window_opened_by do
@@ -1483,8 +1474,7 @@ module Capybara::Cuprite
         end
       end
 
-      it "will timeout" do
-        skip
+      it "will timeout", skip: true do
         @session.using_wait_time(1) do
           expect do
             @session.driver.evaluate_async_script("var callback=arguments[0]; setTimeout(function(){callback(true)}, 4000)")
