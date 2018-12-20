@@ -2,7 +2,7 @@
 
 require "time"
 
-module Capybara::Cuprite::NetworkTraffic
+module Capybara::Cuprite::Network
   class Request
     attr_accessor :response, :error
 

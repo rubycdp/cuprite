@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-module Capybara::Cuprite::NetworkTraffic
+module Capybara::Cuprite::Network
   class Response
     def initialize(data)
       @data = data

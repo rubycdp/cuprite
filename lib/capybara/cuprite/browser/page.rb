@@ -1,9 +1,9 @@
 # frozen_string_literal: true
 
 require "cuprite/browser/client"
-require "cuprite/network_traffic/error"
-require "cuprite/network_traffic/request"
-require "cuprite/network_traffic/response"
+require "cuprite/network/error"
+require "cuprite/network/request"
+require "cuprite/network/response"
 
 # RemoteObjectId is from a JavaScript world, and corresponds to any JavaScript
 # object, including JS wrappers for DOM nodes. There is a way to convert between
@@ -281,7 +281,7 @@ module Capybara::Cuprite
 
           id, time = params.values_at("requestId", "wallTime")
           params = params["request"].merge("id" => id, "time" => time)
-          @network_traffic << NetworkTraffic::Request.new(params)
+          @network_traffic << Network::Request.new(params)
         end
 
         @client.subscribe("Network.responseReceived") do |params|
@@ -292,7 +292,7 @@ module Capybara::Cuprite
 
           request = @network_traffic.find { |r| r.id == params["requestId"] }
           params = params["response"].merge("id" => params["requestId"])
-          request.response = NetworkTraffic::Response.new(params)
+          request.response = Network::Response.new(params)
         end
 
         @client.subscribe("Page.navigatedWithinDocument") do
@@ -306,7 +306,7 @@ module Capybara::Cuprite
           if source == "network" && level == "error"
             id = params.dig("entry", "networkRequestId")
             request = @network_traffic.find { |r| r.id == id }
-            request.error = NetworkTraffic::Error.new(params["entry"])
+            request.error = Network::Error.new(params["entry"])
           end
         end
 
