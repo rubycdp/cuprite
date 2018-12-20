@@ -2,7 +2,7 @@
 
 require "capybara"
 
-Thread.abort_on_exception = false
+Thread.abort_on_exception = true
 Thread.report_on_exception = true
 
 module Capybara::Cuprite

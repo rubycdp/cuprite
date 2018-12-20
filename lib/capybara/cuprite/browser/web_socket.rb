@@ -29,7 +29,7 @@ module Capybara::Cuprite
             while data = @sock.readpartial(512)
               @driver.parse(data)
             end
-          rescue EOFError
+          rescue EOFError, Errno::ECONNRESET
             @messages.close
           end
         end
