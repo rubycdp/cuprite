@@ -198,11 +198,13 @@ module Capybara::Cuprite
     end
 
     def url_whitelist=(whitelist)
-      command "set_url_whitelist", *whitelist
+      @url_whitelist = Array(whitelist).map { |p| { urlPattern: p } }
+      page.command("Network.setRequestInterception", patterns: @url_whitelist)
     end
 
     def url_blacklist=(blacklist)
-      command "set_url_blacklist", *blacklist
+      @url_blacklist = Array(blacklist).map { |p| { urlPattern: "*#{p}*" } }
+      page.command("Network.setRequestInterception", patterns: @url_blacklist)
     end
 
     def clear_memory_cache

@@ -318,6 +318,10 @@ module Capybara::Cuprite
             @query_root_node = true
           end
         end
+
+        @client.subscribe("Network.requestIntercepted") do |params|
+          @client.send_message("Network.continueInterceptedRequest", interceptionId: params["interceptionId"], errorReason: "Aborted")
+        end
       end
 
       def prepare_page

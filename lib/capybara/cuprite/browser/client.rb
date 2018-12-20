@@ -5,6 +5,8 @@ require "cuprite/browser/web_socket"
 module Capybara::Cuprite
   class Browser
     class Client
+      class IdError < RuntimeError; end
+
       def initialize(ws_url, logger)
         @command_id = 0
         @logger = logger
@@ -14,9 +16,9 @@ module Capybara::Cuprite
 
         @thread = Thread.new do
           while message = @ws.messages.pop
-            if method = message["method"]
-              block = @subscribed[method]
-              block.call(message["params"]) if block
+            method, params = message.values_at("method", "params")
+            if method
+              @subscribed[method]&.(params)
             else
               @commands.push(message)
             end
@@ -27,11 +29,15 @@ module Capybara::Cuprite
       end
 
       def command(method, params = {})
-        message = build_message(method, params)
-        @ws.send_message(message)
-        response = @commands.pop
-        raise DeadBrowser unless response
-        handle(response)
+        id = send_message(method, params)
+        begin
+          response = @commands.pop
+          raise IdError if response["id"] != id
+          raise DeadBrowser unless response
+          handle(response)
+        rescue IdError
+          retry
+        end
       end
 
       def subscribe(event, &block)
@@ -42,6 +48,12 @@ module Capybara::Cuprite
       def close
         @ws.close
         @thread.kill
+      end
+
+      def send_message(method, params)
+        message = build_message(method, params)
+        @ws.send_message(message)
+        message[:id]
       end
 
       private
