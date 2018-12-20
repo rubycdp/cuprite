@@ -229,7 +229,7 @@ module Capybara::Cuprite
 
         @client.subscribe("Runtime.executionContextCreated") do |params|
           # Remember the very first frame since it's the main one
-          @frame_id = params.dig("context", "auxData", "frameId")
+          @frame_id ||= params.dig("context", "auxData", "frameId")
           @execution_context_id ||= params.dig("context", "id")
         end
 
