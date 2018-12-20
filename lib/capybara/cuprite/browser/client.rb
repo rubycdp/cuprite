@@ -32,8 +32,8 @@ module Capybara::Cuprite
         id = send_message(method, params)
         begin
           response = @commands.pop
-          raise IdError if response["id"] != id
           raise DeadBrowser unless response
+          raise IdError if response["id"] != id
           handle(response)
         rescue IdError
           retry
