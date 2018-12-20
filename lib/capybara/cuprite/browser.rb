@@ -9,6 +9,8 @@ require "cuprite/browser/page"
 
 module Capybara::Cuprite
   class Browser
+    TIMEOUT = 5
+
     extend Forwardable
 
     attr_reader :headers
@@ -17,7 +19,6 @@ module Capybara::Cuprite
       new(*args)
     end
 
-    attr_reader :process, :targets
     delegate subscribe: :@client
     delegate %i(evaluate evaluate_async execute) => :@evaluate
     delegate %i(window_handle window_handles switch_to_window open_new_window
@@ -28,10 +29,17 @@ module Capybara::Cuprite
                 double_click hover set click_coordinates drag drag_by select
                 trigger scroll_to send_keys) => :page
 
+    attr_reader :process, :targets, :logger
+    attr_writer :timeout
+
     def initialize(options = nil)
       @options = Hash(options)
-      @logger = @options[:logger]
+      @logger, @timeout = @options.values_at(:logger, :timeout)
       start
+    end
+
+    def timeout
+      @timeout || TIMEOUT
     end
 
     def current_url
@@ -273,8 +281,8 @@ module Capybara::Cuprite
     def start
       @headers = {}
       @process = Process.start(@options)
-      @client = Client.new(@process.ws_url, @logger)
-      @targets = Targets.new(self, @logger)
+      @client = Client.new(self, @process.ws_url)
+      @targets = Targets.new(self)
       @evaluate = Evaluate.new(@targets)
     end
 

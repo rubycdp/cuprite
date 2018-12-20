@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require "timeout"
 require "cuprite/browser/web_socket"
 
 module Capybara::Cuprite
@@ -7,12 +8,12 @@ module Capybara::Cuprite
     class Client
       class IdError < RuntimeError; end
 
-      def initialize(ws_url, logger)
+      def initialize(browser, ws_url)
         @command_id = 0
-        @logger = logger
         @subscribed = {}
+        @browser = browser
         @commands = Queue.new
-        @ws = WebSocket.new(ws_url, logger)
+        @ws = WebSocket.new(ws_url, @browser.logger)
 
         @thread = Thread.new do
           while message = @ws.messages.pop
@@ -30,8 +31,9 @@ module Capybara::Cuprite
 
       def command(method, params = {})
         id = send_message(method, params)
+
         begin
-          response = @commands.pop
+          response = Timeout.timeout(@browser.timeout, TimeoutError) { @commands.pop }
           raise DeadBrowser unless response
           raise IdError if response["id"] != id
           handle(response)

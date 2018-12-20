@@ -123,9 +123,7 @@ module Capybara
       def message
         "Timed out waiting for response to #{@message}. It's possible that this happened " \
         "because something took a very long time (for example a page load was slow). " \
-        "If so, setting the Cuprite :timeout option to a higher value will help " \
-        "(see the docs for details). If increasing the timeout does not help, this is " \
-        "probably a bug in Cuprite - please report it to the issue tracker."
+        "If so, setting the Cuprite :timeout option to a higher value can help."
       end
     end
 

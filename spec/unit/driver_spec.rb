@@ -3,20 +3,12 @@
 require "spec_helper"
 
 module Capybara::Cuprite
-  describe Driver, skip: true do
+  describe Driver do
     context "with no options" do
       subject { Driver.new(nil) }
 
-      it "does not log" do
-        expect(subject.logger).to be_nil
-      end
-    end
-
-    context "with a :logger option" do
-      subject { Driver.new(nil, logger: :my_custom_logger) }
-
-      it "logs to the logger given" do
-        expect(subject.logger).to eq(:my_custom_logger)
+      it "instantiates sucessfully" do
+        expect(subject.options).to eq({})
       end
     end
 
@@ -24,13 +16,15 @@ module Capybara::Cuprite
       subject { Driver.new(nil, timeout: 3) }
 
       it "starts the server with the provided timeout" do
-        server = double
-        expect(Server).to receive(:new).with(anything, 3, nil).and_return(server)
-        expect(subject.server).to eq(server)
+        client = double("Client").as_null_object
+
+        expect(Browser::Client).to receive(:new).twice.with(anything, nil, 3).and_return(client)
+
+        subject.browser
       end
     end
 
-    context "with a :window_size option" do
+    context "with a :window_size option", skip: true do
       subject { Driver.new(nil, window_size: [800, 600]) }
 
       it "creates a client with the desired width and height settings" do

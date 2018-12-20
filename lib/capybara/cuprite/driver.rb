@@ -2,9 +2,13 @@
 
 require "uri"
 
+require "forwardable"
+
 module Capybara::Cuprite
   class Driver < Capybara::Driver::Base
-    DEFAULT_TIMEOUT = 30
+    extend Forwardable
+
+    delegate %i(restart stop status_code timeout timeout=) => :browser
 
     attr_reader :app, :options
 
@@ -22,14 +26,6 @@ module Capybara::Cuprite
       @browser ||= Browser.start(@options)
     end
 
-    def restart
-      browser.restart
-    end
-
-    def quit
-      browser.stop
-    end
-
     def visit(url)
       @started = true
       browser.visit(url)
@@ -45,10 +41,6 @@ module Capybara::Cuprite
 
     def frame_url
       browser.frame_url
-    end
-
-    def status_code
-      browser.status_code
     end
 
     def html

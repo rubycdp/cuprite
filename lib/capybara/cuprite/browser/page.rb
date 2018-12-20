@@ -31,10 +31,9 @@ module Capybara::Cuprite
       attr_reader :target_id, :status_code, :execution_context_id,
                   :response_headers
 
-      def initialize(target_id, browser, logger)
+      def initialize(target_id, browser)
         @wait = false
-        @target_id = target_id
-        @browser, @logger = browser, logger
+        @target_id, @browser = target_id, browser
         @mutex, @resource = Mutex.new, ConditionVariable.new
         @network_traffic = []
 
@@ -51,7 +50,7 @@ module Capybara::Cuprite
         host = @browser.process.host
         port = @browser.process.port
         ws_url = "ws://#{host}:#{port}/devtools/page/#{@target_id}"
-        @client = Client.new(ws_url, @logger)
+        @client = Client.new(browser, ws_url)
 
         subscribe_events
         prepare_page
@@ -224,7 +223,7 @@ module Capybara::Cuprite
 
       def subscribe_events
         @client.subscribe("Runtime.consoleAPICalled") do |params|
-          params["args"].each { |r| @logger.write(r["value"]) } if @logger
+          params["args"].each { |r| @browser.logger.write(r["value"]) } if @browser.logger
         end
 
         @client.subscribe("Runtime.executionContextCreated") do |params|

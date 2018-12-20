@@ -3,9 +3,9 @@
 module Capybara::Cuprite
   class Browser
     class Targets
-      def initialize(browser, logger)
+      def initialize(browser)
         @mutex = Mutex.new
-        @browser, @logger = browser, logger
+        @browser = browser
         @_default = targets.first["targetId"]
 
         @browser.subscribe("Target.detachedFromTarget") do |params|
@@ -41,14 +41,14 @@ module Capybara::Cuprite
 
       def switch_to_window(target_id)
         page = @targets[target_id]
-        page ||= Page.new(target_id, @browser, @logger)
+        page ||= Page.new(target_id, @browser)
         @targets[target_id] ||= page
         @page = page
       end
 
       def open_new_window
         target_id = @browser.command("Target.createTarget", url: "about:blank", browserContextId: @_context_id)["targetId"]
-        page = Page.new(target_id, @browser, @logger)
+        page = Page.new(target_id, @browser)
         push(target_id, page)
         target_id
       end
@@ -86,7 +86,7 @@ module Capybara::Cuprite
 
         @_context_id = @browser.command("Target.createBrowserContext")["browserContextId"]
         target_id = @browser.command("Target.createTarget", url: "about:blank", browserContextId: @_context_id)["targetId"]
-        @page = Page.new(target_id, @browser, @logger)
+        @page = Page.new(target_id, @browser)
         push(target_id, @page)
       end
 

@@ -38,7 +38,7 @@ module Capybara::Cuprite
         expect(File.exist?(file)).to be true
       ensure
         FileUtils.rm_f(file)
-        driver&.quit
+        driver&.stop
       end
     end
 
@@ -52,7 +52,7 @@ module Capybara::Cuprite
         end
       end
 
-      after { session.driver.quit }
+      after { session.driver.stop }
 
       it "supports capturing console.log" do
         session.visit("/cuprite/console_log")
@@ -67,9 +67,9 @@ module Capybara::Cuprite
       expect(driver.html).to include("Hello world")
     end
 
-    it "quits silently before visit call" do
+    it "stops silently before visit call" do
       driver = Capybara::Cuprite::Driver.new(nil)
-      expect { driver.quit }.not_to raise_error
+      expect { driver.stop }.not_to raise_error
     end
 
     it "has a viewport size of 1024x768 by default" do
@@ -128,7 +128,7 @@ module Capybara::Cuprite
           driver.evaluate_script("[window.innerWidth, window.innerHeight]")
         ).to eq([800, 600])
       ensure
-        driver&.quit
+        driver&.stop
       end
     end
 
@@ -507,11 +507,11 @@ module Capybara::Cuprite
       expect(@driver.evaluate_script("window.result")).to eq(3)
     end
 
-    it "operates a timeout when communicating with browser", skip: true do
+    it "operates a timeout when communicating with browser" do
       begin
         prev_timeout = @driver.timeout
-        @driver.timeout = 0.001
-        expect { @driver.browser.command "noop" }.to raise_error(TimeoutError)
+        @driver.timeout = 0.1
+        expect { @driver.visit(session_url("/cuprite/really_slow")) }.to raise_error(TimeoutError)
       ensure
         @driver.timeout = prev_timeout
       end
@@ -519,12 +519,12 @@ module Capybara::Cuprite
 
     unless Capybara::Cuprite.windows?
       # Not sure how to do this on Windows, so skipping
-      it "supports quitting the session" do
+      it "supports stopping the session" do
         driver = Capybara::Cuprite::Driver.new(nil)
         pid = driver.browser.process.pid
 
         expect(Process.kill(0, pid)).to eq(1)
-        driver.quit
+        driver.stop
 
         expect { Process.kill(0, pid) }.to raise_error(Errno::ESRCH)
       end
@@ -540,7 +540,7 @@ module Capybara::Cuprite
       end
 
       after do
-        @extended_driver.quit
+        @extended_driver.stop
       end
 
       it "supports extending the browser's world" do
@@ -565,7 +565,7 @@ module Capybara::Cuprite
           )
           expect { @failing_driver.visit "/" }.to raise_error(Capybara::Cuprite::BrowserError, /Unable to load extension: .*non_existent\.js/)
         ensure
-          @failing_driver.quit
+          @failing_driver.stop
         end
       end
     end
@@ -618,7 +618,7 @@ module Capybara::Cuprite
           sleep 0.1
           expect(driver.body).to include("hello")
         ensure
-          driver&.quit
+          driver&.stop
         end
       end
 
@@ -631,7 +631,7 @@ module Capybara::Cuprite
           sleep 0.1
           expect(driver.body).to include("hello")
         ensure
-          driver&.quit
+          driver&.stop
         end
       end
 
@@ -642,7 +642,7 @@ module Capybara::Cuprite
             driver.visit session_url("/cuprite/headers")
             expect(driver.body).to include("USER_AGENT: PageSettingsOverride")
           ensure
-            driver&.quit
+            driver&.stop
           end
         end
 
@@ -655,7 +655,7 @@ module Capybara::Cuprite
               driver.visit session_url("/cuprite/visit_timeout")
             end.not_to raise_error
           ensure
-            driver&.quit
+            driver&.stop
           end
         end
       end
@@ -920,7 +920,7 @@ module Capybara::Cuprite
 
         expect { TCPServer.new("127.0.0.1", 12345) }.to raise_error(Errno::EADDRINUSE)
       ensure
-        driver.quit
+        driver.stop
       end
     end
 
@@ -939,7 +939,7 @@ module Capybara::Cuprite
 
         expect { TCPServer.new(host, 12345) }.to raise_error(Errno::EADDRINUSE)
       ensure
-        driver&.quit
+        driver&.stop
       end
     end
 
