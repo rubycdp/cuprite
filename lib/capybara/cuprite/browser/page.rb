@@ -35,7 +35,6 @@ module Capybara::Cuprite
         @wait = false
         @target_id = target_id
         @browser, @logger = browser, logger
-        @query_root_node = false
         @mutex, @resource = Mutex.new, ConditionVariable.new
         @network_traffic = []
 
@@ -213,7 +212,6 @@ module Capybara::Cuprite
 
       def command(*args)
         @mutex.synchronize do
-          query_root_node
           response = @client.command(*args)
           @resource.wait(@mutex, TIMEOUT) if @wait
           response
@@ -258,8 +256,8 @@ module Capybara::Cuprite
           # `command` is not allowed in the block as it will deadlock the process.
           if params["frameId"] == @frame_id
             @wait = false
+            @client.send_message("DOM.getDocument", depth: 0)
             @resource.signal
-            @query_root_node = true
           end
         end
 
@@ -314,8 +312,8 @@ module Capybara::Cuprite
           # `Page.frameStoppedLoading` doesn't occur if status isn't success
           if @status_code != 200
             @wait = false
+            @client.send_message("DOM.getDocument", depth: 0)
             @resource.signal
-            @query_root_node = true
           end
         end
 
@@ -350,26 +348,12 @@ module Capybara::Cuprite
           # occurs and thus search for nodes cannot be completed. Here we check
           # the history and if the transitionType for example `link` then
           # content is already loaded and we can try to get the document.
-          get_document
+          command("DOM.getDocument", depth: 0)
         end
-      end
-
-      def get_document
-        @client.command("DOM.getDocument", depth: 0)["root"]
       end
 
       def source
         @source ||= File.read(File.expand_path("javascripts/index.js", __dir__))
-      end
-
-      def query_root_node
-        if @query_root_node
-          begin
-            get_document
-          ensure
-            @query_root_node = false
-          end
-        end
       end
 
       def prepare_before_click(node, keys, offset)
