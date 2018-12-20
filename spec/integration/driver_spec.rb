@@ -61,9 +61,10 @@ module Capybara::Cuprite
     end
 
     it "raises an error and restarts the client if the client dies while executing a command" do
-      expect { @driver.browser.crash }.to raise_error(DeadBrowser)
-      @session.visit("/")
-      expect(@driver.html).to include("Hello world")
+      driver = Capybara::Cuprite::Driver.new(nil)
+      expect { driver.browser.crash }.to raise_error(DeadBrowser)
+      driver.visit(session_url("/"))
+      expect(driver.html).to include("Hello world")
     end
 
     it "quits silently before visit call" do
@@ -497,7 +498,7 @@ module Capybara::Cuprite
       expect(@driver.body).to include("x: 100, y: 150")
     end
 
-    it "supports executing multiple lines of javascript", skip: true do
+    it "supports executing multiple lines of javascript" do
       @driver.execute_script <<-JS
         var a = 1
         var b = 2
