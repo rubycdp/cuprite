@@ -10,6 +10,9 @@ require "cuprite/browser/page"
 module Capybara::Cuprite
   class Browser
     TIMEOUT = 5
+    EXTENSIONS = [
+      File.expand_path("browser/javascripts/index.js", __dir__)
+    ].freeze
 
     extend Forwardable
 
@@ -20,22 +23,29 @@ module Capybara::Cuprite
     end
 
     delegate subscribe: :@client
-    delegate %i(evaluate evaluate_async execute) => :@evaluate
+    delegate %i(evaluate evaluate_async execute) => :runtime
     delegate %i(window_handle window_handles switch_to_window open_new_window
-                close_window find_window_handle within_window page) => :@targets
+                close_window find_window_handle within_window page) => :targets
     delegate %i(visit status_code body all_text property attributes attribute
                 value visible? disabled? resize path network_traffic
                 clear_network_traffic response_headers refresh click right_click
                 double_click hover set click_coordinates drag drag_by select
                 trigger scroll_to send_keys) => :page
 
-    attr_reader :process, :targets, :logger
+    attr_reader :process, :logger
     attr_writer :timeout
 
     def initialize(options = nil)
       @options = Hash(options)
       @logger, @timeout = @options.values_at(:logger, :timeout)
       start
+    end
+
+    def extensions
+      @extensions ||= begin
+        exts = @options.fetch(:extensions, [])
+        (EXTENSIONS + exts).map { |p| File.read(p) }
+      end
     end
 
     def timeout
@@ -249,7 +259,7 @@ module Capybara::Cuprite
 
     def reset
       @headers = {}
-      @targets.reset
+      targets.reset
     end
 
     def restart
@@ -262,7 +272,7 @@ module Capybara::Cuprite
       @process.stop
 
       @client = @process = nil
-      @targets = @evaluate = nil
+      @targets = @runtime = nil
     end
 
     def crash
@@ -276,14 +286,20 @@ module Capybara::Cuprite
       raise
     end
 
+    def targets
+      @targets ||= Targets.new(self)
+    end
+
+    def runtime
+      @runtime ||= Runtime.new(targets)
+    end
+
     private
 
     def start
       @headers = {}
       @process = Process.start(@options)
       @client = Client.new(self, @process.ws_url)
-      @targets = Targets.new(self)
-      @evaluate = Evaluate.new(@targets)
     end
 
     def check_render_options!(options)

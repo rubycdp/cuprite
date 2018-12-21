@@ -3,7 +3,7 @@
 require "forwardable"
 
 module Capybara::Cuprite
-  class Evaluate
+  class Runtime
     EXECUTE_OPTIONS = {
       returnByValue: true,
       functionDeclaration: %Q(function() { %s })

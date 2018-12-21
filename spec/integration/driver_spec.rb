@@ -530,42 +530,43 @@ module Capybara::Cuprite
       end
     end
 
-    context "extending browser javascript", skip: true do
-      before do
-        @extended_driver = Capybara::Cuprite::Driver.new(
-          @session.app,
-          logger: TestSessions.logger,
-          extensions: %W[#{File.expand_path "../support/geolocation.js", __dir__}]
-        )
-      end
-
-      after do
-        @extended_driver.stop
-      end
-
+    context "extending browser javascript" do
       it "supports extending the browser's world" do
-        @extended_driver.visit session_url("/cuprite/requiring_custom_extension")
-        expect(
-          @extended_driver.body
-        ).to include(%(Location: <span id="location">1,-1</span>))
-        expect(
-          @extended_driver.evaluate_script(%(document.getElementById("location").innerHTML))
-        ).to eq("1,-1")
-        expect(
-          @extended_driver.evaluate_script("navigator.geolocation")
-        ).to_not eq(nil)
+        begin
+          extended_driver = Capybara::Cuprite::Driver.new(
+            @session.app,
+            logger: TestSessions.logger,
+            extensions: [File.expand_path("../support/geolocation.js", __dir__)]
+          )
+
+          extended_driver.visit session_url("/cuprite/requiring_custom_extension")
+
+          expect(
+            extended_driver.body
+          ).to include(%(Location: <span id="location">1,-1</span>))
+
+          expect(
+            extended_driver.evaluate_script(%(document.getElementById("location").innerHTML))
+          ).to eq("1,-1")
+
+          expect(
+            extended_driver.evaluate_script("navigator.geolocation")
+          ).to_not eq(nil)
+        ensure
+          extended_driver.stop
+        end
       end
 
       it "errors when extension is unavailable" do
         begin
-          @failing_driver = Capybara::Cuprite::Driver.new(
+          failing_driver = Capybara::Cuprite::Driver.new(
             @session.app,
             logger: TestSessions.logger,
-            extensions: %W[#{File.expand_path "../support/non_existent.js", __dir__}]
+            extensions: [File.expand_path("../support/non_existent.js", __dir__)]
           )
-          expect { @failing_driver.visit "/" }.to raise_error(Capybara::Cuprite::BrowserError, /Unable to load extension: .*non_existent\.js/)
+          expect { failing_driver.visit(session_url("/")) }.to raise_error(Errno::ENOENT)
         ensure
-          @failing_driver.stop
+          failing_driver.stop
         end
       end
     end

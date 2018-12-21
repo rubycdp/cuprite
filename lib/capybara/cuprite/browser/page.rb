@@ -330,17 +330,19 @@ module Capybara::Cuprite
         command("Runtime.enable")
         command("Log.enable")
         command("Network.enable")
-        command("Page.addScriptToEvaluateOnNewDocument", source: source)
 
-        # https://github.com/GoogleChrome/puppeteer/issues/1443
-        # https://github.com/ChromeDevTools/devtools-protocol/issues/77
-        # https://github.com/cyrus-and/chrome-remote-interface/issues/319
-        # We also evaluate script just in case because
-        # `Page.addScriptToEvaluateOnNewDocument` doesn't work in popups.
-        command("Runtime.evaluate", expression: source,
-                                    contextId: @execution_context_id,
-                                    returnByValue: true)
+        @browser.extensions.each do |extension|
+          command("Page.addScriptToEvaluateOnNewDocument", source: extension)
 
+          # https://github.com/GoogleChrome/puppeteer/issues/1443
+          # https://github.com/ChromeDevTools/devtools-protocol/issues/77
+          # https://github.com/cyrus-and/chrome-remote-interface/issues/319
+          # We also evaluate script just in case because
+          # `Page.addScriptToEvaluateOnNewDocument` doesn't work in popups.
+          command("Runtime.evaluate", expression: extension,
+                                      contextId: @execution_context_id,
+                                      returnByValue: true)
+        end
 
         response = command("Page.getNavigationHistory")
         if response.dig("entries", 0, "transitionType") != "typed"
@@ -351,10 +353,6 @@ module Capybara::Cuprite
           # content is already loaded and we can try to get the document.
           command("DOM.getDocument", depth: 0)
         end
-      end
-
-      def source
-        @source ||= File.read(File.expand_path("javascripts/index.js", __dir__))
       end
 
       def prepare_before_click(node, keys, offset)
