@@ -60,7 +60,11 @@ module Capybara::Cuprite
         @wait = true
         options = { url: url }
         options.merge!(referrer: referrer) if referrer
-        command("Page.navigate", **options)["frameId"]
+        response = command("Page.navigate", **options)
+        if response["errorText"] == "net::ERR_NAME_RESOLUTION_FAILED"
+          raise StatusFailError, "url" => url
+        end
+        response["frameId"]
       end
 
       def close

@@ -517,17 +517,14 @@ module Capybara::Cuprite
       end
     end
 
-    unless Capybara::Cuprite.windows?
-      # Not sure how to do this on Windows, so skipping
-      it "supports stopping the session" do
-        driver = Capybara::Cuprite::Driver.new(nil)
-        pid = driver.browser.process.pid
+    it "supports stopping the session", skip: Capybara::Cuprite.windows? do
+      driver = Capybara::Cuprite::Driver.new(nil)
+      pid = driver.browser.process.pid
 
-        expect(Process.kill(0, pid)).to eq(1)
-        driver.stop
+      expect(Process.kill(0, pid)).to eq(1)
+      driver.stop
 
-        expect { Process.kill(0, pid) }.to raise_error(Errno::ESRCH)
-      end
+      expect { Process.kill(0, pid) }.to raise_error(Errno::ESRCH)
     end
 
     context "extending browser javascript" do
@@ -662,7 +659,7 @@ module Capybara::Cuprite
       end
     end
 
-    context "browser {'status': 'fail'} responses", skip: true do
+    context "browser failed responses" do
       before { @port = @session.server.port }
 
       it "do not occur when DNS correct" do
@@ -675,12 +672,14 @@ module Capybara::Cuprite
 
       it "has a descriptive message when DNS incorrect" do
         url = "http://nope:#{@port}/"
-        expect do
-          @session.visit(url)
-        end.to raise_error(StatusFailError, %(Request to "#{url}" failed to reach server, check DNS and/or server status))
+        expect { @session.visit(url) }
+          .to raise_error(
+            StatusFailError,
+            %(Request to #{url} failed to reach server, check DNS and/or server status)
+          )
       end
 
-      it "reports open resource requests" do
+      it "reports open resource requests", skip: true do
         old_timeout = @session.driver.timeout
         begin
           @session.driver.timeout = 2
@@ -692,7 +691,7 @@ module Capybara::Cuprite
         end
       end
 
-      it "doesnt report open resources where there are none" do
+      it "does not report open resources where there are none", skip: true do
         old_timeout = @session.driver.timeout
         begin
           @session.driver.timeout = 2

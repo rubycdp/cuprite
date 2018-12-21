@@ -33,18 +33,8 @@ module Capybara
     end
 
     class StatusFailError < ClientError
-      def url
-        response["args"].first
-      end
-
-      def details
-        response["args"][1]
-      end
-
       def message
-        msg = "Request to "#{url}" failed to reach server, check DNS and/or server status"
-        msg += " - #{details}" if details
-        msg
+        "Request to #{response["url"]} failed to reach server, check DNS and/or server status"
       end
     end
 
