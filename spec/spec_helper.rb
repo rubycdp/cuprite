@@ -84,13 +84,13 @@ RSpec.configure do |config|
   config.define_derived_metadata do |metadata|
     regexes = <<~REGEXP.split("\n").map { |s| Regexp.quote(s.strip) }.join("|")
     #go_back should fetch a response from the driver from the previous page
+    #go_forward should fetch a response from the driver from the previous page
     #save_page asset_host contains a string prepends base tag with value from asset_host to the head
     #save_page asset_host contains a string doesn't prepend base tag to pages when asset_host is nil
     #has_no_text? with wait should not find element if it appears after given wait duration
     #within_window with an instance of Capybara::Window should leave correct scopes after execution in case of error
     #fullscreen should be able to fullscreen the window
     #click_link can download a file
-    #go_forward should fetch a response from the driver from the previous page
     #fill_in Date/Time should fill in a date input
     #fill_in Date/Time should fill in a time input
     #fill_in Date/Time should fill in a datetime input

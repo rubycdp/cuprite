@@ -106,14 +106,11 @@ module Capybara
     end
 
     class TimeoutError < Error
-      def initialize(message)
-        @message = message
-      end
-
       def message
-        "Timed out waiting for response to #{@message}. It's possible that this happened " \
-        "because something took a very long time (for example a page load was slow). " \
-        "If so, setting the Cuprite :timeout option to a higher value can help."
+        "Timed out waiting for response. It's possible that this happened " \
+        "because something took a very long time (for example a page load " \
+        "was slow). If so, setting the Cuprite :timeout option to a higher " \
+        "value might help."
       end
     end
 
