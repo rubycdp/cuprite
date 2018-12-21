@@ -1475,7 +1475,7 @@ module Capybara::Cuprite
         end
       end
 
-      it "will timeout", skip: true do
+      it "will timeout" do
         @session.using_wait_time(1) do
           expect do
             @session.driver.evaluate_async_script("var callback=arguments[0]; setTimeout(function(){callback(true)}, 4000)")

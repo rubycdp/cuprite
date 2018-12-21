@@ -15,14 +15,14 @@ module Capybara::Cuprite
       awaitPromise: true,
       functionDeclaration: %Q(
         function() {
-         return new Promise((cupriteResolve, cupriteReject) => {
+         return new Promise((__resolve, __reject) => {
            try {
-             let cupriteCallback = function(r) { cupriteResolve(r) };
-             arguments[arguments.length] = cupriteCallback;
+             arguments[arguments.length] = r => __resolve(r);
              arguments.length = arguments.length + 1;
+             setTimeout(() => __reject(new TimedOutPromise), %s);
              %s
            } catch(error) {
-             cupriteReject(error);
+             __reject(error);
            }
          });
         }
@@ -38,32 +38,39 @@ module Capybara::Cuprite
     end
 
     def evaluate(expr, *args)
-      response = call(expr, nil, *args)
+      response = call(expr, nil, nil, *args)
       handle(response)
     end
 
-    def evaluate_async(expr, _wait_time, *args)
-      response = call(expr, EVALUATE_ASYNC_OPTIONS, *args)
+    def evaluate_async(expr, wait_time, *args)
+      response = call(expr, wait_time * 1000, EVALUATE_ASYNC_OPTIONS, *args)
       handle(response)
     end
 
     def execute(expr, *args)
-      call(expr, EXECUTE_OPTIONS, *args)
+      call(expr, nil, EXECUTE_OPTIONS, *args)
       true
     end
 
     private
 
-    def call(expr, options = nil, *args)
+    def call(expr, wait_time, options = nil, *args)
       options ||= {}
       args = prepare_args(args)
 
       options = DEFAULT_OPTIONS.merge(options)
+      expr = [wait_time, expr] if wait_time
       options[:functionDeclaration] = options[:functionDeclaration] % expr
       options = options.merge(arguments: args, executionContextId: page.execution_context_id)
 
       page.command("Runtime.callFunctionOn", **options)["result"].tap do |response|
-        raise JavaScriptError.new(response) if response["subtype"] == "error"
+        if response["subtype"] == "error"
+          if response["className"] == "TimedOutPromise"
+            raise ScriptTimeoutError
+          else
+            raise JavaScriptError.new(response)
+          end
+        end
       end
     end
 
@@ -154,7 +161,8 @@ module Capybara::Cuprite
         }
       )
 
-      response = call(expr, EVALUATE_ASYNC_OPTIONS, { "objectId" => object_id })
+      # FIXME: Is there a way we can use wait_time here?
+      response = call(expr, 5, EVALUATE_ASYNC_OPTIONS, { "objectId" => object_id })
       handle(response, false)
     end
 

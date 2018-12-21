@@ -361,7 +361,11 @@ module Capybara::Cuprite
       if respond_to?(:session_options)
         session_options.default_max_wait_time
       else
-        begin Capybara.default_max_wait_time rescue Capybara.default_wait_time end
+        begin
+          Capybara.default_max_wait_time
+        rescue
+          Capybara.default_wait_time
+        end
       end
     end
 
