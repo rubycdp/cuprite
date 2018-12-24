@@ -801,7 +801,7 @@ module Capybara::Cuprite
       expect(another_request.response.status).to eq(200)
     end
 
-    context "status code support", skip: true do
+    context "status code support" do
       it "determines status from the simple response" do
         @session.visit("/cuprite/status/500")
         expect(@driver.status_code).to eq(500)
