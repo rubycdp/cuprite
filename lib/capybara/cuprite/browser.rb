@@ -134,7 +134,7 @@ module Capybara::Cuprite
       # check_render_options!(options)
       # options[:full] = !!options[:full]
       data = Base64.decode64(render_base64)
-      File.open(path.to_s, "w") { |f| f.write(data) }
+      File.open(path.to_s, "wb") { |f| f.write(data) }
     end
 
     def render_base64(format = "png", _options = {})
