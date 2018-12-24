@@ -135,7 +135,7 @@ module Capybara::Cuprite
       end
 
       def trigger(node, event)
-        command "trigger", node, event.to_s
+        evaluate(node, %(_cuprite.trigger("#{event.to_s}", {}, this)))
       end
 
       def scroll_to(left, top)
