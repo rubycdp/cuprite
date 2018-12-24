@@ -16,11 +16,7 @@ module Capybara::Cuprite
       subject { Driver.new(nil, timeout: 3) }
 
       it "starts the server with the provided timeout" do
-        client = double("Client").as_null_object
-
-        expect(Browser::Client).to receive(:new).twice.with(anything, nil, 3).and_return(client)
-
-        subject.browser
+        expect(subject.browser.timeout).to eq(3)
       end
     end
 
