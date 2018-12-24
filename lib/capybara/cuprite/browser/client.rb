@@ -30,16 +30,20 @@ module Capybara::Cuprite
       end
 
       def command(method, params = {})
-        id = send_message(method, params)
+        message = build_message(method, params)
+        @ws.send_message(message)
+        message[:id]
+      end
 
-        begin
-          response = Timeout.timeout(@browser.timeout, TimeoutError) { @commands.pop }
-          raise DeadBrowser unless response
-          raise IdError if response["id"] != id
-          handle(response)
-        rescue IdError
-          retry
-        end
+      def wait(id:)
+        message = Timeout.timeout(@browser.timeout, TimeoutError) { @commands.pop }
+        raise DeadBrowser unless message
+        raise IdError if message["id"] != id
+        error, response = message.values_at("error", "result")
+        raise BrowserError.new(error) if error
+        response
+      rescue IdError
+        retry
       end
 
       def subscribe(event, &block)
@@ -52,19 +56,7 @@ module Capybara::Cuprite
         @thread.kill
       end
 
-      def send_message(method, params)
-        message = build_message(method, params)
-        @ws.send_message(message)
-        message[:id]
-      end
-
       private
-
-      def handle(message)
-        error, response = message.values_at("error", "result")
-        raise BrowserError.new(error) if error
-        response
-      end
 
       def build_message(method, params)
         { method: method, params: params }.merge(id: next_command_id)

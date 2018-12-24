@@ -280,7 +280,8 @@ module Capybara::Cuprite
     end
 
     def command(*args)
-      @client.command(*args)
+      id = @client.command(*args)
+      @client.wait(id: id)
     rescue DeadBrowser
       restart
       raise

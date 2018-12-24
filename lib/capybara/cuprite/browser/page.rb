@@ -25,14 +25,12 @@ require "cuprite/network/response"
 module Capybara::Cuprite
   class Browser
     class Page
-      TIMEOUT = 5
-
       attr_accessor :referrer
       attr_reader :target_id, :status_code, :execution_context_id,
                   :response_headers
 
       def initialize(target_id, browser)
-        @wait = false
+        @wait = 0
         @target_id, @browser = target_id, browser
         @mutex, @resource = Mutex.new, ConditionVariable.new
         @network_traffic = []
@@ -56,8 +54,12 @@ module Capybara::Cuprite
         prepare_page
       end
 
+      def timeout
+        @browser.timeout
+      end
+
       def visit(url)
-        @wait = true
+        @mutex.synchronize { @wait = timeout }
         options = { url: url }
         options.merge!(referrer: referrer) if referrer
         response = command("Page.navigate", **options)
@@ -80,14 +82,17 @@ module Capybara::Cuprite
       def click(node, keys = [], offset = {})
         x, y, modifiers = prepare_before_click(node, keys, offset)
         command("Input.dispatchMouseEvent", type: "mousePressed", modifiers: modifiers, button: "left", x: x, y: y, clickCount: 1)
+
+        # Potential wait because if network event is triggered then we have to wait until it's over.
+        @mutex.synchronize { @wait = 0.1 }
+
         command("Input.dispatchMouseEvent", type: "mouseReleased", modifiers: modifiers, button: "left", x: x, y: y, clickCount: 1)
-        sleep(0.05) # FIXME: we have to wait for network event and then signal to thread
       end
 
       def click_coordinates(x, y)
         command("Input.dispatchMouseEvent", type: "mousePressed", button: "left", x: x, y: y, clickCount: 1)
+        @mutex.synchronize { @wait = 0.1 }
         command("Input.dispatchMouseEvent", type: "mouseReleased", button: "left", x: x, y: y, clickCount: 1)
-        sleep(0.05) # FIXME: we have to wait for network event and then signal to thread
       end
 
       def right_click(node, keys = [], offset = {})
@@ -196,7 +201,7 @@ module Capybara::Cuprite
       end
 
       def refresh
-        @wait = true
+        @mutex.synchronize { @wait = timeout }
         command("Page.reload")
       end
 
@@ -216,18 +221,28 @@ module Capybara::Cuprite
       end
 
       def command(*args)
+        id = @client.command(*args)
+        stop_at = Time.now.to_f + @wait
+        response = @client.wait(id: id)
+
         @mutex.synchronize do
-          response = @client.command(*args)
-          @resource.wait(@mutex, TIMEOUT) if @wait
-          response
+          while @wait > 0 && (remain = stop_at - Time.now.to_f) > 0
+            @resource.wait(@mutex, remain)
+          end
+
+          @wait = 0
         end
+
+        response
       end
 
       private
 
       def subscribe_events
         @client.subscribe("Runtime.consoleAPICalled") do |params|
-          params["args"].each { |r| @browser.logger.write(r["value"]) } if @browser.logger
+          if @browser.logger
+            params["args"].each { |r| @browser.logger.write(r["value"]) }
+          end
         end
 
         @client.subscribe("Runtime.executionContextCreated") do |params|
@@ -260,14 +275,15 @@ module Capybara::Cuprite
           # node will change the id and all subsequent nodes have to change id too.
           # `command` is not allowed in the block as it will deadlock the process.
           if params["frameId"] == @frame_id
-            @wait = false
-            @client.send_message("DOM.getDocument", depth: 0)
-            @resource.signal
+            signal
+            @client.command("DOM.getDocument", depth: 0)
           end
         end
 
         @client.subscribe("Page.frameScheduledNavigation") do |params|
-          @wait = true if params["frameId"] == @frame_id
+          if params["frameId"] == @frame_id
+            @mutex.synchronize { @wait = timeout }
+          end
         end
 
         @client.subscribe("Network.requestWillBeSent") do |params|
@@ -277,7 +293,7 @@ module Capybara::Cuprite
             # Fetch, EventSource, WebSocket, Manifest, SignedExchange, Ping,
             # CSPViolationReport, Other
             if params["type"] == "Document"
-              @wait = true
+              @mutex.synchronize { @wait = timeout }
               @request_id = params["requestId"]
             end
           end
@@ -298,10 +314,7 @@ module Capybara::Cuprite
           request.response = Network::Response.new(params)
         end
 
-        @client.subscribe("Page.navigatedWithinDocument") do
-          @wait = false
-          @resource.signal
-        end
+        @client.subscribe("Page.navigatedWithinDocument") { signal }
 
         @client.subscribe("Log.entryAdded") do |params|
           source = params.dig("entry", "source")
@@ -316,14 +329,13 @@ module Capybara::Cuprite
         @client.subscribe("Page.domContentEventFired") do |params|
           # `Page.frameStoppedLoading` doesn't occur if status isn't success
           if @status_code != 200
-            @wait = false
-            @client.send_message("DOM.getDocument", depth: 0)
-            @resource.signal
+            signal
+            @client.command("DOM.getDocument", depth: 0)
           end
         end
 
         @client.subscribe("Network.requestIntercepted") do |params|
-          @client.send_message("Network.continueInterceptedRequest", interceptionId: params["interceptionId"], errorReason: "Aborted")
+          @client.command("Network.continueInterceptedRequest", interceptionId: params["interceptionId"], errorReason: "Aborted")
         end
       end
 
@@ -400,6 +412,13 @@ module Capybara::Cuprite
            {x: quad[4], y: quad[5]},
            {x: quad[6], y: quad[7]}]
         end.first
+      end
+
+      def signal
+        @mutex.synchronize do
+          @wait = 0
+          @resource.signal
+        end
       end
     end
   end
