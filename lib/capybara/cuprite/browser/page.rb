@@ -309,9 +309,10 @@ module Capybara::Cuprite
             @status_code = params.dig("response", "status")
           end
 
-          request = @network_traffic.find { |r| r.id == params["requestId"] }
-          params = params["response"].merge("id" => params["requestId"])
-          request.response = Network::Response.new(params)
+          if request = @network_traffic.find { |r| r.id == params["requestId"] }
+            params = params["response"].merge("id" => params["requestId"])
+            request.response = Network::Response.new(params)
+          end
         end
 
         @client.subscribe("Page.navigatedWithinDocument") { signal }
@@ -321,8 +322,9 @@ module Capybara::Cuprite
           level = params.dig("entry", "level")
           if source == "network" && level == "error"
             id = params.dig("entry", "networkRequestId")
-            request = @network_traffic.find { |r| r.id == id }
-            request.error = Network::Error.new(params["entry"])
+            if request = @network_traffic.find { |r| r.id == id }
+              request.error = Network::Error.new(params["entry"])
+            end
           end
         end
 
