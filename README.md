@@ -14,11 +14,32 @@ possible but it is not the goal.
 
 ## Installation ##
 
-Add this line to your Gemfile and run `bundle install`:
+It's not released on rubygems because it's not ready yet but a very decent
+amount of tests is passing with quite good speed if compared to PhantomJS:
+
+```
+cuprite:
+Finished in 3 minutes 31.6 seconds (files took 1.46 seconds to load)
+1510 examples, 0 failures, 221 pending
+
+poltergeist:
+Finished in 7 minutes 6 seconds (files took 0.59349 seconds to load)
+1560 examples, 0 failures, 6 pending
+```
+
+Add it to your project as:
+
+``` ruby
+gem "cuprite", github: "machinio/cuprite"
+```
+
+Whenever it's released add this line to your Gemfile:
 
 ``` ruby
 gem "cuprite"
 ```
+
+and run `bundle install`.
 
 In your test setup add:
 
@@ -39,7 +60,7 @@ Both are bad. Download it from official [source](https://www.chromium.org/gettin
 
 ## License ##
 
-Copyright 2018 Machinio
+Copyright 2018-2019 Machinio
 
 Permission is hereby granted, free of charge, to any person obtaining
 a copy of this software and associated documentation files (the
