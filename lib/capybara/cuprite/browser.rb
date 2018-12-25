@@ -30,7 +30,8 @@ module Capybara::Cuprite
                 clear_network_traffic response_headers refresh click right_click
                 double_click hover set click_coordinates drag drag_by select
                 trigger scroll_to send_keys evaluate evaluate_on evaluate_async
-                execute) => :page
+                execute frame_url frame_title within_frame switch_to_frame
+                current_url title) => :page
 
     attr_reader :process, :logger
     attr_writer :timeout
@@ -52,24 +53,8 @@ module Capybara::Cuprite
       @timeout || TIMEOUT
     end
 
-    def current_url
-      evaluate("location.href")
-    end
-
-    def frame_url
-      command "frame_url"
-    end
-
     def source
       command "source"
-    end
-
-    def title
-      evaluate("document.title")
-    end
-
-    def frame_title
-      command "frame_title"
     end
 
     def parents(node)
@@ -105,29 +90,6 @@ module Capybara::Cuprite
 
     def select_file(node, value)
       command "select_file", node, value
-    end
-
-    def within_frame(handle)
-      if handle.is_a?(Capybara::Node::Base)
-        command "push_frame", [handle.native.target_id, handle.native.node]
-      else
-        command "push_frame", handle
-      end
-
-      yield
-    ensure
-      command "pop_frame"
-    end
-
-    def switch_to_frame(handle)
-      case handle
-      when Capybara::Node::Base
-        command "push_frame", [handle.native.target_id, handle.native.node]
-      when :parent
-        command "pop_frame"
-      when :top
-        command "pop_frame", true
-      end
     end
 
     def render(path, _options = {})

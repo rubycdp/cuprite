@@ -3,6 +3,7 @@
 require "cuprite/browser/dom"
 require "cuprite/browser/input"
 require "cuprite/browser/runtime"
+require "cuprite/browser/frame"
 require "cuprite/browser/client"
 require "cuprite/network/error"
 require "cuprite/network/request"
@@ -28,7 +29,7 @@ require "cuprite/network/response"
 module Capybara::Cuprite
   class Browser
     class Page
-      include Input, DOM, Runtime
+      include Input, DOM, Runtime, Frame
 
       attr_accessor :referrer
       attr_reader :target_id, :status_code, :response_headers
@@ -38,6 +39,10 @@ module Capybara::Cuprite
         @target_id, @browser = target_id, browser
         @mutex, @resource = Mutex.new, ConditionVariable.new
         @network_traffic = []
+
+        @frames = {}
+        @waiting_frames ||= []
+        @frame_stack = []
 
         begin
           @session_id = @browser.command("Target.attachToTarget", targetId: @target_id)["sessionId"]
@@ -56,10 +61,6 @@ module Capybara::Cuprite
 
         subscribe_events
         prepare_page
-      end
-
-      def execution_context_id
-        @mutex.synchronize { @execution_context_id }
       end
 
       def timeout
@@ -134,28 +135,12 @@ module Capybara::Cuprite
       private
 
       def subscribe_events
+        super
+
         @client.subscribe("Runtime.consoleAPICalled") do |params|
           if @browser.logger
             params["args"].each { |r| @browser.logger.write(r["value"]) }
           end
-        end
-
-        @client.subscribe("Runtime.executionContextCreated") do |params|
-          # Remember the very first frame since it's the main one
-          @frame_id ||= params.dig("context", "auxData", "frameId")
-          @execution_context_id ||= params.dig("context", "id")
-        end
-
-        @client.subscribe("Runtime.executionContextDestroyed") do |params|
-          if @execution_context_id == params["executionContextId"]
-            @execution_context_id = nil
-          end
-        end
-
-        @client.subscribe("Runtime.executionContextsCleared") do
-          # If we didn't have time to set context id at the beginning we have
-          # to set lock and release it when we set something.
-          @execution_context_id = nil
         end
 
         @client.subscribe("Page.windowOpen") do
@@ -163,28 +148,14 @@ module Capybara::Cuprite
           sleep 0.3 # Dirty hack because new window doesn't have events at all
         end
 
-        @client.subscribe("Page.frameStoppedLoading") do |params|
-          # `DOM.performSearch` doesn't work without getting #document node first.
-          # It returns node with nodeId 1 and nodeType 9 from which descend the
-          # tree and we save it in a variable because if we call that again root
-          # node will change the id and all subsequent nodes have to change id too.
-          # `command` is not allowed in the block as it will deadlock the process.
-          if params["frameId"] == @frame_id
-            @wait = 0
+        @client.subscribe("Page.navigatedWithinDocument") { signal }
 
-            if @mutex.locked? && @mutex.owned?
-              @resource.signal
-              @mutex.unlock
-            else
-              @mutex.synchronize { @resource.signal }
-            end
-
+        @client.subscribe("Page.domContentEventFired") do |params|
+          # `frameStoppedLoading` doesn't occur if status isn't success
+          if @status_code != 200
+            signal
             @client.command("DOM.getDocument", depth: 0)
           end
-        end
-
-        @client.subscribe("Page.frameScheduledNavigation") do |params|
-          @mutex.try_lock if params["frameId"] == @frame_id
         end
 
         @client.subscribe("Network.requestWillBeSent") do |params|
@@ -216,15 +187,8 @@ module Capybara::Cuprite
           end
         end
 
-        @client.subscribe("Page.navigatedWithinDocument") do
-          @wait = 0
-
-          if @mutex.locked? && @mutex.owned?
-            @resource.signal
-            @mutex.unlock
-          else
-            @mutex.synchronize { @resource.signal }
-          end
+        @client.subscribe("Network.requestIntercepted") do |params|
+          @client.command("Network.continueInterceptedRequest", interceptionId: params["interceptionId"], errorReason: "Aborted")
         end
 
         @client.subscribe("Log.entryAdded") do |params|
@@ -237,26 +201,6 @@ module Capybara::Cuprite
             end
           end
         end
-
-        @client.subscribe("Page.domContentEventFired") do |params|
-          # `Page.frameStoppedLoading` doesn't occur if status isn't success
-          if @status_code != 200
-            @wait = 0
-
-            if @mutex.locked? && @mutex.owned?
-              @resource.signal
-              @mutex.unlock
-            else
-              @mutex.synchronize { @resource.signal }
-            end
-
-            @client.command("DOM.getDocument", depth: 0)
-          end
-        end
-
-        @client.subscribe("Network.requestIntercepted") do |params|
-          @client.command("Network.continueInterceptedRequest", interceptionId: params["interceptionId"], errorReason: "Aborted")
-        end
       end
 
       def prepare_page
@@ -267,6 +211,20 @@ module Capybara::Cuprite
         command("Log.enable")
         command("Network.enable")
 
+        inject_extensions
+
+        response = command("Page.getNavigationHistory")
+        if response.dig("entries", 0, "transitionType") != "typed"
+          # If we create page by clicking links, submiting forms and so on it
+          # opens a new window for which `frameStoppedLoading` event never
+          # occurs and thus search for nodes cannot be completed. Here we check
+          # the history and if the transitionType for example `link` then
+          # content is already loaded and we can try to get the document.
+          @client.command("DOM.getDocument", depth: 0)
+        end
+      end
+
+      def inject_extensions
         @browser.extensions.each do |extension|
           command("Page.addScriptToEvaluateOnNewDocument", source: extension)
 
@@ -276,18 +234,19 @@ module Capybara::Cuprite
           # We also evaluate script just in case because
           # `Page.addScriptToEvaluateOnNewDocument` doesn't work in popups.
           command("Runtime.evaluate", expression: extension,
-                                      contextId: @execution_context_id,
+                                      contextId: execution_context_id,
                                       returnByValue: true)
         end
+      end
 
-        response = command("Page.getNavigationHistory")
-        if response.dig("entries", 0, "transitionType") != "typed"
-          # If we create page by clicking links, submiting forms and so on it
-          # opens a new window for which `Page.frameStoppedLoading` event never
-          # occurs and thus search for nodes cannot be completed. Here we check
-          # the history and if the transitionType for example `link` then
-          # content is already loaded and we can try to get the document.
-          @client.command("DOM.getDocument", depth: 0)
+      def signal
+        @wait = 0
+
+        if @mutex.locked? && @mutex.owned?
+          @resource.signal
+          @mutex.unlock
+        else
+          @mutex.synchronize { @resource.signal }
         end
       end
     end

@@ -113,36 +113,6 @@ RSpec.configure do |config|
     #check when checkbox hidden with Capybara.automatic_label_click == true should check self via clicking the wrapping label if locator nil
     #check when checkbox hidden with Capybara.automatic_label_click == false with allow_label_click == true should not wait the full time if label can be clicked
     #choose with hidden radio buttons with Capybara.automatic_label_click == true should select self by clicking the label if no locator specified
-    #frame_url should return the url in a frame
-    #frame_url should return the url in FrameTwo
-    #frame_url should return the url in the main frame
-    #switch_to_frame should find the div in frameOne
-    #switch_to_frame should find the div in FrameTwo
-    #switch_to_frame should return to the parent frame when told to
-    #switch_to_frame should be able to switch to nested frames
-    #switch_to_frame should reset scope when changing frames
-    #switch_to_frame works if the frame is closed
-    #switch_to_frame can return to the top frame
-    #switch_to_frame should raise error if switching to parent unmatched inside `within` as it's nonsense
-    #switch_to_frame should raise error if switching to top inside a `within` in a frame as it's nonsense
-    #switch_to_frame should raise error if switching to top inside a nested `within` in a frame as it's nonsense
-    #within_frame should find the div in frameOne
-    #within_frame should find the div in FrameTwo
-    #within_frame should find the text div in the main window after finding text in frameOne
-    #within_frame should find the text div in the main window after finding text in frameTwo
-    #within_frame should return the result of executing the block
-    #within_frame should find the div given Element
-    #within_frame should find the div given selector and locator
-    #within_frame should default to the :frame selector kind when only options passed
-    #within_frame should default to the :frame selector when no options passed
-    #within_frame should find multiple nested frames
-    #within_frame should reset scope when changing frames
-    #within_frame works if the frame is closed
-    #frame_title should return the title in a frame
-    #frame_title should return the title in FrameTwo
-    #frame_title should return the title in the main frame
-    #current_url, #current_path, #current_host within iframe should get the url of the top level browsing context
-    #switch_to_window with block should raise error when invoked inside `within_frame` as it's nonsense
     #title within iframe should get the title of the top level browsing context
     #attach_file with normal form should set a file path by id
     #attach_file with normal form should set a file path by label

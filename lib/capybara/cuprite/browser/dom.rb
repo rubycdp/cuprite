@@ -1,6 +1,14 @@
 module Capybara::Cuprite
   class Browser
     module DOM
+      def current_url
+        evaluate_in(@execution_context_id, "location.href")
+      end
+
+      def title
+        evaluate("document.title")
+      end
+
       def body
         response = command("DOM.getDocument", depth: 0)
         response = command("DOM.getOuterHTML", nodeId: response["root"]["nodeId"])

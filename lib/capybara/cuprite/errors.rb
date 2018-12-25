@@ -18,6 +18,10 @@ module Capybara
         response["code"]
       end
 
+      def data
+        response["data"]
+      end
+
       def message
         response["message"]
       end

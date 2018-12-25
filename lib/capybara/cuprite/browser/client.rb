@@ -10,7 +10,7 @@ module Capybara::Cuprite
 
       def initialize(browser, ws_url)
         @command_id = 0
-        @subscribed = {}
+        @subscribed = Hash.new { |h, k| h[k] = [] }
         @browser = browser
         @commands = Queue.new
         @ws = WebSocket.new(ws_url, @browser.logger)
@@ -19,7 +19,7 @@ module Capybara::Cuprite
           while message = @ws.messages.pop
             method, params = message.values_at("method", "params")
             if method
-              @subscribed[method]&.(params)
+              @subscribed[method].each { |b| b.call(params) }
             else
               @commands.push(message)
             end
@@ -47,7 +47,7 @@ module Capybara::Cuprite
       end
 
       def subscribe(event, &block)
-        @subscribed[event] = block
+        @subscribed[event] << block
         true
       end
 

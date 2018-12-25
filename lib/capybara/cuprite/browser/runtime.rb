@@ -33,6 +33,11 @@ module Capybara::Cuprite
         handle(response)
       end
 
+      def evaluate_in(context_id, expr)
+        response = call(expr, nil, { executionContextId: context_id })
+        handle(response)
+      end
+
       def evaluate_on(node:, expr:)
         object_id = command("DOM.resolveNode", nodeId: node["nodeId"]).dig("object", "objectId")
         options = DEFAULT_OPTIONS.merge(objectId: object_id)
@@ -59,7 +64,10 @@ module Capybara::Cuprite
         options = DEFAULT_OPTIONS.merge(options)
         expr = [wait_time, expr] if wait_time
         options[:functionDeclaration] = options[:functionDeclaration] % expr
-        options = options.merge(arguments: args, executionContextId: execution_context_id)
+        options = options.merge(arguments: args)
+        unless options[:executionContextId]
+          options = options.merge(executionContextId: execution_context_id)
+        end
 
         command("Runtime.callFunctionOn", **options)["result"].tap do |response|
           if response["subtype"] == "error"
