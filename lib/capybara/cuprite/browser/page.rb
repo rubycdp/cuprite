@@ -41,7 +41,7 @@ module Capybara::Cuprite
         @network_traffic = []
 
         @frames = {}
-        @waiting_frames ||= []
+        @waiting_frames ||= Set.new
         @frame_stack = []
 
         begin
@@ -211,6 +211,10 @@ module Capybara::Cuprite
         command("Log.enable")
         command("Network.enable")
 
+        @browser.extensions.each do |extension|
+          @client.command("Page.addScriptToEvaluateOnNewDocument", source: extension)
+        end
+
         inject_extensions
 
         response = command("Page.getNavigationHistory")
@@ -226,16 +230,14 @@ module Capybara::Cuprite
 
       def inject_extensions
         @browser.extensions.each do |extension|
-          command("Page.addScriptToEvaluateOnNewDocument", source: extension)
-
           # https://github.com/GoogleChrome/puppeteer/issues/1443
           # https://github.com/ChromeDevTools/devtools-protocol/issues/77
           # https://github.com/cyrus-and/chrome-remote-interface/issues/319
           # We also evaluate script just in case because
           # `Page.addScriptToEvaluateOnNewDocument` doesn't work in popups.
-          command("Runtime.evaluate", expression: extension,
-                                      contextId: execution_context_id,
-                                      returnByValue: true)
+          @client.command("Runtime.evaluate", expression: extension,
+                                              contextId: execution_context_id,
+                                              returnByValue: true)
         end
       end
 

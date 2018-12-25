@@ -183,7 +183,8 @@ module Capybara::Cuprite
     end
 
     def url_blacklist=(blacklist)
-      @url_blacklist = Array(blacklist).map { |p| { urlPattern: "*#{p}*" } }
+      # FIXME: We have to change the format and make it compatible with Chrome not PhantomJS
+      @url_blacklist = Array(blacklist).map { |p| { urlPattern: p.include?("*") ? p : "*#{p}*" } }
       page.command("Network.setRequestInterception", patterns: @url_blacklist)
     end
 

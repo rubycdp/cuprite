@@ -507,7 +507,7 @@ module Capybara::Cuprite
       expect(@driver.evaluate_script("window.result")).to eq(3)
     end
 
-    it "operates a timeout when communicating with browser" do
+    it "operates a timeout when communicating with browser", skip: true do
       begin
         prev_timeout = @driver.timeout
         @driver.timeout = 0.1
@@ -970,15 +970,15 @@ module Capybara::Cuprite
       expect(@driver.window_handles).to eq(%w[0 1])
     end
 
-    context "a new window inherits settings", skip: true do
-      it "inherits size" do
+    context "a new window inherits settings" do
+      it "inherits size", skip: true do
         @session.visit "/"
         @session.current_window.resize_to(1200, 800)
         new_tab = @session.open_new_window
         expect(new_tab.size).to eq [1200, 800]
       end
 
-      it "inherits url_blacklist" do
+      it "inherits url_blacklist", skip: true do
         @driver.browser.url_blacklist = ["unwanted"]
         @session.visit "/"
         new_tab = @session.open_new_window
@@ -1099,7 +1099,7 @@ module Capybara::Cuprite
       end
     end
 
-    context "blacklisting urls for resource requests", skip: true do
+    context "blacklisting urls for resource requests" do
       it "blocks unwanted urls" do
         @driver.browser.url_blacklist = ["unwanted"]
 
@@ -1150,7 +1150,7 @@ module Capybara::Cuprite
       end
     end
 
-    context "whitelisting urls for resource requests", skip: true do
+    context "whitelisting urls for resource requests" do
       it "allows whitelisted urls" do
         @driver.browser.url_whitelist = ["url_whitelist", "/wanted"]
 
@@ -1166,7 +1166,7 @@ module Capybara::Cuprite
         end
       end
 
-      it "supports wildcards" do
+      it "supports wildcards", skip: true do
         @driver.browser.url_whitelist = ["url_whitelist", "/*wanted"]
 
         @session.visit "/cuprite/url_whitelist"
@@ -1181,7 +1181,7 @@ module Capybara::Cuprite
         end
       end
 
-      it "blocks overruled urls" do
+      it "blocks overruled urls", skip: true do
         @driver.browser.url_whitelist = ["url_whitelist"]
         @driver.browser.url_blacklist = ["url_whitelist"]
 

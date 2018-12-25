@@ -6,13 +6,11 @@ module Capybara::Cuprite
       end
 
       def title
-        evaluate("document.title")
+        evaluate_in(@execution_context_id, "document.title")
       end
 
       def body
-        response = command("DOM.getDocument", depth: 0)
-        response = command("DOM.getOuterHTML", nodeId: response["root"]["nodeId"])
-        response["outerHTML"]
+        evaluate("document.documentElement.outerHTML")
       end
 
       def all_text(node)

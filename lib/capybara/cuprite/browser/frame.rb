@@ -35,6 +35,7 @@ module Capybara::Cuprite
         case handle
         when Capybara::Node::Base
           @frame_stack << handle.native.node["frameId"]
+          inject_extensions
         when :parent
           @frame_stack.pop
         when :top
@@ -49,6 +50,11 @@ module Capybara::Cuprite
           @frames[params["frameId"]] = { "parent_id" => params["parentFrameId"] }
         end
 
+        @client.subscribe("Page.frameStartedLoading") do |params|
+          @waiting_frames << params["frameId"]
+          @mutex.try_lock
+        end
+
         @client.subscribe("Page.frameNavigated") do |params|
           id = params["frame"]["id"]
           if frame = @frames[id]
@@ -59,7 +65,6 @@ module Capybara::Cuprite
         @client.subscribe("Page.frameScheduledNavigation") do |params|
           # Trying to lock mutex if frame is the main frame
           @waiting_frames << params["frameId"]
-          # @mutex.try_lock if params["frameId"] == @frame_id
           @mutex.try_lock
         end
 

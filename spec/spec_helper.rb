@@ -113,7 +113,6 @@ RSpec.configure do |config|
     #check when checkbox hidden with Capybara.automatic_label_click == true should check self via clicking the wrapping label if locator nil
     #check when checkbox hidden with Capybara.automatic_label_click == false with allow_label_click == true should not wait the full time if label can be clicked
     #choose with hidden radio buttons with Capybara.automatic_label_click == true should select self by clicking the label if no locator specified
-    #title within iframe should get the title of the top level browsing context
     #attach_file with normal form should set a file path by id
     #attach_file with normal form should set a file path by label
     #attach_file with normal form should be able to set on element if no locator passed
