@@ -26,8 +26,7 @@ module Capybara::Cuprite
   class Browser
     class Page
       attr_accessor :referrer
-      attr_reader :target_id, :status_code, :execution_context_id,
-                  :response_headers
+      attr_reader :target_id, :status_code, :response_headers
 
       def initialize(target_id, browser)
         @wait = 0
@@ -54,12 +53,16 @@ module Capybara::Cuprite
         prepare_page
       end
 
+      def execution_context_id
+        @mutex.synchronize { @execution_context_id }
+      end
+
       def timeout
         @browser.timeout
       end
 
       def visit(url)
-        @mutex.synchronize { @wait = timeout }
+        @wait = timeout
         options = { url: url }
         options.merge!(referrer: referrer) if referrer
         response = command("Page.navigate", **options)
@@ -82,16 +85,13 @@ module Capybara::Cuprite
       def click(node, keys = [], offset = {})
         x, y, modifiers = prepare_before_click(node, keys, offset)
         command("Input.dispatchMouseEvent", type: "mousePressed", modifiers: modifiers, button: "left", x: x, y: y, clickCount: 1)
-
-        # Potential wait because if network event is triggered then we have to wait until it's over.
-        @mutex.synchronize { @wait = 0.1 }
-
+        @wait = 0.05 # Potential wait because if network event is triggered then we have to wait until it's over.
         command("Input.dispatchMouseEvent", type: "mouseReleased", modifiers: modifiers, button: "left", x: x, y: y, clickCount: 1)
       end
 
       def click_coordinates(x, y)
         command("Input.dispatchMouseEvent", type: "mousePressed", button: "left", x: x, y: y, clickCount: 1)
-        @mutex.synchronize { @wait = 0.1 }
+        @wait = 0.05 # Potential wait because if network event is triggered then we have to wait until it's over.
         command("Input.dispatchMouseEvent", type: "mouseReleased", button: "left", x: x, y: y, clickCount: 1)
       end
 
@@ -201,7 +201,7 @@ module Capybara::Cuprite
       end
 
       def refresh
-        @mutex.synchronize { @wait = timeout }
+        @wait = timeout
         command("Page.reload")
       end
 
@@ -221,11 +221,12 @@ module Capybara::Cuprite
       end
 
       def command(*args)
-        id = @client.command(*args)
-        stop_at = Time.now.to_f + @wait
-        response = @client.wait(id: id)
+        id = nil
 
         @mutex.synchronize do
+          id = @client.command(*args)
+          stop_at = Time.now.to_f + @wait
+
           while @wait > 0 && (remain = stop_at - Time.now.to_f) > 0
             @resource.wait(@mutex, remain)
           end
@@ -233,7 +234,7 @@ module Capybara::Cuprite
           @wait = 0
         end
 
-        response
+        response = @client.wait(id: id)
       end
 
       private
@@ -275,15 +276,21 @@ module Capybara::Cuprite
           # node will change the id and all subsequent nodes have to change id too.
           # `command` is not allowed in the block as it will deadlock the process.
           if params["frameId"] == @frame_id
-            signal
+            @wait = 0
+
+            if @mutex.locked? && @mutex.owned?
+              @resource.signal
+              @mutex.unlock
+            else
+              @mutex.synchronize { @resource.signal }
+            end
+
             @client.command("DOM.getDocument", depth: 0)
           end
         end
 
         @client.subscribe("Page.frameScheduledNavigation") do |params|
-          if params["frameId"] == @frame_id
-            @mutex.synchronize { @wait = timeout }
-          end
+          @mutex.try_lock if params["frameId"] == @frame_id
         end
 
         @client.subscribe("Network.requestWillBeSent") do |params|
@@ -293,7 +300,7 @@ module Capybara::Cuprite
             # Fetch, EventSource, WebSocket, Manifest, SignedExchange, Ping,
             # CSPViolationReport, Other
             if params["type"] == "Document"
-              @mutex.synchronize { @wait = timeout }
+              @mutex.try_lock
               @request_id = params["requestId"]
             end
           end
@@ -315,7 +322,16 @@ module Capybara::Cuprite
           end
         end
 
-        @client.subscribe("Page.navigatedWithinDocument") { signal }
+        @client.subscribe("Page.navigatedWithinDocument") do
+          @wait = 0
+
+          if @mutex.locked? && @mutex.owned?
+            @resource.signal
+            @mutex.unlock
+          else
+            @mutex.synchronize { @resource.signal }
+          end
+        end
 
         @client.subscribe("Log.entryAdded") do |params|
           source = params.dig("entry", "source")
@@ -331,7 +347,15 @@ module Capybara::Cuprite
         @client.subscribe("Page.domContentEventFired") do |params|
           # `Page.frameStoppedLoading` doesn't occur if status isn't success
           if @status_code != 200
-            signal
+            @wait = 0
+
+            if @mutex.locked? && @mutex.owned?
+              @resource.signal
+              @mutex.unlock
+            else
+              @mutex.synchronize { @resource.signal }
+            end
+
             @client.command("DOM.getDocument", depth: 0)
           end
         end
@@ -369,7 +393,7 @@ module Capybara::Cuprite
           # occurs and thus search for nodes cannot be completed. Here we check
           # the history and if the transitionType for example `link` then
           # content is already loaded and we can try to get the document.
-          command("DOM.getDocument", depth: 0)
+          @client.command("DOM.getDocument", depth: 0)
         end
       end
 
@@ -414,13 +438,6 @@ module Capybara::Cuprite
            {x: quad[4], y: quad[5]},
            {x: quad[6], y: quad[7]}]
         end.first
-      end
-
-      def signal
-        @mutex.synchronize do
-          @wait = 0
-          @resource.signal
-        end
       end
     end
   end
