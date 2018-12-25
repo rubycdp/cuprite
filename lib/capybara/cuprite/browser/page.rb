@@ -2,6 +2,7 @@
 
 require "cuprite/browser/dom"
 require "cuprite/browser/input"
+require "cuprite/browser/runtime"
 require "cuprite/browser/client"
 require "cuprite/network/error"
 require "cuprite/network/request"
@@ -27,7 +28,7 @@ require "cuprite/network/response"
 module Capybara::Cuprite
   class Browser
     class Page
-      include Input, DOM
+      include Input, DOM, Runtime
 
       attr_accessor :referrer
       attr_reader :target_id, :status_code, :response_headers
@@ -91,14 +92,6 @@ module Capybara::Cuprite
         @window_id, @bounds = result.values_at("windowId", "bounds")
         @browser.command("Browser.setWindowBounds", windowId: @window_id, bounds: { width: width, height: height })
         command("Emulation.setDeviceMetricsOverride", width: width, height: height, deviceScaleFactor: 1, mobile: false)
-      end
-
-      def evaluate(node, expr)
-        resolved = command("DOM.resolveNode", nodeId: node["nodeId"])
-        object_id = resolved.dig("object", "objectId")
-        command("Runtime.callFunctionOn", objectId: object_id, functionDeclaration: %Q(
-          function () { return #{expr} }
-        )).dig("result", "value")
       end
 
       def refresh

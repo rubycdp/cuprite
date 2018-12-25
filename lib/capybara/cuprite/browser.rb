@@ -23,14 +23,14 @@ module Capybara::Cuprite
     end
 
     delegate subscribe: :@client
-    delegate %i(evaluate evaluate_async execute) => :runtime
     delegate %i(window_handle window_handles switch_to_window open_new_window
                 close_window find_window_handle within_window page) => :targets
     delegate %i(visit status_code body all_text property attributes attribute
                 value visible? disabled? resize path network_traffic
                 clear_network_traffic response_headers refresh click right_click
                 double_click hover set click_coordinates drag drag_by select
-                trigger scroll_to send_keys) => :page
+                trigger scroll_to send_keys evaluate evaluate_on evaluate_async
+                execute) => :page
 
     attr_reader :process, :logger
     attr_writer :timeout
@@ -88,7 +88,7 @@ module Capybara::Cuprite
 
     def visible_text(node)
       begin
-        page.evaluate(node, "_cuprite.visibleText(this)")
+        evaluate_on(node: node, expr: "_cuprite.visibleText(this)")
       rescue BrowserError => e
         # FIXME: ObsoleteNode first arg is node, so it should be in node class
         if e.message == "No node with given id found"
@@ -270,9 +270,7 @@ module Capybara::Cuprite
     def stop
       @client.close
       @process.stop
-
-      @client = @process = nil
-      @targets = @runtime = nil
+      @client = @process = @targets = nil
     end
 
     def crash
@@ -289,10 +287,6 @@ module Capybara::Cuprite
 
     def targets
       @targets ||= Targets.new(self)
-    end
-
-    def runtime
-      @runtime ||= Runtime.new(targets)
     end
 
     private

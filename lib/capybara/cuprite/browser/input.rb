@@ -33,7 +33,7 @@ module Capybara::Cuprite
 
       def set(node, value)
         click(node)
-        evaluate(node, "this.value = ''")
+        evaluate_on(node: node, expr: "this.value = ''")
         value.each_char do |char|
           command("Input.insertText", text: char)
           # command("Input.dispatchKeyEvent", type: "keyDown", text: value, unmodifiedText: value)
@@ -50,11 +50,11 @@ module Capybara::Cuprite
       end
 
       def select(node, value)
-        evaluate(node, "_cuprite.select(this, #{value})")
+        evaluate_on(node: node, expr: "_cuprite.select(this, #{value})")
       end
 
       def trigger(node, event)
-        evaluate(node, %(_cuprite.trigger("#{event.to_s}", {}, this)))
+        evaluate_on(node: node, expr: %(_cuprite.trigger("#{event.to_s}", {}, this)))
       end
 
       def scroll_to(left, top)
@@ -68,7 +68,7 @@ module Capybara::Cuprite
       private
 
       def prepare_before_click(node, keys, offset)
-        value = evaluate(node, "_cuprite.scrollIntoViewport(this)")
+        value = evaluate_on(node: node, expr: "_cuprite.scrollIntoViewport(this)")
         raise MouseEventFailed.new(node, nil) unless value
 
         x, y = calculate_quads(node, offset[:x], offset[:y])

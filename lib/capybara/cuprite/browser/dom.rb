@@ -8,36 +8,36 @@ module Capybara::Cuprite
       end
 
       def all_text(node)
-        evaluate(node, "this.textContent")
+        evaluate_on(node: node, expr: "this.textContent")
       end
 
       def property(node, name)
-        evaluate(node, %Q(this["#{name}"]))
+        evaluate_on(node: node, expr: %Q(this["#{name}"]))
       end
 
       def attributes(node)
-        value = evaluate(node, "_cuprite.getAttributes(this)")
+        value = evaluate_on(node: node, expr: "_cuprite.getAttributes(this)")
         JSON.parse(value)
       end
 
       def attribute(node, name)
-        evaluate(node, %Q(_cuprite.getAttribute(this, "#{name}")))
+        evaluate_on(node: node, expr: %Q(_cuprite.getAttribute(this, "#{name}")))
       end
 
       def value(node)
-        evaluate(node, "_cuprite.value(this)")
+        evaluate_on(node: node, expr: "_cuprite.value(this)")
       end
 
       def visible?(node)
-        evaluate(node, "_cuprite.isVisible(this)")
+        evaluate_on(node: node, expr: "_cuprite.isVisible(this)")
       end
 
       def disabled?(node)
-        evaluate(node, "_cuprite.isDisabled(this)")
+        evaluate_on(node: node, expr: "_cuprite.isDisabled(this)")
       end
 
       def path(node)
-        evaluate(node, "_cuprite.path(this)")
+        evaluate_on(node: node, expr: "_cuprite.path(this)")
       end
     end
   end
