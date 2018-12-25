@@ -711,7 +711,7 @@ describe Capybara::Session do
         @session.visit "/"
 
         @session.execute_script <<-JS
-          document.body.innerHTML += "<iframe src="/cuprite/slow" name="frame">"
+          document.body.innerHTML += "<iframe src='/cuprite/slow' name='frame'>"
         JS
 
         @session.within_frame "frame" do
@@ -737,7 +737,7 @@ describe Capybara::Session do
         it "doesn't hang if no document created" do
           @session.visit "/"
           @session.execute_script <<-JS
-            document.body.innerHTML += "<iframe src="about:blank" name="frame">"
+            document.body.innerHTML += "<iframe src='about:blank' name='frame'>"
           JS
           @session.within_frame "frame" do
             expect(@session).to have_no_xpath("/html/body/*")
@@ -747,8 +747,8 @@ describe Capybara::Session do
         it "doesn't hang if built by JS" do
           @session.visit "/"
           @session.execute_script <<-JS
-            document.body.innerHTML += "<iframe src="about:blank" name="frame">";
-            var iframeDocument = document.querySelector("iframe[name="frame"]").contentWindow.document;
+            document.body.innerHTML += "<iframe src='about:blank' name='frame'>";
+            var iframeDocument = document.querySelector("iframe[name='frame']").contentWindow.document;
             var content = "<html><body><p>Hello Frame</p></body></html>";
             iframeDocument.open("text/html", "replace");
             iframeDocument.write(content);
@@ -776,7 +776,7 @@ describe Capybara::Session do
         it "doesn't hang if the frame is filled by JS" do
           @session.visit "/"
           @session.execute_script <<-JS
-            document.body.innerHTML += "<iframe id="frame" name="frame">"
+            document.body.innerHTML += "<iframe id='frame' name='frame'>"
           JS
           @session.execute_script <<-JS
             var iframeDocument = document.querySelector("#frame").contentWindow.document;
@@ -796,7 +796,7 @@ describe Capybara::Session do
         @session.visit "/"
 
         @session.execute_script <<-JS
-          document.body.innerHTML += "<iframe src="/cuprite/click_test" name="frame">"
+          document.body.innerHTML += "<iframe src='/cuprite/click_test' name='frame'>"
         JS
 
         @session.within_frame "frame" do
@@ -810,7 +810,7 @@ describe Capybara::Session do
         @session.visit "/"
 
         @session.execute_script <<-JS
-          document.body.innerHTML += "<iframe src="/cuprite/click_test" name="padded_frame" style="padding:100px;">"
+          document.body.innerHTML += "<iframe src='/cuprite/click_test' name='padded_frame' style='padding:100px;'>"
         JS
 
         @session.within_frame "padded_frame" do
@@ -829,7 +829,7 @@ describe Capybara::Session do
         # calculated twice, but the click still works because both frames had
         # the same offset.
         @session.execute_script <<-JS
-          document.body.innerHTML += "<iframe src="/cuprite/nested_frame_test" name="outer_frame" style="padding:200px">"
+          document.body.innerHTML += "<iframe src='/cuprite/nested_frame_test' name='outer_frame' style='padding:200px'>"
         JS
 
         @session.within_frame "outer_frame" do
