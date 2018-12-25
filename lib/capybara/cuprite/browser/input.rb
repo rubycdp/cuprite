@@ -9,7 +9,7 @@ module Capybara::Cuprite
       end
 
       def click_coordinates(x, y)
-        c("Input.dispatchMouseEvent", type: "mousePressed", button: "left", x: x, y: y, clickCount: 1)
+        command("Input.dispatchMouseEvent", type: "mousePressed", button: "left", x: x, y: y, clickCount: 1)
         @wait = 0.05 # Potential wait because if network event is triggered then we have to wait until it's over.
         command("Input.dispatchMouseEvent", type: "mouseReleased", button: "left", x: x, y: y, clickCount: 1)
       end
