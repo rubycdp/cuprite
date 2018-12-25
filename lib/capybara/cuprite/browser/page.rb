@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require "cuprite/browser/dom"
 require "cuprite/browser/input"
 require "cuprite/browser/client"
 require "cuprite/network/error"
@@ -26,7 +27,7 @@ require "cuprite/network/response"
 module Capybara::Cuprite
   class Browser
     class Page
-      include Input
+      include Input, DOM
 
       attr_accessor :referrer
       attr_reader :target_id, :status_code, :response_headers
@@ -85,50 +86,11 @@ module Capybara::Cuprite
         @client.close
       end
 
-      def body
-        response = command("DOM.getDocument", depth: 0)
-        response = command("DOM.getOuterHTML", nodeId: response["root"]["nodeId"])
-        response["outerHTML"]
-      end
-
-      def all_text(node)
-        evaluate(node, "this.textContent")
-      end
-
-      def property(node, name)
-        evaluate(node, %Q(this["#{name}"]))
-      end
-
-      def attributes(node)
-        value = evaluate(node, "_cuprite.getAttributes(this)")
-        JSON.parse(value)
-      end
-
-      def attribute(node, name)
-        evaluate(node, %Q(_cuprite.getAttribute(this, "#{name}")))
-      end
-
-      def value(node)
-        evaluate(node, "_cuprite.value(this)")
-      end
-
-      def visible?(node)
-        evaluate(node, "_cuprite.isVisible(this)")
-      end
-
-      def disabled?(node)
-        evaluate(node, "_cuprite.isDisabled(this)")
-      end
-
       def resize(width, height)
         result = @browser.command("Browser.getWindowForTarget", targetId: @target_id)
         @window_id, @bounds = result.values_at("windowId", "bounds")
         @browser.command("Browser.setWindowBounds", windowId: @window_id, bounds: { width: width, height: height })
         command("Emulation.setDeviceMetricsOverride", width: width, height: height, deviceScaleFactor: 1, mobile: false)
-      end
-
-      def path(node)
-        evaluate(node, "_cuprite.path(this)")
       end
 
       def evaluate(node, expr)
