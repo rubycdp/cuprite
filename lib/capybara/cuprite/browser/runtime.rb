@@ -42,7 +42,8 @@ module Capybara::Cuprite
         object_id = command("DOM.resolveNode", nodeId: node["nodeId"]).dig("object", "objectId")
         options = DEFAULT_OPTIONS.merge(objectId: object_id)
         options[:functionDeclaration] = options[:functionDeclaration] % expr
-        command("Runtime.callFunctionOn", **options).dig("result", "value")
+        command("Runtime.callFunctionOn", **options)
+          .dig("result").tap { |r| handle_error(r) }.dig("value")
       end
 
       def evaluate_async(expr, wait_time, *args)
@@ -69,14 +70,21 @@ module Capybara::Cuprite
           options = options.merge(executionContextId: execution_context_id)
         end
 
-        command("Runtime.callFunctionOn", **options)["result"].tap do |response|
-          if response["subtype"] == "error"
-            if response["className"] == "TimedOutPromise"
-              raise ScriptTimeoutError
-            else
-              raise JavaScriptError.new(response)
-            end
-          end
+        command("Runtime.callFunctionOn", **options)
+          .dig("result").tap { |r| handle_error(r) }
+      end
+
+      # FIXME: We should have a central place to handle all type of errors
+      def handle_error(result)
+        return if result["subtype"] != "error"
+
+        case result["className"]
+        when "TimedOutPromise"
+          raise ScriptTimeoutError
+        when "MouseEventFailed"
+          raise MouseEventFailed.new(result["description"])
+        else
+          raise JavaScriptError.new(result)
         end
       end
 

@@ -2,28 +2,28 @@ module Capybara::Cuprite
   class Browser
     module Input
       def click(node, keys = [], offset = {})
-        x, y, modifiers = prepare_before_click(node, keys, offset)
+        x, y, modifiers = prepare_before_click(__method__, node, keys, offset)
         command("Input.dispatchMouseEvent", type: "mousePressed", modifiers: modifiers, button: "left", x: x, y: y, clickCount: 1)
         @wait = 0.05 # Potential wait because if network event is triggered then we have to wait until it's over.
         command("Input.dispatchMouseEvent", type: "mouseReleased", modifiers: modifiers, button: "left", x: x, y: y, clickCount: 1)
+      end
+
+      def right_click(node, keys = [], offset = {})
+        x, y, modifiers = prepare_before_click(__method__, node, keys, offset)
+        command("Input.dispatchMouseEvent", type: "mousePressed", modifiers: modifiers, button: "right", x: x, y: y, clickCount: 1)
+        command("Input.dispatchMouseEvent", type: "mouseReleased", modifiers: modifiers, button: "right", x: x, y: y, clickCount: 1)
+      end
+
+      def double_click(node, keys = [], offset = {})
+        x, y, modifiers = prepare_before_click(__method__, node, keys, offset)
+        command("Input.dispatchMouseEvent", type: "mousePressed", modifiers: modifiers, button: "left", x: x, y: y, clickCount: 2)
+        command("Input.dispatchMouseEvent", type: "mouseReleased", modifiers: modifiers, button: "left", x: x, y: y, clickCount: 2)
       end
 
       def click_coordinates(x, y)
         command("Input.dispatchMouseEvent", type: "mousePressed", button: "left", x: x, y: y, clickCount: 1)
         @wait = 0.05 # Potential wait because if network event is triggered then we have to wait until it's over.
         command("Input.dispatchMouseEvent", type: "mouseReleased", button: "left", x: x, y: y, clickCount: 1)
-      end
-
-      def right_click(node, keys = [], offset = {})
-        x, y, modifiers = prepare_before_click(node, keys, offset)
-        command("Input.dispatchMouseEvent", type: "mousePressed", modifiers: modifiers, button: "right", x: x, y: y, clickCount: 1)
-        command("Input.dispatchMouseEvent", type: "mouseReleased", modifiers: modifiers, button: "right", x: x, y: y, clickCount: 1)
-      end
-
-      def double_click(node, keys = [], offset = {})
-        x, y, modifiers = prepare_before_click(node, keys, offset)
-        command("Input.dispatchMouseEvent", type: "mousePressed", modifiers: modifiers, button: "left", x: x, y: y, clickCount: 2)
-        command("Input.dispatchMouseEvent", type: "mouseReleased", modifiers: modifiers, button: "left", x: x, y: y, clickCount: 2)
       end
 
       def hover(node)
@@ -67,11 +67,10 @@ module Capybara::Cuprite
 
       private
 
-      def prepare_before_click(node, keys, offset)
-        value = evaluate_on(node: node, expr: "_cuprite.scrollIntoViewport(this)")
-        raise MouseEventFailed.new(node, nil) unless value
-
+      def prepare_before_click(name, node, keys, offset)
+        evaluate_on(node: node, expr: "_cuprite.scrollIntoViewport(this)")
         x, y = calculate_quads(node, offset[:x], offset[:y])
+        evaluate_on(node: node, expr: "_cuprite.mouseEventTest(this, '#{name}', #{x}, #{y})")
 
         click_modifiers = { alt: 1, ctrl: 2, control: 2, meta: 4, command: 4, shift: 8 }
         modifiers = keys.map { |k| click_modifiers[k.to_sym] }.compact.reduce(0, :|)

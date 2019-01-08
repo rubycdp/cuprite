@@ -406,6 +406,7 @@ describe Capybara::Session do
 
       after do
         @session.driver.resize(1024, 768)
+        @session.driver.reset!
       end
 
       it "scrolls around so that elements can be clicked" do
@@ -429,7 +430,7 @@ describe Capybara::Session do
         expect { @session.find(:css, "#myrect").click }.not_to raise_error
       end
 
-      context "with #two overlapping #one", skip: true do
+      context "with #two overlapping #one" do
         before do
           @session.execute_script <<-JS
             var two = document.getElementById("two")
@@ -444,7 +445,7 @@ describe Capybara::Session do
             @session.find(:css, "#one").click
           end.to raise_error(Capybara::Cuprite::MouseEventFailed) { |error|
             expect(error.selector).to eq("html body div#two.box")
-            expect(error.message).to include("[200, 200]")
+            expect(error.message).to include("[200.0, 200.0]")
           }
         end
 
@@ -462,12 +463,12 @@ describe Capybara::Session do
           expect do
             @session.find(:css, "#one").click
           end.to raise_error(Capybara::Cuprite::MouseEventFailed) { |error|
-            expect(error.position.first).to eq(150)
+            expect(error.position.first).to eq(100)
           }
         end
       end
 
-      context "with #svg overlapping #one", skip: true do
+      context "with #svg overlapping #one" do
         before do
           @session.execute_script <<-JS
             var two = document.getElementById("svg")
@@ -482,7 +483,7 @@ describe Capybara::Session do
             @session.find(:css, "#one").click
           end.to raise_error(Capybara::Cuprite::MouseEventFailed) { |error|
             expect(error.selector).to eq("html body svg#svg.box")
-            expect(error.message).to include("[200, 200]")
+            expect(error.message).to include("[200.0, 200.0]")
           }
         end
       end
@@ -671,7 +672,7 @@ describe Capybara::Session do
       end
     end
 
-    context "frame support", skip: true do
+    context "frame support" do
       it "supports selection by index" do
         @session.visit "/cuprite/frames"
 

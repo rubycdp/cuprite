@@ -63,6 +63,25 @@ module Capybara
       end
     end
 
+    class MouseEventFailed < ClientError
+      attr_reader :name, :selector, :position
+
+      def initialize(*)
+        super
+        data = /\AError: (\w+), (.+?), ([\d\.-]+), ([\d\.-]+)/.match(@response)
+        @name, @selector = data.values_at(1, 2)
+        @position = data.values_at(3, 4).map(&:to_f)
+      end
+
+
+      def message
+        "Firing a #{name} at coordinates [#{position.join(", ")}] failed. Cuprite detected " \
+          "another element with CSS selector \"#{selector}\" at this position. " \
+          "It may be overlapping the element you are trying to interact with. " \
+          "If you don't care about overlapping elements, try using node.trigger(\"#{name}\")."
+      end
+    end
+
     class NodeError < ClientError
       attr_reader :node
 
@@ -79,27 +98,6 @@ module Capybara
         "It is possible the element has been replaced by another element and you meant to interact with " \
         "the new element. If so you need to do a new find in order to get a reference to the " \
         "new element."
-      end
-    end
-
-    class MouseEventFailed < NodeError
-      def name
-        response["args"][0]
-      end
-
-      def selector
-        response["args"][1]
-      end
-
-      def position
-        [response["args"][2]["x"], response["args"][2]["y"]]
-      end
-
-      def message
-        "Firing a #{name} at co-ordinates [#{position.join(", ")}] failed. Cuprite detected " \
-          "another element with CSS selector \"#{selector}\" at this position. " \
-          "It may be overlapping the element you are trying to interact with. " \
-          "If you don't care about overlapping elements, try using node.trigger(\"#{name}\")."
       end
     end
 
