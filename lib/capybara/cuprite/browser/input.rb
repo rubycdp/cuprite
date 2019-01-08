@@ -27,6 +27,7 @@ module Capybara::Cuprite
       end
 
       def hover(node)
+        evaluate_on(node: node, expr: "_cuprite.scrollIntoViewport(this)")
         x, y = calculate_quads(node)
         command("Input.dispatchMouseEvent", type: "mouseMoved", x: x, y: y)
       end

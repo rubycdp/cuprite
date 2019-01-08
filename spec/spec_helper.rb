@@ -99,7 +99,6 @@ RSpec.configure do |config|
     node #set with a contenteditable element should allow me to change the contents
     node #set with a contenteditable element should allow me to set the contents
     node #set with a contenteditable element should allow me to change the contents of a child element
-    node #hover should allow hovering on an element that needs to be scrolled into view
     node #send_keys should send a string of keys to an element
     node #send_keys should send special characters
     node #send_keys should allow for multiple simultaneous keys
