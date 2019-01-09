@@ -148,7 +148,9 @@ module Capybara::Cuprite
           sleep 0.3 # Dirty hack because new window doesn't have events at all
         end
 
-        @client.subscribe("Page.navigatedWithinDocument") { signal }
+        @client.subscribe("Page.navigatedWithinDocument") do
+          signal if @waiting_frames.empty?
+        end
 
         @client.subscribe("Page.domContentEventFired") do |params|
           # `frameStoppedLoading` doesn't occur if status isn't success
