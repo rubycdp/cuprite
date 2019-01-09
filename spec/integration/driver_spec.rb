@@ -943,14 +943,14 @@ module Capybara::Cuprite
       end
     end
 
-    it "lists the open windows", skip: true do
+    it "lists the open windows" do
       @session.visit "/"
 
       @session.execute_script <<-JS
         window.open("/cuprite/simple", "popup")
       JS
 
-      expect(@driver.window_handles).to eq(%w[0 1])
+      expect(@driver.window_handles.size).to eq(2)
 
       popup2 = @session.window_opened_by do
         @session.execute_script <<-JS
@@ -958,7 +958,7 @@ module Capybara::Cuprite
         JS
       end
 
-      expect(@driver.window_handles).to eq(%w[0 1 2])
+      expect(@driver.window_handles.size).to eq(3)
 
       @session.within_window(popup2) do
         expect(@session.html).to include("Test")
@@ -967,7 +967,7 @@ module Capybara::Cuprite
 
       sleep 0.1
 
-      expect(@driver.window_handles).to eq(%w[0 1])
+      expect(@driver.window_handles.size).to eq(2)
     end
 
     context "a new window inherits settings" do
