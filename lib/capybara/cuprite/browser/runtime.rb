@@ -47,7 +47,7 @@ module Capybara::Cuprite
         response = command("Runtime.callFunctionOn", **options)
           .dig("result").tap { |r| handle_error(r) }
 
-        !by_value ? handle(response) : response.dig("value")
+        by_value ? response.dig("value") : handle(response)
       end
 
       def evaluate_async(expr, wait_time, *args)
