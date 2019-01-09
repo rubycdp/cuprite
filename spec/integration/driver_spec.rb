@@ -1010,7 +1010,7 @@ module Capybara::Cuprite
       end
     end
 
-    it "resizes windows", skip: true do
+    it "resizes windows" do
       @session.visit "/"
 
       popup1 = @session.window_opened_by do
