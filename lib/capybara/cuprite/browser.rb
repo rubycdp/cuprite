@@ -39,6 +39,12 @@ module Capybara::Cuprite
     def initialize(options = nil)
       @options = Hash(options)
       @logger, @timeout = @options.values_at(:logger, :timeout)
+
+      if ENV["CUPRITE_DEBUG"]
+        STDOUT.sync = true
+        @logger = STDOUT
+      end
+
       start
     end
 

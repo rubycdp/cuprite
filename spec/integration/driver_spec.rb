@@ -532,7 +532,6 @@ module Capybara::Cuprite
         begin
           extended_driver = Capybara::Cuprite::Driver.new(
             @session.app,
-            logger: TestSessions.logger,
             extensions: [File.expand_path("../support/geolocation.js", __dir__)]
           )
 
@@ -558,7 +557,6 @@ module Capybara::Cuprite
         begin
           failing_driver = Capybara::Cuprite::Driver.new(
             @session.app,
-            logger: TestSessions.logger,
             extensions: [File.expand_path("../support/non_existent.js", __dir__)]
           )
           expect { failing_driver.visit(session_url("/")) }.to raise_error(Errno::ENOENT)
@@ -928,7 +926,6 @@ module Capybara::Cuprite
       begin
         # Use custom host "pointing" to localhost, specified by BROWSER_TEST_HOST env var.
         # Use /etc/hosts or iptables for this: https://superuser.com/questions/516208/how-to-change-ip-address-to-point-to-localhost
-        # A custom host and corresponding env var for Travis is specified in .travis.yml
         # If var is unspecified, skip test
         host = ENV["BROWSER_TEST_HOST"]
 

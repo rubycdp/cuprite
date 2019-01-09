@@ -42,13 +42,13 @@ module Capybara::Cuprite
       def send_message(data)
         json = data.to_json
         @driver.text(json)
-        @logger&.write("\n\n>>> #{json}")
+        @logger&.puts("\n\n>>> #{json}")
       end
 
       def on_message(event)
         data = JSON.parse(event.data)
         @messages.push(data)
-        @logger&.write("    <<< #{event.data}\n")
+        @logger&.puts("    <<< #{event.data}\n")
       end
 
       def write(data)

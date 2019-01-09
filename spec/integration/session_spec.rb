@@ -3,7 +3,6 @@
 require "spec_helper"
 
 skip = []
-skip << :windows if ENV["TRAVIS"]
 skip << :download # Browser doesn't support downloading files
 Capybara::SpecHelper.run_specs TestSessions::Cuprite, "Cuprite", capybara_skip: skip
 

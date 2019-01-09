@@ -137,9 +137,9 @@ module Capybara::Cuprite
       def subscribe_events
         super
 
-        @client.subscribe("Runtime.consoleAPICalled") do |params|
-          if @browser.logger
-            params["args"].each { |r| @browser.logger.write(r["value"]) }
+        if @browser.logger
+          @client.subscribe("Runtime.consoleAPICalled") do |params|
+            params["args"].each { |r| @browser.logger.puts(r["value"]) }
           end
         end
 
