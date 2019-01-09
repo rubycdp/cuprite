@@ -36,10 +36,17 @@ module Capybara::Cuprite
         click(node)
         evaluate_on(node: node, expr: "this.value = ''")
         value.each_char do |char|
-          command("Input.insertText", text: char)
-          # command("Input.dispatchKeyEvent", type: "keyDown", text: value, unmodifiedText: value)
-          # command("Input.dispatchKeyEvent", type: "keyUp")
+          # FIXME: Check puppeteer Input.js and USKeyboardLayout.js
+          # also send_keys and modifiers from capybara API and unify all that.
+          if char.match?(/\s/)
+            command("Input.insertText", text: char)
+          else
+            command("Input.dispatchKeyEvent", type: "keyDown", text: char)
+            command("Input.dispatchKeyEvent", type: "keyUp", text: char)
+          end
         end
+        evaluate_on(node: node, expr: "_cuprite.changed(this)")
+        trigger(node, "blur")
       end
 
       def drag(node, other_node)

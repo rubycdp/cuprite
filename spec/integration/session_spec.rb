@@ -195,15 +195,15 @@ describe Capybara::Session do
         expect(element.value).to eq("-100")
       end
 
-      it "fires the keydown event", skip: true do
+      it "fires the keydown event" do
         expect(@session.find(:css, "#changes_on_keydown").text).to eq("6")
       end
 
-      it "fires the keyup event", skip: true do
+      it "fires the keyup event" do
         expect(@session.find(:css, "#changes_on_keyup").text).to eq("6")
       end
 
-      it "fires the keypress event", skip: true do
+      it "fires the keypress event" do
         expect(@session.find(:css, "#changes_on_keypress").text).to eq("6")
       end
 
@@ -211,15 +211,15 @@ describe Capybara::Session do
         expect(@session.find(:css, "#changes_on_focus").text).to eq("Focus")
       end
 
-      it "fires the blur event", skip: true do
+      it "fires the blur event" do
         expect(@session.find(:css, "#changes_on_blur").text).to eq("Blur")
       end
 
-      it "fires the keydown event before the value is updated", skip: true do
+      it "fires the keydown event before the value is updated" do
         expect(@session.find(:css, "#value_on_keydown").text).to eq("Hello")
       end
 
-      it "fires the keyup event after the value is updated", skip: true do
+      it "fires the keyup event after the value is updated" do
         expect(@session.find(:css, "#value_on_keyup").text).to eq("Hello!")
       end
 
