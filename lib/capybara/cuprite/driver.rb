@@ -217,9 +217,13 @@ module Capybara::Cuprite
     end
 
     def set_cookie(name, value, options = {})
+      options = options.dup
       options[:name]   ||= name
       options[:value]  ||= value
       options[:domain] ||= default_domain
+
+      expires = options.delete(:expires).to_i
+      options[:expires] = expires if expires > 0
 
       browser.set_cookie(options)
     end

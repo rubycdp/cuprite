@@ -877,7 +877,7 @@ module Capybara::Cuprite
       it "can set cookies with an expires time" do
         time = Time.at(Time.now.to_i + 10000)
         @session.visit "/"
-        @driver.set_cookie "foo", "bar", expires: time.to_i
+        @driver.set_cookie "foo", "bar", expires: time
         expect(@driver.cookies["foo"].expires).to eq(time)
       end
 
