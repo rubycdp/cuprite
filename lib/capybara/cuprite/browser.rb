@@ -58,7 +58,7 @@ module Capybara::Cuprite
     end
 
     def parents(node)
-      command "parents", node
+      evaluate_on(node: node, expr: "_cuprite.parents(this)", by_value: false)
     end
 
     def find(method, selector)

@@ -489,9 +489,7 @@ describe Capybara::Session do
       end
 
       context "with image maps", skip: true do
-        before do
-          @session.visit("/cuprite/image_map")
-        end
+        before { @session.visit("/cuprite/image_map") }
 
         it "can click" do
           @session.find(:css, "map[name=testmap] area[shape=circle]").click
@@ -868,7 +866,7 @@ describe Capybara::Session do
       expect { @session.find(:xpath, "#remove_me") }.to raise_error(Capybara::Cuprite::InvalidSelector)
     end
 
-    it "should submit form", skip: true do
+    it "should submit form" do
       @session.visit("/cuprite/send_keys")
       @session.find(:css, "#without_submit_button").trigger("submit")
       expect(@session.find(:css, "#without_submit_button input").value).to eq("Submitted")
@@ -931,13 +929,13 @@ describe Capybara::Session do
       )
     end
 
-    it "knows about its parents", skip: true do
+    it "knows about its parents" do
       @session.visit "/cuprite/simple"
       parents = @session.find(:css, "#nav").native.parents
       expect(parents.map(&:tag_name)).to eq %w[li ul body html]
     end
 
-    context "SVG tests", skip: true do
+    context "SVG tests" do
       before do
         @session.visit "/cuprite/svg_test"
       end

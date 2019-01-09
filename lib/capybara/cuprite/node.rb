@@ -27,8 +27,8 @@ module Capybara::Cuprite
     end
 
     def parents
-      command(:parents).map do |parent_id|
-        self.class.new(driver, @target_id, parent_id)
+      command(:parents).map do |parent|
+        self.class.new(driver, parent["target_id"], parent["node"])
       end
     end
 
