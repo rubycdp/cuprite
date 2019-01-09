@@ -169,7 +169,7 @@ describe Capybara::Session do
       end
     end
 
-    describe "Node#set", skip: true do
+    describe "Node#set" do
       before do
         @session.visit("/cuprite/with_js")
         @session.find(:css, "#change_me").set("Hello!")
@@ -195,15 +195,15 @@ describe Capybara::Session do
         expect(element.value).to eq("-100")
       end
 
-      it "fires the keydown event" do
+      it "fires the keydown event", skip: true do
         expect(@session.find(:css, "#changes_on_keydown").text).to eq("6")
       end
 
-      it "fires the keyup event" do
+      it "fires the keyup event", skip: true do
         expect(@session.find(:css, "#changes_on_keyup").text).to eq("6")
       end
 
-      it "fires the keypress event" do
+      it "fires the keypress event", skip: true do
         expect(@session.find(:css, "#changes_on_keypress").text).to eq("6")
       end
 
@@ -211,15 +211,15 @@ describe Capybara::Session do
         expect(@session.find(:css, "#changes_on_focus").text).to eq("Focus")
       end
 
-      it "fires the blur event" do
+      it "fires the blur event", skip: true do
         expect(@session.find(:css, "#changes_on_blur").text).to eq("Blur")
       end
 
-      it "fires the keydown event before the value is updated" do
+      it "fires the keydown event before the value is updated", skip: true do
         expect(@session.find(:css, "#value_on_keydown").text).to eq("Hello")
       end
 
-      it "fires the keyup event after the value is updated" do
+      it "fires the keyup event after the value is updated", skip: true do
         expect(@session.find(:css, "#value_on_keyup").text).to eq("Hello!")
       end
 
@@ -235,7 +235,7 @@ describe Capybara::Session do
         expect(element.value).to eq("$52.00")
       end
 
-      it "attaches a file when passed a Pathname" do
+      it "attaches a file when passed a Pathname", skip: true do
         filename = Pathname.new("spec/tmp/a_test_pathname").expand_path
         File.open(filename, "w") { |f| f.write("text") }
 
