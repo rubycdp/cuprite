@@ -31,7 +31,7 @@ module Capybara::Cuprite
                 double_click hover set click_coordinates drag drag_by select
                 trigger scroll_to send_keys evaluate evaluate_on evaluate_async
                 execute frame_url frame_title within_frame switch_to_frame
-                current_url title) => :page
+                current_url title go_back go_forward) => :page
 
     attr_reader :process, :logger
     attr_writer :timeout
@@ -196,14 +196,6 @@ module Capybara::Cuprite
 
     def clear_memory_cache
       page.command("Network.clearBrowserCache")
-    end
-
-    def go_back
-      command "go_back"
-    end
-
-    def go_forward
-      command "go_forward"
     end
 
     def accept_confirm

@@ -998,7 +998,7 @@ describe Capybara::Session do
       end
     end
 
-    it "can go back when history state has been pushed", skip: true do
+    it "can go back when history state has been pushed" do
       @session.visit("/")
       @session.execute_script(%(window.history.pushState({foo: "bar"}, "title", "bar2.html");))
       expect(@session).to have_current_path("/bar2.html")
@@ -1006,11 +1006,11 @@ describe Capybara::Session do
       expect(@session).to have_current_path("/")
     end
 
-    it "can go forward when history state is used", skip: true do
+    it "can go forward when history state is used" do
       @session.visit("/")
       @session.execute_script(%(window.history.pushState({foo: "bar"}, "title", "bar2.html");))
       expect(@session).to have_current_path("/bar2.html")
-      # don"t use #go_back here to isolate the test
+      # don't use #go_back here to isolate the test
       @session.execute_script("window.history.go(-1);")
       expect(@session).to have_current_path("/")
       expect { @session.go_forward }.not_to raise_error

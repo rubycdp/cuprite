@@ -115,6 +115,24 @@ module Capybara::Cuprite
         @network_traffic = []
       end
 
+      def go_back
+        go(-1)
+      end
+
+      def go_forward
+        go(1)
+      end
+
+      def go(delta)
+        history = command("Page.getNavigationHistory")
+        index, entries = history.values_at("currentIndex", "entries")
+
+        if entry = entries[index + delta]
+          @wait = 0.05 # Potential wait because of network event
+          command("Page.navigateToHistoryEntry", entryId: entry["id"])
+        end
+      end
+
       def command(*args)
         id = nil
 

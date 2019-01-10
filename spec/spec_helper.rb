@@ -36,8 +36,6 @@ end
 RSpec.configure do |config|
   config.define_derived_metadata do |metadata|
     regexes = <<~REGEXP.split("\n").map { |s| Regexp.quote(s.strip) }.join("|")
-    #go_back should fetch a response from the driver from the previous page
-    #go_forward should fetch a response from the driver from the previous page
     #fullscreen should be able to fullscreen the window
     #click_link can download a file
     #fill_in Date/Time should fill in a date input
