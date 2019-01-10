@@ -7,7 +7,7 @@ module Capybara::Cuprite
     class Process
       KILL_TIMEOUT = 2
 
-      BROWSER_PATH = "chrome"
+      BROWSER_PATH = ENV.fetch("BROWSER_PATH", "chrome")
       BROWSER_HOST = "127.0.0.1"
       BROWSER_PORT = "0"
 
