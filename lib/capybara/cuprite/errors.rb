@@ -68,7 +68,7 @@ module Capybara
 
       def initialize(*)
         super
-        data = /\AError: (\w+), (.+?), ([\d\.-]+), ([\d\.-]+)/.match(@response)
+        data = /\A\w+: (\w+), (.+?), ([\d\.-]+), ([\d\.-]+)/.match(@response)
         @name, @selector = data.values_at(1, 2)
         @position = data.values_at(3, 4).map(&:to_f)
       end
