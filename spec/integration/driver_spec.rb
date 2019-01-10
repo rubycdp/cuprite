@@ -922,10 +922,9 @@ module Capybara::Cuprite
       begin
         # Use custom host "pointing" to localhost, specified by BROWSER_TEST_HOST env var.
         # Use /etc/hosts or iptables for this: https://superuser.com/questions/516208/how-to-change-ip-address-to-point-to-localhost
-        # If var is unspecified, skip test
         host = ENV["BROWSER_TEST_HOST"]
 
-        skip "BROWSER_TEST_HOST not set" if host.nil?
+        skip "BROWSER_TEST_HOST not set" if host.nil? # skip test if var is unspecified
 
         driver = Capybara::Cuprite::Driver.new(@driver.app, host: host, port: 12345)
         driver.visit session_url("/")

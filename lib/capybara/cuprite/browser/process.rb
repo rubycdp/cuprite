@@ -90,26 +90,7 @@ module Capybara::Cuprite
           ObjectSpace.define_finalizer(self, self.class.process_killer(@pid))
         end
 
-        output = ""
-        attempts = 3
-        regexp = /DevTools listening on (ws:\/\/.*)/
-        loop do
-          begin
-            output += read_io.read_nonblock(512)
-          rescue IO::WaitReadable
-            attempts -= 1
-            break if attempts <= 0
-            IO.select([read_io], nil, nil, 1)
-            retry
-          end
-
-          if output.match?(regexp)
-            @ws_url = Addressable::URI.parse(output.match(regexp)[1])
-            @host = @ws_url.host
-            @port = @ws_url.port
-            break
-          end
-        end
+        parse_ws_url(read_io)
       ensure
         close_io(read_io, write_io)
       end
@@ -147,6 +128,29 @@ module Capybara::Cuprite
       def kill
         self.class.process_killer(@pid).call
         @pid = nil
+      end
+
+      def parse_ws_url(read_io)
+        output = ""
+        attempts = 3
+        regexp = /DevTools listening on (ws:\/\/.*)/
+        loop do
+          begin
+            output += read_io.read_nonblock(512)
+          rescue IO::WaitReadable
+            attempts -= 1
+            break if attempts <= 0
+            IO.select([read_io], nil, nil, 1)
+            retry
+          end
+
+          if output.match?(regexp)
+            @ws_url = Addressable::URI.parse(output.match(regexp)[1])
+            @host = @ws_url.host
+            @port = @ws_url.port
+            break
+          end
+        end
       end
 
       def close_io(*ios)
