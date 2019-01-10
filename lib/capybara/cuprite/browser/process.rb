@@ -23,8 +23,6 @@ module Capybara::Cuprite
         # "no-sandbox" => nil,
         "enable-automation" => nil,
         "disable-web-security" => nil,
-        "remote-debugging-port" => BROWSER_PORT,
-        "remote-debugging-address" => BROWSER_HOST,
       }.freeze
 
       attr_reader :host, :port, :ws_url, :pid, :options
@@ -55,6 +53,7 @@ module Capybara::Cuprite
       end
 
       def initialize(options)
+        @options = options.fetch(:browser, {})
         exe = options[:path] || BROWSER_PATH
         @path = Cliver.detect(exe)
 
@@ -65,11 +64,16 @@ module Capybara::Cuprite
           raise Cliver::Dependency::NotFound.new(message)
         end
 
-        command_line_options = options.fetch(:browser, {})
         window_size = options.fetch(:window_size, [1024, 768])
-        command_line_options.merge!("window-size" => window_size.join(","))
+        @options = @options.merge("window-size" => window_size.join(","))
 
-        @options = DEFAULT_OPTIONS.merge(command_line_options)
+        port = options.fetch(:port, BROWSER_PORT)
+        @options = @options.merge("remote-debugging-port" => port)
+
+        host = options.fetch(:host, BROWSER_HOST)
+        @options = @options.merge("remote-debugging-address" => host)
+
+        @options = DEFAULT_OPTIONS.merge(@options)
       end
 
       def start

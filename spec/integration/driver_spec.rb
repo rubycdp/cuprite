@@ -907,7 +907,7 @@ module Capybara::Cuprite
       end
     end
 
-    it "allows the driver to have a fixed port", skip: true do
+    it "allows the driver to have a fixed port" do
       begin
         driver = Capybara::Cuprite::Driver.new(@driver.app, port: 12345)
         driver.visit session_url("/")
