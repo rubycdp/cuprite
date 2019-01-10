@@ -123,16 +123,6 @@ module Capybara::Cuprite
         go(1)
       end
 
-      def go(delta)
-        history = command("Page.getNavigationHistory")
-        index, entries = history.values_at("currentIndex", "entries")
-
-        if entry = entries[index + delta]
-          @wait = 0.05 # Potential wait because of network event
-          command("Page.navigateToHistoryEntry", entryId: entry["id"])
-        end
-      end
-
       def command(*args)
         id = nil
 
@@ -269,6 +259,16 @@ module Capybara::Cuprite
           @mutex.unlock
         else
           @mutex.synchronize { @resource.signal }
+        end
+      end
+
+      def go(delta)
+        history = command("Page.getNavigationHistory")
+        index, entries = history.values_at("currentIndex", "entries")
+
+        if entry = entries[index + delta]
+          @wait = 0.05 # Potential wait because of network event
+          command("Page.navigateToHistoryEntry", entryId: entry["id"])
         end
       end
     end
