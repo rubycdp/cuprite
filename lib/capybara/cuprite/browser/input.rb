@@ -33,20 +33,8 @@ module Capybara::Cuprite
       end
 
       def set(node, value)
-        click(node)
-        evaluate_on(node: node, expr: "this.value = ''")
-        value.each_char do |char|
-          # FIXME: Check puppeteer Input.js and USKeyboardLayout.js
-          # also send_keys and modifiers from capybara API and unify all that.
-          if char.match?(/\s/)
-            command("Input.insertText", text: char)
-          else
-            command("Input.dispatchKeyEvent", type: "keyDown", text: char)
-            command("Input.dispatchKeyEvent", type: "keyUp", text: char)
-          end
-        end
-        evaluate_on(node: node, expr: "_cuprite.changed(this)")
-        trigger(node, "blur")
+        object_id = command("DOM.resolveNode", nodeId: node["nodeId"]).dig("object", "objectId")
+        evaluate("_cuprite.set(arguments[0], arguments[1])", { "objectId" => object_id }, value)
       end
 
       def drag(node, other_node)
@@ -62,7 +50,7 @@ module Capybara::Cuprite
       end
 
       def trigger(node, event)
-        evaluate_on(node: node, expr: %(_cuprite.trigger("#{event}", {}, this)))
+        evaluate_on(node: node, expr: %(_cuprite.trigger(this, "#{event}")))
       end
 
       def scroll_to(left, top)
@@ -70,6 +58,22 @@ module Capybara::Cuprite
       end
 
       def send_keys(node, keys)
+        # click(node)
+        # evaluate_on(node: node, expr: "this.value = ''")
+        # value.each_char do |char|
+        #   # FIXME: Check puppeteer Input.js and USKeyboardLayout.js
+        #   # also send_keys and modifiers from capybara API and unify all that.
+        #   if /\n/.match?(char)
+        #     command("Input.insertText", text: char)
+        #     # command("Input.dispatchKeyEvent", type: "keyDown", code: "Enter", key: "Enter", text: "\r")
+        #     # command("Input.dispatchKeyEvent", type: "keyUp", code: "Enter", key: "Enter")
+        #   else
+        #     command("Input.dispatchKeyEvent", type: "keyDown", text: char)
+        #     command("Input.dispatchKeyEvent", type: "keyUp", text: char)
+        #   end
+        # end
+        # evaluate_on(node: node, expr: "_cuprite.changed(this)")
+        # trigger(node, "blur")
         command "send_keys", node, normalize_keys(keys)
       end
 
