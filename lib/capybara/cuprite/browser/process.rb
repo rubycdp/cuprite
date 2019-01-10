@@ -22,9 +22,10 @@ module Capybara::Cuprite
         # Note: --no-sandbox is not needed if you properly setup a user in the container.
         # https://github.com/ebidel/lighthouse-ci/blob/master/builder/Dockerfile#L35-L40
         # "no-sandbox" => nil,
+        "enable-automation" => nil,
         "disable-web-security" => nil,
         "remote-debugging-port" => BROWSER_PORT,
-        "remote-debugging-address" => BROWSER_HOST
+        "remote-debugging-address" => BROWSER_HOST,
       }.freeze
 
       attr_reader :host, :port, :ws_url, :pid
