@@ -3,22 +3,18 @@
 require "spec_helper"
 require "stringio"
 
-# module Capybara::Cuprite
-#   describe Client do
-#     let(:server) { double("server").as_null_object }
-#
-#     context "with a logger" do
-#       let(:logger) { StringIO.new }
-#       subject      { Client.new(server) }
-#
-#       it "logs requests and responses to the server" do
-#         response = %({"response":"<3"})
-#
-#         subject.command("where is", "the love?")
-#
-#         expect(logger.string).to include(%(name":"where is","args":["the love?"]]))
-#         expect(logger.string).to include(response)
-#       end
-#     end
-#   end
-# end
+module Capybara::Cuprite
+  describe Browser do
+    context "with a logger" do
+      let(:logger) { StringIO.new }
+      subject      { Browser.new(logger: logger) }
+
+      it "logs requests and responses to the server" do
+        subject.body
+
+        expect(logger.string).to include("return document.documentElement.outerHTML")
+        expect(logger.string).to include("<html><head></head><body></body></html>")
+      end
+    end
+  end
+end
