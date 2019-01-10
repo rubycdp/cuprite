@@ -16,7 +16,6 @@ module Capybara::Cuprite
       DEFAULT_OPTIONS = {
         "headless" => nil,
         "disable-gpu" => nil,
-        "window-size" => "1024,768",
         "hide-scrollbars" => nil,
         "mute-audio" => nil,
         # Note: --no-sandbox is not needed if you properly setup a user in the container.
@@ -28,7 +27,7 @@ module Capybara::Cuprite
         "remote-debugging-address" => BROWSER_HOST,
       }.freeze
 
-      attr_reader :host, :port, :ws_url, :pid
+      attr_reader :host, :port, :ws_url, :pid, :options
 
       def self.start(*args)
         new(*args).tap(&:start)
@@ -66,7 +65,11 @@ module Capybara::Cuprite
           raise Cliver::Dependency::NotFound.new(message)
         end
 
-        @options = DEFAULT_OPTIONS.merge(options.fetch(:browser, {}))
+        command_line_options = options.fetch(:browser, {})
+        window_size = options.fetch(:window_size, [1024, 768])
+        command_line_options.merge!("window-size" => window_size.join(","))
+
+        @options = DEFAULT_OPTIONS.merge(command_line_options)
       end
 
       def start

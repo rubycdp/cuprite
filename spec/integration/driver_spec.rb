@@ -113,14 +113,10 @@ module Capybara::Cuprite
       ).to eq([200, 100])
     end
 
-    it "supports specifying viewport size with an option", skip: true do
+    it "supports specifying viewport size with an option" do
       begin
         Capybara.register_driver :cuprite_with_custom_window_size do |app|
-          Capybara::Cuprite::Driver.new(
-            app,
-            logger: TestSessions.logger,
-            window_size: [800, 600]
-          )
+          Capybara::Cuprite::Driver.new(app, window_size: [800, 600])
         end
         driver = Capybara::Session.new(:cuprite_with_custom_window_size, TestApp).driver
         driver.visit(session_url("/"))
@@ -608,7 +604,7 @@ module Capybara::Cuprite
 
       it "does not propagate a Javascript error to ruby if error raising disabled" do
         begin
-          driver = Capybara::Cuprite::Driver.new(@session.app, js_errors: false, logger: TestSessions.logger)
+          driver = Capybara::Cuprite::Driver.new(@session.app, js_errors: false)
           driver.visit session_url("/cuprite/js_error")
           driver.execute_script "setTimeout(function() { omg }, 0)"
           sleep 0.1
@@ -620,7 +616,7 @@ module Capybara::Cuprite
 
       it "does not propagate a Javascript error to ruby if error raising disabled and client restarted" do
         begin
-          driver = Capybara::Cuprite::Driver.new(@session.app, js_errors: false, logger: TestSessions.logger)
+          driver = Capybara::Cuprite::Driver.new(@session.app, js_errors: false)
           driver.restart
           driver.visit session_url("/cuprite/js_error")
           driver.execute_script "setTimeout(function() { omg }, 0)"
@@ -634,7 +630,7 @@ module Capybara::Cuprite
       context "browser page settings" do
         it "can override defaults" do
           begin
-            driver = Capybara::Cuprite::Driver.new(@session.app, page_settings: { userAgent: "PageSettingsOverride" }, logger: TestSessions.logger)
+            driver = Capybara::Cuprite::Driver.new(@session.app, page_settings: { userAgent: "PageSettingsOverride" })
             driver.visit session_url("/cuprite/headers")
             expect(driver.body).to include("USER_AGENT: PageSettingsOverride")
           ensure
@@ -645,7 +641,7 @@ module Capybara::Cuprite
         it "can set resource timeout" do
           begin
             # If PJS resource timeout is less than drivers timeout it should ignore resources not loading in time
-            driver = Capybara::Cuprite::Driver.new(@session.app, page_settings: { resourceTimeout: 1000 }, logger: TestSessions.logger)
+            driver = Capybara::Cuprite::Driver.new(@session.app, page_settings: { resourceTimeout: 1000 })
             driver.timeout = 3
             expect do
               driver.visit session_url("/cuprite/visit_timeout")

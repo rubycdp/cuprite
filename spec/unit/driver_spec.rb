@@ -20,15 +20,11 @@ module Capybara::Cuprite
       end
     end
 
-    context "with a :window_size option", skip: true do
+    context "with a :window_size option" do
       subject { Driver.new(nil, window_size: [800, 600]) }
 
       it "creates a client with the desired width and height settings" do
-        server = double
-        expect(Server).to receive(:new).and_return(server)
-        expect(Client).to receive(:start).with(server, hash_including(window_size: [800, 600]))
-
-        subject.client
+        expect(subject.browser.process.options["window-size"]).to eq("800,600")
       end
     end
   end
