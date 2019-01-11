@@ -50,7 +50,8 @@ module Capybara::Cuprite
       end
 
       def trigger(node, event)
-        evaluate_on(node: node, expr: %(_cuprite.trigger(this, "#{event}")))
+        options = event.to_s == "click" ? { wait: 0.1 } : {}
+        evaluate_on(node: node, expr: %(_cuprite.trigger(this, "#{event}")), **options)
       end
 
       def scroll_to(left, top)

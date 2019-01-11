@@ -38,11 +38,13 @@ module Capybara::Cuprite
         handle(response)
       end
 
-      def evaluate_on(node:, expr:, by_value: true)
+      def evaluate_on(node:, expr:, by_value: true, wait: 0)
         object_id = command("DOM.resolveNode", nodeId: node["nodeId"]).dig("object", "objectId")
         options = DEFAULT_OPTIONS.merge(objectId: object_id)
         options[:functionDeclaration] = options[:functionDeclaration] % expr
         options.merge!(returnByValue: by_value)
+
+        @wait = wait if wait > 0
 
         response = command("Runtime.callFunctionOn", **options)
           .dig("result").tap { |r| handle_error(r) }
