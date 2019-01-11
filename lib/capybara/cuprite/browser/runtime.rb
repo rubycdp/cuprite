@@ -113,7 +113,7 @@ module Capybara::Cuprite
         when "undefined"
           nil
         when "function"
-          response["description"]
+          {}
         when "object"
           case response["subtype"]
           when "node"
