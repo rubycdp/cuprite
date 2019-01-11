@@ -153,7 +153,9 @@ module Capybara::Cuprite
 
         @client.subscribe("Page.windowOpen") do
           @browser.targets.refresh
+          @mutex.try_lock
           sleep 0.3 # Dirty hack because new window doesn't have events at all
+          @mutex.unlock if @mutex.locked? && @mutex.owned?
         end
 
         @client.subscribe("Page.navigatedWithinDocument") do
