@@ -19,18 +19,6 @@ module Capybara::Cuprite
         evaluate("document.title")
       end
 
-      def within_frame(handle)
-        if handle.is_a?(Capybara::Node::Base)
-          command "push_frame", [handle.native.target_id, handle.native.node]
-        else
-          command "push_frame", handle
-        end
-
-        yield
-      ensure
-        command "pop_frame"
-      end
-
       def switch_to_frame(handle)
         case handle
         when Capybara::Node::Base

@@ -37,12 +37,12 @@ module Capybara::Cuprite
         evaluate("_cuprite.set(arguments[0], arguments[1])", { "objectId" => object_id }, value)
       end
 
-      def drag(node, other_node)
-        command "drag", node, other_node
+      def drag(node, other)
+        raise NotImplementedError
       end
 
       def drag_by(node, x, y)
-        command "drag_by", node, x, y
+        raise NotImplementedError
       end
 
       def select(node, value)
@@ -55,14 +55,12 @@ module Capybara::Cuprite
       end
 
       def scroll_to(left, top)
-        command "scroll_to", left, top
+        raise NotImplementedError
       end
 
       def send_keys(node, keys)
-        # click(node)
-        # evaluate_on(node: node, expr: "this.value = ''")
         # value.each_char do |char|
-        #   # FIXME: Check puppeteer Input.js and USKeyboardLayout.js
+        #   # Check puppeteer Input.js and USKeyboardLayout.js
         #   # also send_keys and modifiers from capybara API and unify all that.
         #   if /\n/.match?(char)
         #     command("Input.insertText", text: char)
@@ -73,9 +71,8 @@ module Capybara::Cuprite
         #     command("Input.dispatchKeyEvent", type: "keyUp", text: char)
         #   end
         # end
-        # evaluate_on(node: node, expr: "_cuprite.changed(this)")
-        # trigger(node, "blur")
-        command "send_keys", node, normalize_keys(keys)
+        # command "send_keys", node, normalize_keys(keys)
+        raise NotImplementedError
       end
 
       private

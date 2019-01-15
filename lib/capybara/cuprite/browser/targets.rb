@@ -57,19 +57,14 @@ module Capybara::Cuprite
         remove_page(target_id)&.close
       end
 
-      def find_window_handle(locator)
-        return locator if window_handles.include? locator
-
-        handle = command "window_handle", locator
-        raise NoSuchWindowError unless handle
-        handle
-      end
-
       def within_window(locator)
         original = window_handle
-        handle = find_window_handle(locator)
-        switch_to_window(handle)
-        yield
+        if window_handles.include?(locator)
+          switch_to_window(locator)
+          yield
+        else
+          raise NoSuchWindowError
+        end
       ensure
         switch_to_window(original)
       end

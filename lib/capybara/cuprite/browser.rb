@@ -24,7 +24,7 @@ module Capybara::Cuprite
 
     delegate subscribe: :@client
     delegate %i(window_handle window_handles switch_to_window open_new_window
-                close_window find_window_handle within_window page) => :targets
+                close_window within_window page) => :targets
     delegate %i(visit status_code body all_text property attributes attribute
                 value visible? disabled? resize path network_traffic
                 clear_network_traffic response_headers refresh click right_click
@@ -60,7 +60,7 @@ module Capybara::Cuprite
     end
 
     def source
-      command "source"
+      raise NotImplementedError
     end
 
     def parents(node)
@@ -91,11 +91,11 @@ module Capybara::Cuprite
     end
 
     def delete_text(node)
-      command "delete_text", node
+      raise NotImplementedError
     end
 
     def select_file(node, value)
-      command "select_file", node, value
+      raise NotImplementedError
     end
 
     def render(path, _options = {})
@@ -112,18 +112,15 @@ module Capybara::Cuprite
     end
 
     def set_zoom_factor(zoom_factor)
-      command "set_zoom_factor", zoom_factor
+      raise NotImplementedError
     end
 
     def set_paper_size(size)
-      command "set_paper_size", size
+      raise NotImplementedError
     end
 
     def set_proxy(ip, port, type, user, password)
-      args = [ip, port, type]
-      args << user if user
-      args << password if password
-      command("set_proxy", *args)
+      raise NotImplementedError
     end
 
     def headers=(headers)
@@ -176,11 +173,11 @@ module Capybara::Cuprite
     end
 
     def set_http_auth(user, password)
-      command "set_http_auth", user, password
+      raise NotImplementedError
     end
 
     def page_settings=(settings)
-      command "set_page_settings", settings
+      raise NotImplementedError
     end
 
     def url_whitelist=(whitelist)
@@ -199,23 +196,23 @@ module Capybara::Cuprite
     end
 
     def accept_confirm
-      command "set_confirm_process", true
+      raise NotImplementedError
     end
 
     def dismiss_confirm
-      command "set_confirm_process", false
+      raise NotImplementedError
     end
 
     def accept_prompt(response)
-      command "set_prompt_response", response || false
+      raise NotImplementedError
     end
 
     def dismiss_prompt
-      command "set_prompt_response", nil
+      raise NotImplementedError
     end
 
     def modal_message
-      command "modal_message"
+      raise NotImplementedError
     end
 
     def reset
