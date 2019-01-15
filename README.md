@@ -25,6 +25,10 @@ Finished in 4 minutes 10.6 seconds (files took 1.38 seconds to load)
 poltergeist:
 Finished in 7 minutes 6 seconds (files took 0.59349 seconds to load)
 1560 examples, 0 failures, 6 pending
+
+selenium headless chrome:
+Finished in 9 minutes 3 seconds (files took 5.98 seconds to load)
+1445 examples, 0 failures, 3 pending
 ```
 
 ## Installation ##
