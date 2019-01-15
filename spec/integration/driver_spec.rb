@@ -38,7 +38,7 @@ module Capybara::Cuprite
         expect(File.exist?(file)).to be true
       ensure
         FileUtils.rm_f(file)
-        driver&.stop
+        driver&.quit
       end
     end
 
@@ -52,7 +52,7 @@ module Capybara::Cuprite
         end
       end
 
-      after { session.driver.stop }
+      after { session.driver.quit }
 
       it "supports capturing console.log" do
         session.visit("/cuprite/console_log")
@@ -69,7 +69,7 @@ module Capybara::Cuprite
 
     it "stops silently before visit call" do
       driver = Capybara::Cuprite::Driver.new(nil)
-      expect { driver.stop }.not_to raise_error
+      expect { driver.quit }.not_to raise_error
     end
 
     it "has a viewport size of 1024x768 by default" do
@@ -124,7 +124,7 @@ module Capybara::Cuprite
           driver.evaluate_script("[window.innerWidth, window.innerHeight]")
         ).to eq([800, 600])
       ensure
-        driver&.stop
+        driver&.quit
       end
     end
 
@@ -518,7 +518,7 @@ module Capybara::Cuprite
       pid = driver.browser.process.pid
 
       expect(Process.kill(0, pid)).to eq(1)
-      driver.stop
+      driver.quit
 
       expect { Process.kill(0, pid) }.to raise_error(Errno::ESRCH)
     end
@@ -545,7 +545,7 @@ module Capybara::Cuprite
             extended_driver.evaluate_script("navigator.geolocation")
           ).to_not eq(nil)
         ensure
-          extended_driver.stop
+          extended_driver.quit
         end
       end
 
@@ -557,7 +557,7 @@ module Capybara::Cuprite
           )
           expect { failing_driver.visit(session_url("/")) }.to raise_error(Errno::ENOENT)
         ensure
-          failing_driver.stop
+          failing_driver.quit
         end
       end
     end
@@ -610,7 +610,7 @@ module Capybara::Cuprite
           sleep 0.1
           expect(driver.body).to include("hello")
         ensure
-          driver&.stop
+          driver&.quit
         end
       end
 
@@ -623,7 +623,7 @@ module Capybara::Cuprite
           sleep 0.1
           expect(driver.body).to include("hello")
         ensure
-          driver&.stop
+          driver&.quit
         end
       end
 
@@ -634,7 +634,7 @@ module Capybara::Cuprite
             driver.visit session_url("/cuprite/headers")
             expect(driver.body).to include("USER_AGENT: PageSettingsOverride")
           ensure
-            driver&.stop
+            driver&.quit
           end
         end
 
@@ -647,7 +647,7 @@ module Capybara::Cuprite
               driver.visit session_url("/cuprite/visit_timeout")
             end.not_to raise_error
           ensure
-            driver&.stop
+            driver&.quit
           end
         end
       end
@@ -914,7 +914,7 @@ module Capybara::Cuprite
 
         expect { TCPServer.new("127.0.0.1", 12345) }.to raise_error(Errno::EADDRINUSE)
       ensure
-        driver.stop
+        driver.quit
       end
     end
 
@@ -931,7 +931,7 @@ module Capybara::Cuprite
 
         expect { TCPServer.new(host, 12345) }.to raise_error(Errno::EADDRINUSE)
       ensure
-        driver&.stop
+        driver&.quit
       end
     end
 

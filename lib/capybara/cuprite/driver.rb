@@ -8,7 +8,7 @@ module Capybara::Cuprite
   class Driver < Capybara::Driver::Base
     extend Forwardable
 
-    delegate %i(restart stop status_code timeout timeout=) => :browser
+    delegate %i(restart quit status_code timeout timeout=) => :browser
 
     attr_reader :app, :options
 

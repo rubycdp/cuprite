@@ -20,7 +20,7 @@ module Capybara::Cuprite
           expect(::Process).to receive(:kill).with("TERM", 5678).ordered
           expect(::Process).to receive(:kill).with("KILL", 5678).ordered
 
-          subject.stop
+          subject.quit
         end
       end
     end

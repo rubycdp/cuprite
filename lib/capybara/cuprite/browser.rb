@@ -221,11 +221,11 @@ module Capybara::Cuprite
     end
 
     def restart
-      stop
+      quit
       start
     end
 
-    def stop
+    def quit
       @client.close
       @process.stop
       @client = @process = @targets = nil
