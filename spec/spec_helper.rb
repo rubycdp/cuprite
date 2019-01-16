@@ -38,11 +38,6 @@ RSpec.configure do |config|
     regexes = <<~REGEXP.split("\n").map { |s| Regexp.quote(s.strip) }.join("|")
     #fullscreen should be able to fullscreen the window
     #click_link can download a file
-    #fill_in Date/Time should fill in a date input
-    #fill_in Date/Time should fill in a time input
-    #fill_in Date/Time should fill in a datetime input
-    #fill_in on a pre-populated textfield with a reformatting onchange should only trigger onchange once
-    #fill_in on a pre-populated textfield with a reformatting onchange should trigger change when clearing field
     node #set with a contenteditable element should allow me to change the contents
     node #set with a contenteditable element should allow me to set the contents
     node #set with a contenteditable element should allow me to change the contents of a child element
