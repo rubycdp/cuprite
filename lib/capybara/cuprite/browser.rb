@@ -91,7 +91,7 @@ module Capybara::Cuprite
     end
 
     def delete_text(node)
-      raise NotImplementedError
+      evaluate_on(node: node, expr: "_cuprite.deleteText(this)")
     end
 
     def select_file(node, value)

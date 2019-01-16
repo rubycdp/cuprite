@@ -38,9 +38,6 @@ RSpec.configure do |config|
     regexes = <<~REGEXP.split("\n").map { |s| Regexp.quote(s.strip) }.join("|")
     #fullscreen should be able to fullscreen the window
     #click_link can download a file
-    node #set with a contenteditable element should allow me to change the contents
-    node #set with a contenteditable element should allow me to set the contents
-    node #set with a contenteditable element should allow me to change the contents of a child element
     node #send_keys should send a string of keys to an element
     node #send_keys should send special characters
     node #send_keys should allow for multiple simultaneous keys
