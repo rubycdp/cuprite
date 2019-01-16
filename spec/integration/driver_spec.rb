@@ -1392,7 +1392,7 @@ module Capybara::Cuprite
       end
     end
 
-    context "set", skip: true do
+    context "set" do
       before { @session.visit("/cuprite/set") }
 
       it "sets a contenteditable's content" do
@@ -1420,7 +1420,7 @@ module Capybara::Cuprite
       end
     end
 
-    context "date_fields", skip: true do
+    context "date_fields" do
       before { @session.visit("/cuprite/date_fields") }
 
       it "sets a date" do
