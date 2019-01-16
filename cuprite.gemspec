@@ -14,8 +14,10 @@ Gem::Specification.new do |s|
   s.description   = "Cuprite is a driver for Capybara that allows you to" \
                     "run your tests on a headless Chrome browser"
   s.license       = "MIT"
-  s.require_paths = ["lib/capybara"]
-  s.files         = Dir["{lib}/**/*"]
+  s.require_paths = ["lib"]
+  s.files         = Dir["{lib}/**/*"] + %w[LICENSE README.md]
+
+  s.required_ruby_version = ">= 2.3.0"
 
   s.add_runtime_dependency "capybara",         ">= 2.1", "< 4"
   s.add_runtime_dependency "websocket-driver", "~> 0.7"

@@ -19,8 +19,8 @@ Poltergest/PhantomJS:
 
 ```
 cuprite:
-Finished in 4 minutes 10.6 seconds (files took 1.38 seconds to load)
-1533 examples, 0 failures, 173 pending
+Finished in 4 minutes 15 seconds (files took 1.23 seconds to load)
+1533 examples, 0 failures, 148 pending
 
 poltergeist:
 Finished in 7 minutes 6 seconds (files took 0.59349 seconds to load)
