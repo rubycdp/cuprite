@@ -37,8 +37,6 @@ RSpec.configure do |config|
   config.define_derived_metadata do |metadata|
     regexes = <<~REGEXP.split("\n").map { |s| Regexp.quote(s.strip) }.join("|")
     #fullscreen should be able to fullscreen the window
-    #click_link can download a file
-    node #send_keys should send a string of keys to an element
     node #send_keys should send special characters
     node #send_keys should allow for multiple simultaneous keys
     node #send_keys should hold modifiers at top level
@@ -78,6 +76,7 @@ RSpec.configure do |config|
     #dismiss_confirm should dismiss the confirm if the message matches
     #dismiss_confirm should not dismiss the confirm if the message doesn't match
     #dismiss_confirm should return the message presented
+    #click_link can download a file
     #attach_file with normal form should set a file path by id
     #attach_file with normal form should set a file path by label
     #attach_file with normal form should be able to set on element if no locator passed

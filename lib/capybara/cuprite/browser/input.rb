@@ -59,6 +59,8 @@ module Capybara::Cuprite
       end
 
       def send_keys(node, keys)
+        click(node) if !evaluate_on(node: node, expr: %(_cuprite.containsSelection(this)))
+
         keys.first.each_char do |char|
           # Check puppeteer Input.js and USKeyboardLayout.js also send_keys and modifiers from poltergeist.
           if /\n/.match?(char)
