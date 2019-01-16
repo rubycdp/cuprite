@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 require "timeout"
-require "cuprite/browser/web_socket"
+require "capybara/cuprite/browser/web_socket"
 
 module Capybara::Cuprite
   class Browser

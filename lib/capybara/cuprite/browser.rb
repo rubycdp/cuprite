@@ -2,10 +2,10 @@
 
 require "base64"
 require "forwardable"
-require "cuprite/browser/targets"
-require "cuprite/browser/process"
-require "cuprite/browser/client"
-require "cuprite/browser/page"
+require "capybara/cuprite/browser/targets"
+require "capybara/cuprite/browser/process"
+require "capybara/cuprite/browser/client"
+require "capybara/cuprite/browser/page"
 
 module Capybara::Cuprite
   class Browser

@@ -3,6 +3,6 @@
 require "irb"
 require "irb/completion"
 
-require "cuprite"
+require "capybara/cuprite"
 
 IRB.start

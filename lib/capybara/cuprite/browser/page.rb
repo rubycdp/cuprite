@@ -1,13 +1,13 @@
 # frozen_string_literal: true
 
-require "cuprite/browser/dom"
-require "cuprite/browser/input"
-require "cuprite/browser/runtime"
-require "cuprite/browser/frame"
-require "cuprite/browser/client"
-require "cuprite/network/error"
-require "cuprite/network/request"
-require "cuprite/network/response"
+require "capybara/cuprite/browser/dom"
+require "capybara/cuprite/browser/input"
+require "capybara/cuprite/browser/runtime"
+require "capybara/cuprite/browser/frame"
+require "capybara/cuprite/browser/client"
+require "capybara/cuprite/network/error"
+require "capybara/cuprite/network/request"
+require "capybara/cuprite/network/response"
 
 # RemoteObjectId is from a JavaScript world, and corresponds to any JavaScript
 # object, including JS wrappers for DOM nodes. There is a way to convert between

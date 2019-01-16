@@ -6,11 +6,11 @@ Thread.abort_on_exception = true
 Thread.report_on_exception = true
 
 module Capybara::Cuprite
-  require "cuprite/driver"
-  require "cuprite/browser"
-  require "cuprite/node"
-  require "cuprite/errors"
-  require "cuprite/cookie"
+  require "capybara/cuprite/driver"
+  require "capybara/cuprite/browser"
+  require "capybara/cuprite/node"
+  require "capybara/cuprite/errors"
+  require "capybara/cuprite/cookie"
 
   class << self
     def windows?
