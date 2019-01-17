@@ -43,6 +43,8 @@ module Capybara::Cuprite
         @frames = {}
         @waiting_frames ||= Set.new
         @frame_stack = []
+        @accept_modal = []
+        @modal_messages = []
 
         begin
           @session_id = @browser.command("Target.attachToTarget", targetId: @target_id)["sessionId"]
@@ -123,6 +125,49 @@ module Capybara::Cuprite
         go(1)
       end
 
+      def accept_confirm
+        @accept_modal << true
+      end
+
+      def dismiss_confirm
+        @accept_modal << false
+      end
+
+      def accept_prompt(modal_response)
+        @accept_modal << true
+        @modal_response = modal_response
+      end
+
+      def dismiss_prompt
+        @accept_modal << false
+      end
+
+      def find_modal(options)
+        start_time    = Time.now
+        timeout_sec   = options.fetch(:wait) { session_wait_time }
+        expect_text   = options[:text]
+        expect_regexp = expect_text.is_a?(Regexp) ? expect_text : Regexp.escape(expect_text.to_s)
+        not_found_msg = "Unable to find modal dialog"
+        not_found_msg += " with #{expect_text}" if expect_text
+
+        begin
+          modal_text = @modal_messages.shift
+          raise Capybara::ModalNotFound if modal_text.nil? || (expect_text && !modal_text.match(expect_regexp))
+        rescue Capybara::ModalNotFound => e
+          raise e, not_found_msg if (Time.now - start_time) >= timeout_sec
+          sleep(0.05)
+          retry
+        end
+
+        modal_text
+      end
+
+      def reset_modals
+        @accept_modal = []
+        @modal_response = nil
+        @modal_messages = []
+      end
+
       def command(*args)
         id = nil
 
@@ -148,6 +193,19 @@ module Capybara::Cuprite
         if @browser.logger
           @client.subscribe("Runtime.consoleAPICalled") do |params|
             params["args"].each { |r| @browser.logger.puts(r["value"]) }
+          end
+        end
+
+        @client.subscribe("Page.javascriptDialogOpening") do |params|
+          accept_modal = @accept_modal.last
+          if accept_modal == true || accept_modal == false
+            @accept_modal.pop
+            @modal_messages << params["message"]
+            options = { accept: accept_modal }
+            default = params["defaultPrompt"]
+            response = @modal_response || params["defaultPrompt"]
+            options.merge!(promptText: response) if response
+            @client.command("Page.handleJavaScriptDialog", **options)
           end
         end
 

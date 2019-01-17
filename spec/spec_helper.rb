@@ -47,35 +47,6 @@ RSpec.configure do |config|
     #check when checkbox hidden with Capybara.automatic_label_click == false with allow_label_click == true should not wait the full time if label can be clicked
     #choose with hidden radio buttons with Capybara.automatic_label_click == true should select self by clicking the label if no locator specified
     #reset_session! handles already open modals
-    #accept_alert should accept the alert
-    #accept_alert should accept the alert if the text matches
-    #accept_alert should accept the alert if text contains "special" Regex characters
-    #accept_alert should accept the alert if the text matches a regexp
-    #accept_alert should not accept the alert if the text doesnt match
-    #accept_alert should return the message presented
-    #accept_alert should handle the alert if the page changes
-    #accept_alert with an asynchronous alert should accept the alert
-    #accept_alert with an asynchronous alert should return the message presented
-    #accept_alert with an asynchronous alert should allow to adjust the delay
-    #dismiss_prompt should dismiss the prompt
-    #dismiss_prompt should return the message presented
-    #accept_prompt should accept the prompt with no message
-    #accept_prompt should accept the prompt with no message when there is a default
-    #accept_prompt should return the message presented
-    #accept_prompt should accept the prompt with a response
-    #accept_prompt should accept the prompt with a response when there is a default
-    #accept_prompt should accept the prompt with a blank response when there is a default
-    #accept_prompt should allow special characters in the reponse
-    #accept_prompt should accept the prompt if the message matches
-    #accept_prompt should not accept the prompt if the message doesn't match
-    #accept_prompt should return the message presented
-    #accept_confirm should accept the confirm
-    #accept_confirm should return the message presented
-    #accept_confirm should work with nested modals
-    #dismiss_confirm should dismiss the confirm
-    #dismiss_confirm should dismiss the confirm if the message matches
-    #dismiss_confirm should not dismiss the confirm if the message doesn't match
-    #dismiss_confirm should return the message presented
     #click_link can download a file
     #attach_file with normal form should set a file path by id
     #attach_file with normal form should set a file path by label

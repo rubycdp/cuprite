@@ -301,15 +301,15 @@ module Capybara::Cuprite
 
     def accept_modal(type, options = {})
       case type
-      when :confirm
+      when :alert, :confirm
         browser.accept_confirm
       when :prompt
-        browser.accept_prompt options[:with]
+        browser.accept_prompt(options[:with])
       end
 
       yield if block_given?
 
-      find_modal(options)
+      browser.find_modal(options)
     end
 
     def dismiss_modal(type, options = {})
@@ -321,7 +321,8 @@ module Capybara::Cuprite
       end
 
       yield if block_given?
-      find_modal(options)
+
+      browser.find_modal(options)
     end
 
     private
@@ -340,25 +341,6 @@ module Capybara::Cuprite
 
     def screen_size
       @options[:screen_size] || [1366, 768]
-    end
-
-    def find_modal(options)
-      start_time    = Time.now
-      timeout_sec   = options.fetch(:wait) { session_wait_time }
-      expect_text   = options[:text]
-      expect_regexp = expect_text.is_a?(Regexp) ? expect_text : Regexp.escape(expect_text.to_s)
-      not_found_msg = "Unable to find modal dialog"
-      not_found_msg += " with #{expect_text}" if expect_text
-
-      begin
-        modal_text = browser.modal_message
-        raise Capybara::ModalNotFound if modal_text.nil? || (expect_text && !modal_text.match(expect_regexp))
-      rescue Capybara::ModalNotFound => e
-        raise e, not_found_msg if (Time.now - start_time) >= timeout_sec
-        sleep(0.05)
-        retry
-      end
-      modal_text
     end
 
     def session_wait_time
