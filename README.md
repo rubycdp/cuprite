@@ -19,16 +19,16 @@ Poltergest/PhantomJS:
 
 ```
 cuprite:
-Finished in 4 minutes 15 seconds (files took 1.23 seconds to load)
+Finished in 8 minutes 38 seconds (files took 1.23 seconds to load)
 1533 examples, 0 failures, 148 pending
 
-poltergeist:
-Finished in 7 minutes 6 seconds (files took 0.59349 seconds to load)
-1560 examples, 0 failures, 6 pending
-
 selenium headless chrome:
-Finished in 9 minutes 3 seconds (files took 5.98 seconds to load)
+Finished in 9 minutes 13 seconds (files took 0.97749 seconds to load)
 1445 examples, 0 failures, 3 pending
+
+poltergeist:
+Finished in 11 minutes 49 seconds (files took 0.54019 seconds to load)
+1560 examples, 0 failures, 6 pending
 ```
 
 ## Installation ##
