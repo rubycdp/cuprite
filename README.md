@@ -19,7 +19,7 @@ Poltergest/PhantomJS:
 
 ```
 cuprite:
-Finished in 8 minutes 57 seconds (files took 1 second to load)
+Finished in 8 minutes 44 seconds (files took 0.97501 seconds to load)
 1531 examples, 0 failures, 112 pending
 
 selenium headless chrome:

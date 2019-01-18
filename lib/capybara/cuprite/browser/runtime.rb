@@ -108,7 +108,7 @@ module Capybara::Cuprite
         end
       end
 
-      def handle(response, cleanup = true)
+      def handle(response)
         case response["type"]
         when "boolean", "number", "string"
           response["value"]
@@ -117,15 +117,17 @@ module Capybara::Cuprite
         when "function"
           {}
         when "object"
+          object_id = response["objectId"]
+
           case response["subtype"]
           when "node"
-            node_id = command("DOM.requestNode", objectId: response["objectId"])["nodeId"]
-            node = command("DOM.describeNode", nodeId: node_id)["node"]
-            { "target_id" => target_id, "node" => node.merge("nodeId" => node_id) }
+            node_id = command("DOM.requestNode", objectId: object_id)["nodeId"]
+            node = command("DOM.describeNode", nodeId: node_id)["node"].merge("nodeId" => node_id)
+            { "target_id" => target_id, "node" => node }
           when "array"
-            reduce_properties(response["objectId"], Array.new) do |memo, key, value|
+            reduce_props(object_id, []) do |memo, key, value|
               next(memo) unless (Integer(key) rescue nil)
-              value = value["objectId"] ? handle(value, false) : value["value"]
+              value = value["objectId"] ? handle(value) : value["value"]
               memo.insert(key.to_i, value)
             end
           when "date"
@@ -133,61 +135,31 @@ module Capybara::Cuprite
           when "null"
             nil
           else
-            reduce_properties(response["objectId"], Hash.new) do |memo, key, value|
-              value = value["objectId"] ? handle(value, false) : value["value"]
+            reduce_props(object_id, {}) do |memo, key, value|
+              value = value["objectId"] ? handle(value) : value["value"]
               memo.merge(key => value)
             end
           end
         end
-      ensure
-        clean if cleanup
       end
 
-      def reduce_properties(object_id, object)
-        if visited?(object_id)
-          "(cyclic structure)"
+      def reduce_props(object_id, to)
+        if cyclic?(object_id).dig("result", "value")
+          return "(cyclic structure)"
         else
-          properties(object_id).reduce(object) do |memo, prop|
+          props = command("Runtime.getProperties", objectId: object_id)
+          props["result"].reduce(to) do |memo, prop|
             next(memo) unless prop["enumerable"]
             yield(memo, prop["name"], prop["value"])
           end
         end
       end
 
-      def properties(object_id)
-        command("Runtime.getProperties", objectId: object_id)["result"]
-      end
-
-      # Every `Runtime.getProperties` call on the same object returns new object
-      # id each time {"objectId":"{\"injectedScriptId\":1,\"id\":1}"} and it's
-      # impossible to check that two objects are actually equal. This workaround
-      # does equality check only in JS runtime. `_cuprite` can be inavailable here
-      # if page is about:blank for example.
-      def visited?(object_id)
-        expr = %Q(
-          let object = arguments[0];
-          let callback = arguments[1];
-
-          if (window._cupriteVisitedObjects === undefined) {
-            window._cupriteVisitedObjects = [];
-          }
-
-          let visited = window._cupriteVisitedObjects;
-          if (visited.some(o => o === object)) {
-            callback(true);
-          } else {
-            visited.push(object);
-            callback(false);
-          }
-        )
-
-        # FIXME: Is there a way we can use wait_time here?
-        response = call(expr, 5, EVALUATE_ASYNC_OPTIONS, { "objectId" => object_id })
-        handle(response, false)
-      end
-
-      def clean
-        execute("delete window._cupriteVisitedObjects")
+      def cyclic?(object_id)
+        command("Runtime.callFunctionOn",
+                objectId: object_id,
+                returnByValue: true,
+                functionDeclaration: "function() { return _cuprite.isCyclic(this); }")
       end
     end
   end

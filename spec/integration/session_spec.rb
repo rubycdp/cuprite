@@ -68,7 +68,7 @@ describe Capybara::Session do
       end
 
       context "when someone messes with JSON" do
-        # mootools <= 1.2.4 replaced the native JSON with it"s own JSON that didn"t have stringify or parse methods
+        # mootools <= 1.2.4 replaced the native JSON with it's own JSON that didn't have stringify or parse methods
         it "works correctly" do
           @session.visit("/cuprite/index")
           @session.execute_script("JSON = {};")
@@ -370,13 +370,7 @@ describe Capybara::Session do
         })()
       JS
 
-      expect(@session.evaluate_script(code)).to eq(
-        "a" => "(cyclic structure)",
-        "b" => {},
-        "c" => {
-          "a" => "(cyclic structure)"
-        }
-      )
+      expect(@session.evaluate_script(code)).to eq("(cyclic structure)")
     end
 
     it "synchronises page loads properly" do
