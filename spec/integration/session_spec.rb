@@ -336,18 +336,6 @@ describe Capybara::Session do
       expect(@session).to have_content("Hello world")
     end
 
-    it "handles window.confirm(), returning true unconditionally", skip: true do
-      @session.visit "/"
-      expect(@session.evaluate_script(%(window.confirm("foo")))).to be true
-    end
-
-    it "handles window.prompt(), returning the default value or null", skip: true do
-      @session.visit "/"
-      # Disabling because I"m not sure this is really valid
-      # expect(@session.evaluate_script("window.prompt()")).to be_nil
-      expect(@session.evaluate_script(%(window.prompt("foo", "default")))).to eq("default")
-    end
-
     it "handles evaluate_script values properly" do
       expect(@session.evaluate_script("null")).to be_nil
       expect(@session.evaluate_script("false")).to be false
@@ -419,7 +407,7 @@ describe Capybara::Session do
         end
       end
 
-      it "fixes some weird layout issue that we are not entirely sure about the reason for", skip: true do
+      it "fixes some weird layout issue that we are not entirely sure about the reason for" do
         @session.visit "/cuprite/datepicker"
         @session.find(:css, "#datepicker").set("2012-05-11")
         @session.click_link "some link"
@@ -944,7 +932,7 @@ describe Capybara::Session do
       end
     end
 
-    context "modals", skip: true do
+    context "modals" do
       it "matches on partial strings" do
         @session.visit "/cuprite/with_js"
         expect do
