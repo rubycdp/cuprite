@@ -348,7 +348,7 @@ describe Capybara::Session do
       expect(@session.evaluate_script(%({foo: "bar"}))).to eq("foo" => "bar")
 
       expect(@session.evaluate_script("new Object")).to eq({})
-      expect(@session.evaluate_script("new Date(2012, 0)")).to eq("Sun Jan 01 2012 00:00:00 GMT+0400 (Moscow Standard Time)")
+      expect(@session.evaluate_script("new Date(2012, 0).toDateString()")).to eq("Sun Jan 01 2012")
       expect(@session.evaluate_script("new Object({a: 1})")).to eq({"a" => 1})
       expect(@session.evaluate_script("new Array")).to eq([])
       expect(@session.evaluate_script("new Function")).to eq({})
