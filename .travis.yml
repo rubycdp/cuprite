@@ -1,0 +1,13 @@
+addons:
+  chrome: stable
+env:
+  - BROWSER_PATH=/usr/bin/google-chrome
+gemfile:
+  - gemfiles/capybara2.gemfile
+  - gemfiles/capybara3.gemfile
+language: ruby
+rvm:
+  - 2.3
+  - 2.4
+  - 2.5
+  - 2.6
