@@ -77,7 +77,7 @@ RSpec.configure do |config|
     node #drag_to should drag a link
     REGEXP
 
-    metadata[:skip] = true if metadata[:full_description].match?(/#{regexes}/)
+    metadata[:skip] = true if metadata[:full_description].match(/#{regexes}/)
   end
 
   Capybara::SpecHelper.configure(config)
