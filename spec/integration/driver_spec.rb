@@ -6,12 +6,15 @@ require "pdf/reader"
 
 module Capybara::Cuprite
   describe Driver do
-    before do
-      @session = TestSessions::Cuprite
-      @driver = @session.driver
+    around do |example|
+      begin
+        @session = TestSessions::Cuprite
+        @driver = @session.driver
+        example.run
+      ensure
+        @driver.reset!
+      end
     end
-
-    after { @driver.reset! }
 
     def session_url(path)
       server = @session.server
