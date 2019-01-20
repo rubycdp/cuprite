@@ -11,6 +11,10 @@ module Capybara::Cuprite
         end
       end
 
+      def frame_name
+        evaluate("window.name")
+      end
+
       def frame_url
         evaluate("window.location.href")
       end
