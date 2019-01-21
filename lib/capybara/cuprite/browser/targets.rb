@@ -6,7 +6,7 @@ module Capybara::Cuprite
       def initialize(browser)
         @mutex = Mutex.new
         @browser = browser
-        @_default = targets.empty? ? nil : targets.first["targetId"]
+        @_default = targets.first["targetId"] if !targets.empty?
 
         @browser.subscribe("Target.detachedFromTarget") do |params|
           page = remove_page(params["targetId"])
