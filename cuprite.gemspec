@@ -11,7 +11,7 @@ Gem::Specification.new do |s|
   s.email         = ["d.vorotilin@gmail.com"]
   s.homepage      = "https://github.com/machinio/cuprite"
   s.summary       = "Headless Chrome driver for Capybara"
-  s.description   = "Cuprite is a driver for Capybara that allows you to" \
+  s.description   = "Cuprite is a driver for Capybara that allows you to " \
                     "run your tests on a headless Chrome browser"
   s.license       = "MIT"
   s.require_paths = ["lib"]
