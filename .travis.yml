@@ -1,7 +1,7 @@
 addons:
-  chrome: stable
+  chrome: beta
 env:
-  - BROWSER_PATH=/usr/bin/google-chrome
+  - BROWSER_PATH=/usr/bin/google-chrome-beta
 gemfile:
   - gemfiles/capybara2.gemfile
   - gemfiles/capybara3.gemfile
