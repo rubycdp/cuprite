@@ -63,7 +63,7 @@ module Capybara::Cuprite
 
         keys.first.each_char do |char|
           # Check puppeteer Input.js and USKeyboardLayout.js also send_keys and modifiers from poltergeist.
-          if /\n/.match?(char)
+          if /\n/.match(char)
             command("Input.insertText", text: char)
             # command("Input.dispatchKeyEvent", type: "keyDown", code: "Enter", key: "Enter", text: "\r")
             # command("Input.dispatchKeyEvent", type: "keyUp", code: "Enter", key: "Enter")

@@ -25,7 +25,7 @@ module Capybara::Cuprite
         "disable-web-security" => nil,
       }.freeze
 
-      attr_reader :host, :port, :ws_url, :pid, :options
+      attr_reader :host, :port, :ws_url, :pid, :path, :options
 
       def self.start(*args)
         new(*args).tap(&:start)
@@ -54,15 +54,8 @@ module Capybara::Cuprite
 
       def initialize(options)
         @options = options.fetch(:browser, {})
-        exe = options[:path] || BROWSER_PATH
-        @path = Cliver.detect(exe)
 
-        unless @path
-          message = "Could not find an executable `#{exe}`. Try to make it " \
-                    "available on the PATH or set environment varible for " \
-                    "example BROWSER_PATH=\"/Applications/Chromium.app/Contents/MacOS/Chromium\""
-          raise Cliver::Dependency::NotFound.new(message)
-        end
+        detect_browser_path
 
         window_size = options.fetch(:window_size, [1024, 768])
         @options = @options.merge("window-size" => window_size.join(","))
@@ -106,6 +99,18 @@ module Capybara::Cuprite
         start
       end
 
+      def detect_browser_path
+        exe = @options[:path] || BROWSER_PATH
+        @path = Cliver.detect(exe)
+
+        unless @path
+          message = "Could not find an executable `#{exe}`. Try to make it " \
+                    "available on the PATH or set environment varible for " \
+                    "example BROWSER_PATH=\"/Applications/Chromium.app/Contents/MacOS/Chromium\""
+          raise Cliver::Dependency::NotFound.new(message)
+        end
+      end
+
       private
 
       def redirect_stdout(write_io)
@@ -141,7 +146,7 @@ module Capybara::Cuprite
           rescue IO::WaitReadable
             IO.select([read_io], nil, nil, max_time - now)
           else
-            if output.match?(regexp)
+            if output.match(regexp)
               @ws_url = Addressable::URI.parse(output.match(regexp)[1])
               @host = @ws_url.host
               @port = @ws_url.port
