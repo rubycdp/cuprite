@@ -90,14 +90,4 @@ RSpec.configure do |config|
       /Capybara::Session Cuprite node #set should allow me to change the contents of a contenteditable elements child/,
     ].any? { |desc| description =~ desc }
   }
-
-  config.before(:each) do
-    Cuprite::SpecHelper.set_capybara_wait_time(0)
-  end
-
-  %i[js modals windows].each do |cond|
-    config.before(:each, requires: cond) do
-      Cuprite::SpecHelper.set_capybara_wait_time(1)
-    end
-  end
 end
