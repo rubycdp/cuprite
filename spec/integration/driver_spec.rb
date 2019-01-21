@@ -6,12 +6,15 @@ require "pdf/reader"
 
 module Capybara::Cuprite
   describe Driver do
-    before do
-      @session = TestSessions::Cuprite
-      @driver = @session.driver
+    around do |example|
+      begin
+        @session = TestSessions::Cuprite
+        @driver = @session.driver
+        example.run
+      ensure
+        @driver.reset!
+      end
     end
-
-    after { @driver.reset! }
 
     def session_url(path)
       server = @session.server
@@ -20,6 +23,9 @@ module Capybara::Cuprite
 
     it "supports a custom path" do
       begin
+        original_path = CUPRITE_ROOT + "/spec/support/chrome_path"
+        File.write(original_path, @driver.options[:path])
+
         file = CUPRITE_ROOT + "/spec/support/custom_chrome_called"
         path = CUPRITE_ROOT + "/spec/support/custom_chrome"
 
@@ -37,6 +43,7 @@ module Capybara::Cuprite
 
         expect(File.exist?(file)).to be true
       ensure
+        FileUtils.rm_f(original_path)
         FileUtils.rm_f(file)
         driver&.quit
       end

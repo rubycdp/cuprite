@@ -11,6 +11,10 @@ module Capybara::Cuprite
         end
       end
 
+      def frame_name
+        evaluate("window.name")
+      end
+
       def frame_url
         evaluate("window.location.href")
       end
@@ -46,7 +50,7 @@ module Capybara::Cuprite
         @client.subscribe("Page.frameNavigated") do |params|
           id = params["frame"]["id"]
           if frame = @frames[id]
-            frame.merge!(params["frame"].slice("name", "url"))
+            frame.merge!(params["frame"].select { |k, v| k == "name" || k == "url" })
           end
         end
 

@@ -30,4 +30,5 @@ Gem::Specification.new do |s|
   s.add_development_dependency "sinatra",    "~> 2.0"
   s.add_development_dependency "launchy",    "~> 2.4"
   s.add_development_dependency "byebug",     "~> 10.0"
+  s.add_development_dependency "puma",       "~> 3.0"
 end

@@ -6,7 +6,7 @@ module Capybara::Cuprite
       def initialize(browser)
         @mutex = Mutex.new
         @browser = browser
-        @_default = targets.first["targetId"]
+        @_default = targets.empty? ? nil : targets.first["targetId"]
 
         @browser.subscribe("Target.detachedFromTarget") do |params|
           page = remove_page(params["targetId"])
@@ -60,7 +60,13 @@ module Capybara::Cuprite
       def within_window(locator)
         original = window_handle
         if window_handles.include?(locator)
-          switch_to_window(locator)
+          target_id = locator
+        elsif Capybara::VERSION.to_f < 3.0
+          target_id = window_handles.find { |target_id| locator == Page.new(target_id, @browser).frame_name }
+        end
+
+        if target_id
+          switch_to_window(target_id)
           yield
         else
           raise NoSuchWindowError
