@@ -130,26 +130,28 @@ module Capybara::Cuprite
         @pid = nil
       end
 
-      def parse_ws_url(read_io)
+      def parse_ws_url(read_io, timeout = 1)
         output = ""
-        attempts = 3
+        start = ::Process.clock_gettime(::Process::CLOCK_MONOTONIC)
+        max_time = start + timeout
         regexp = /DevTools listening on (ws:\/\/.*)/
-        loop do
+        while (now = ::Process.clock_gettime(::Process::CLOCK_MONOTONIC)) < max_time
           begin
             output += read_io.read_nonblock(512)
           rescue IO::WaitReadable
-            attempts -= 1
-            break if attempts <= 0
-            IO.select([read_io], nil, nil, 1)
-            retry
+            IO.select([read_io], nil, nil, max_time - now)
+          else
+            if output.match?(regexp)
+              @ws_url = Addressable::URI.parse(output.match(regexp)[1])
+              @host = @ws_url.host
+              @port = @ws_url.port
+              break
+            end
           end
+        end
 
-          if output.match?(regexp)
-            @ws_url = Addressable::URI.parse(output.match(regexp)[1])
-            @host = @ws_url.host
-            @port = @ws_url.port
-            break
-          end
+        unless @ws_url
+          raise "Chrome process did not produce websocket url within #{timeout} seconds"
         end
       end
 
