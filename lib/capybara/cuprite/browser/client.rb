@@ -6,13 +6,14 @@ require "capybara/cuprite/browser/web_socket"
 module Capybara::Cuprite
   class Browser
     class Client
-      class IdError < RuntimeError; end
 
       def initialize(browser, ws_url)
         @command_id = 0
         @subscribed = Hash.new { |h, k| h[k] = [] }
         @browser = browser
-        @commands = Queue.new
+        @commands = {}
+        @mutex = Mutex.new
+        @resource = ConditionVariable.new
         @ws = WebSocket.new(ws_url, @browser.logger)
 
         @thread = Thread.new do
@@ -21,11 +22,12 @@ module Capybara::Cuprite
             if method
               @subscribed[method].each { |b| b.call(params) }
             else
-              @commands.push(message)
+              @mutex.synchronize do
+                @commands[message["id"]] = message
+                @resource.broadcast
+              end
             end
           end
-
-          @commands.close
         end
       end
 
@@ -36,14 +38,20 @@ module Capybara::Cuprite
       end
 
       def wait(id:)
-        message = Timeout.timeout(@browser.timeout, TimeoutError) { @commands.pop }
+        message = nil
+        Timeout.timeout(@browser.timeout, TimeoutError) do
+          message = @mutex.synchronize { @commands.delete(id) }
+          while !message
+            message = @mutex.synchronize do
+              @resource.wait(@mutex)
+              @commands.delete(id)
+            end
+          end
+        end
         raise DeadBrowser unless message
-        raise IdError if message["id"] != id
         error, response = message.values_at("error", "result")
         raise BrowserError.new(error) if error
         response
-      rescue IdError
-        retry
       end
 
       def subscribe(event, &block)
