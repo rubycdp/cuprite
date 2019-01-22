@@ -135,7 +135,7 @@ module Capybara::Cuprite
         @pid = nil
       end
 
-      def parse_ws_url(read_io, timeout = 1)
+      def parse_ws_url(read_io, timeout = 3)
         output = ""
         start = ::Process.clock_gettime(::Process::CLOCK_MONOTONIC)
         max_time = start + timeout
