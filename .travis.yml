@@ -1,3 +1,4 @@
+dist: xenial
 addons:
   chrome: beta
 env:
