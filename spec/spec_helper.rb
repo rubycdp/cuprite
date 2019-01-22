@@ -16,6 +16,7 @@ Capybara.register_driver(:cuprite) do |app|
   options.merge!(path: ENV["BROWSER_PATH"]) if ENV["BROWSER_PATH"]
   driver = Capybara::Cuprite::Driver.new(app, options)
   puts `#{driver.browser.process.path} -version`
+  puts driver.browser.process.ws_url
   driver
 end
 
