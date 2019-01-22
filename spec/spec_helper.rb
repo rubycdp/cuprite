@@ -14,7 +14,9 @@ require "support/test_app"
 Capybara.register_driver(:cuprite) do |app|
   options = Hash.new
   options.merge!(path: ENV["BROWSER_PATH"]) if ENV["BROWSER_PATH"]
-  Capybara::Cuprite::Driver.new(app, options)
+  driver = Capybara::Cuprite::Driver.new(app, options)
+  puts `#{driver.browser.process.path} -version`
+  driver
 end
 
 module TestSessions
