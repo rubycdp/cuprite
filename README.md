@@ -38,6 +38,12 @@ Finished in 11 minutes 49 seconds (files took 0.54019 seconds to load)
 ``` ruby
 gem "cuprite"
 ```
+
+Though we recommend using github until we release 1.0:
+``` ruby
+gem "cuprite", github: "machinio/cuprite"
+```
+
 and run `bundle install`.
 
 In your test setup add:
