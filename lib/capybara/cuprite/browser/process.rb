@@ -7,7 +7,7 @@ module Capybara::Cuprite
     class Process
       KILL_TIMEOUT = 2
 
-      BROWSER_PATH = ENV.fetch("BROWSER_PATH", "chrome")
+      BROWSER_PATH = ENV["BROWSER_PATH"]
       BROWSER_HOST = "127.0.0.1"
       BROWSER_PORT = "0"
 
@@ -101,7 +101,13 @@ module Capybara::Cuprite
 
       def detect_browser_path
         exe = @options[:path] || BROWSER_PATH
-        @path = Cliver.detect(exe)
+        if RUBY_PLATFORM.include?('darwin')
+          exe ||= "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
+          @path = exe if File.exist?(exe)
+        else
+          exe ||= "chrome"
+          @path = Cliver.detect(exe)
+        end
 
         unless @path
           message = "Could not find an executable `#{exe}`. Try to make it " \
