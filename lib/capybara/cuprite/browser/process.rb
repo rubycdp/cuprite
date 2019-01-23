@@ -106,7 +106,7 @@ module Capybara::Cuprite
           @path = exe if File.exist?(exe)
         else
           exe ||= "chrome"
-          @path = Cliver.detect(exe)
+          @path = Cliver.detect(exe) || Cliver.detect("google-chrome")
         end
 
         unless @path
