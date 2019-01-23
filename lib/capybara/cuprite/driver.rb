@@ -95,10 +95,6 @@ module Capybara::Cuprite
       nil
     end
 
-    def within_frame(name, &block)
-      browser.within_frame(name, &block)
-    end
-
     def switch_to_frame(locator)
       browser.switch_to_frame(locator)
     end

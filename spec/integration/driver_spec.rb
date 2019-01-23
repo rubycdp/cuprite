@@ -1486,7 +1486,7 @@ module Capybara::Cuprite
     it "can get the frames url" do
       @session.visit "/cuprite/frames"
 
-      @session.within_frame 0 do
+      @session.within_frame(0) do
         expect(@session.driver.frame_url).to end_with("/cuprite/slow")
         if Capybara::VERSION.to_f < 3.0
           expect(@session.driver.current_url).to end_with("/cuprite/slow")

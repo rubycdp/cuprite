@@ -53,6 +53,9 @@ module Capybara::Cuprite
 
       def close
         @ws.close
+        # Give a thread some time to handle a tail of messages
+        Timeout.timeout(1) { @thread.join }
+      rescue Timeout::Error
         @thread.kill
       end
 
