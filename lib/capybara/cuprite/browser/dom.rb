@@ -2,11 +2,11 @@ module Capybara::Cuprite
   class Browser
     module DOM
       def current_url
-        evaluate_in(@execution_context_id, "location.href")
+        evaluate_in(execution_context_id, "window.top.location.href")
       end
 
       def title
-        evaluate_in(@execution_context_id, "document.title")
+        evaluate_in(execution_context_id, "window.top.document.title")
       end
 
       def body

@@ -2,16 +2,11 @@
 
 require "json"
 require "socket"
-require "forwardable"
 require "websocket/driver"
 
 module Capybara::Cuprite
   class Browser
     class WebSocket
-      extend Forwardable
-
-      delegate close: :@driver
-
       attr_reader :url, :messages
 
       def initialize(url, logger)
@@ -22,7 +17,9 @@ module Capybara::Cuprite
         @driver   = ::WebSocket::Driver.client(self)
         @messages = Queue.new
 
+        @driver.on(:open,    &method(:on_open))
         @driver.on(:message, &method(:on_message))
+        @driver.on(:close,   &method(:on_close))
 
         @thread = Thread.new do
           begin
@@ -39,10 +36,8 @@ module Capybara::Cuprite
         @driver.start
       end
 
-      def send_message(data)
-        json = data.to_json
-        @driver.text(json)
-        @logger&.puts("\n\n>>> #{json}")
+      def on_open(_event)
+        sleep 0.01 # https://github.com/faye/websocket-driver-ruby/issues/46
       end
 
       def on_message(event)
@@ -51,8 +46,23 @@ module Capybara::Cuprite
         @logger&.puts("    <<< #{event.data}\n")
       end
 
+      def on_close(_event)
+        @messages.close
+        @thread.kill
+      end
+
+      def send_message(data)
+        json = data.to_json
+        @driver.text(json)
+        @logger&.puts("\n\n>>> #{json}")
+      end
+
       def write(data)
         @sock.write(data)
+      end
+
+      def close
+        @driver.close
       end
     end
   end
