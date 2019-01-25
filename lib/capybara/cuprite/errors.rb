@@ -101,12 +101,6 @@ module Capybara
       end
     end
 
-    class KeyError < ::ArgumentError
-      def initialize(response)
-        super(response["args"].first)
-      end
-    end
-
     class TimeoutError < Error
       def message
         "Timed out waiting for response. It's possible that this happened " \

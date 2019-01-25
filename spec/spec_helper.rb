@@ -37,10 +37,6 @@ RSpec.configure do |config|
   config.define_derived_metadata do |metadata|
     regexes = <<~REGEXP.split("\n").map { |s| Regexp.quote(s.strip) }.join("|")
     #fullscreen should be able to fullscreen the window
-    node #send_keys should send special characters
-    node #send_keys should allow for multiple simultaneous keys
-    node #send_keys should hold modifiers at top level
-    node #send_keys should generate key events
     node #reload with automatic reload should reload a node automatically when using find
     #check when checkbox hidden with Capybara.automatic_label_click == true should check via clicking the label with :for attribute if locator nil
     #check when checkbox hidden with Capybara.automatic_label_click == true should check self via clicking the wrapping label if locator nil

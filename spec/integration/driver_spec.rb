@@ -1277,7 +1277,7 @@ module Capybara::Cuprite
         expect(input.text).to eq("Input")
       end
 
-      it "persists focus across calls", skip: true do
+      it "persists focus across calls" do
         input = @session.find(:css, "#empty_div")
 
         input.native.send_keys("helo")
@@ -1295,15 +1295,15 @@ module Capybara::Cuprite
         expect(input.text).to eq("Content appended")
       end
 
-      it "sends sequences", skip: true do
+      it "sends sequences" do
         input = @session.find(:css, "#empty_input")
 
-        input.native.send_keys(:Shift, "S", :Alt, "t", "r", "i", "g", :Left, "n")
+        input.native.send_keys([:Shift], "S", [:Alt], "t", "r", "i", "g", :Left, "n")
 
         expect(input.value).to eq("String")
       end
 
-      it "submits the form with sequence", skip: true do
+      it "submits the form with sequence" do
         input = @session.find(:css, "#without_submit_button input")
 
         input.native.send_keys(:Enter)
@@ -1311,7 +1311,7 @@ module Capybara::Cuprite
         expect(input.value).to eq("Submitted")
       end
 
-      it "sends sequences with modifiers and letters", skip: true do
+      it "sends sequences with modifiers and letters" do
         input = @session.find(:css, "#empty_input")
 
         input.native.send_keys([:Shift, "s"], "t", "r", "i", "n", "g")
@@ -1319,7 +1319,7 @@ module Capybara::Cuprite
         expect(input.value).to eq("String")
       end
 
-      it "sends sequences with modifiers and symbols", skip: true do
+      it "sends sequences with modifiers and symbols" do
         input = @session.find(:css, "#empty_input")
 
         input.native.send_keys("t", "r", "i", "n", "g", %i[Ctrl Left], "s")
@@ -1327,7 +1327,7 @@ module Capybara::Cuprite
         expect(input.value).to eq("string")
       end
 
-      it "sends sequences with multiple modifiers and symbols", skip: true do
+      it "sends sequences with multiple modifiers and symbols" do
         input = @session.find(:css, "#empty_input")
 
         input.native.send_keys("t", "r", "i", "n", "g", %i[Ctrl Shift Left], "s")
@@ -1335,7 +1335,7 @@ module Capybara::Cuprite
         expect(input.value).to eq("s")
       end
 
-      it "sends modifiers with sequences", skip: true do
+      it "sends modifiers with sequences" do
         input = @session.find(:css, "#empty_input")
 
         input.native.send_keys("s", [:Shift, "tring"])
@@ -1343,10 +1343,10 @@ module Capybara::Cuprite
         expect(input.value).to eq("sTRING")
       end
 
-      it "sends modifiers with multiple keys", skip: true do
+      it "sends modifiers with multiple keys" do
         input = @session.find(:css, "#empty_input")
 
-        input.native.send_keys("poltre", %i[Shift Left Left], "ergeist")
+        input.native.send_keys("curp", %i[Shift Left Left], "prite")
 
         expect(input.value).to eq("cuprite")
       end
@@ -1359,7 +1359,7 @@ module Capybara::Cuprite
         expect(input.value).to eq("S")
       end
 
-      it "generates correct events with keyCodes for modified puncation", skip: true do
+      it "generates correct events with keyCodes for modified puncation" do
         input = @session.find(:css, "#empty_input")
 
         input.send_keys([:shift, "."], [:shift, "t"])
@@ -1367,35 +1367,35 @@ module Capybara::Cuprite
         expect(@session.find(:css, "#key-events-output")).to have_text("keydown:16 keydown:190 keydown:16 keydown:84")
       end
 
-      it "suuports snake_case sepcified keys (Capybara standard)", skip: true do
+      it "suuports snake_case sepcified keys (Capybara standard)" do
         input = @session.find(:css, "#empty_input")
         input.send_keys(:PageUp, :page_up)
         expect(@session.find(:css, "#key-events-output")).to have_text("keydown:33", count: 2)
       end
 
-      it "supports :control alias for :Ctrl", skip: true do
+      it "supports :control alias for :Ctrl" do
         input = @session.find(:css, "#empty_input")
         input.send_keys([:Ctrl, "a"], [:control, "a"])
         expect(@session.find(:css, "#key-events-output")).to have_text("keydown:17 keydown:65", count: 2)
       end
 
-      it "supports :command alias for :Meta", skip: true do
+      it "supports :command alias for :Meta" do
         input = @session.find(:css, "#empty_input")
         input.send_keys([:Meta, "z"], [:command, "z"])
         expect(@session.find(:css, "#key-events-output")).to have_text("keydown:91 keydown:90", count: 2)
       end
 
-      it "supports Capybara specified numpad keys", skip: true do
+      it "supports Capybara specified numpad keys" do
         input = @session.find(:css, "#empty_input")
         input.send_keys(:numpad2, :numpad8, :divide, :decimal)
         expect(@session.find(:css, "#key-events-output")).to have_text("keydown:98 keydown:104 keydown:111 keydown:110")
       end
 
-      it "raises error for unknown keys", skip: true do
+      it "raises error for unknown keys" do
         input = @session.find(:css, "#empty_input")
         expect do
           input.send_keys("abc", :blah)
-        end.to raise_error Capybara::Cuprite::KeyError, "Unknown key: Blah"
+        end.to raise_error KeyError, "key not found: :blah"
       end
     end
 
