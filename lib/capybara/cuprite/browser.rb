@@ -120,10 +120,6 @@ module Capybara::Cuprite
       raise NotImplementedError
     end
 
-    def set_proxy(ip, port, type, user, password)
-      raise NotImplementedError
-    end
-
     def headers=(headers)
       @headers = {}
       add_headers(headers)

@@ -14,7 +14,7 @@ module Capybara::Cuprite
 
     def initialize(app, options = {})
       @app     = app
-      @options = options.freeze
+      @options = options
       @started = false
     end
 
@@ -184,8 +184,11 @@ module Capybara::Cuprite
       browser.clear_network_traffic
     end
 
-    def set_proxy(ip, port, type = "http", user = nil, password = nil)
-      browser.set_proxy(ip, port, type, user, password)
+    # FIXME: check user/pass proxy auth
+    def set_proxy(ip, port, type = "http", user = nil, password = nil, bypass = nil)
+      @options[:browser] ||= {}
+      @options[:browser].merge!("proxy-server" => "#{type}=#{ip}:#{port}")
+      @options[:browser].merge!("proxy-bypass-list" => bypass) if bypass
     end
 
     def headers
