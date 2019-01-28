@@ -79,16 +79,7 @@ module Capybara::Cuprite
     end
 
     def visible_text(node)
-      begin
-        evaluate_on(node: node, expr: "_cuprite.visibleText(this)")
-      rescue BrowserError => e
-        # FIXME: ObsoleteNode first arg is node, so it should be in node class
-        if e.message == "No node with given id found"
-          raise ObsoleteNode.new(self, e.response)
-        end
-
-        raise
-      end
+      evaluate_on(node: node, expr: "_cuprite.visibleText(this)")
     end
 
     def delete_text(node)

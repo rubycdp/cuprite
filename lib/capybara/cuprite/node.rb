@@ -17,7 +17,7 @@ module Capybara::Cuprite
       browser.send(name, @node, *args)
     rescue BrowserError => e
       case e.message
-      when "Cuprite.ObsoleteNode"
+      when "No node with given id found"
         raise ObsoleteNode.new(self, e.response)
       when "Cuprite.MouseEventFailed"
         raise MouseEventFailed.new(self, e.response)

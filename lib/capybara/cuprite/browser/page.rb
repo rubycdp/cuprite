@@ -182,7 +182,7 @@ module Capybara::Cuprite
           @wait = 0
         end
 
-        response = @client.wait(id: id)
+        @client.wait(id: id)
       end
 
       private
