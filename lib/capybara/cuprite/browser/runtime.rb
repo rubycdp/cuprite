@@ -125,8 +125,7 @@ module Capybara::Cuprite
             node = command("DOM.describeNode", nodeId: node_id)["node"].merge("nodeId" => node_id)
             { "target_id" => target_id, "node" => node }
           when "array"
-            check_cyclic = response["className"] != "NodeList"
-            reduce_props(object_id, [], check_cyclic) do |memo, key, value|
+            reduce_props(object_id, []) do |memo, key, value|
               next(memo) unless (Integer(key) rescue nil)
               value = value["objectId"] ? handle(value) : value["value"]
               memo.insert(key.to_i, value)
@@ -144,8 +143,8 @@ module Capybara::Cuprite
         end
       end
 
-      def reduce_props(object_id, to, check_cyclic = true)
-        if check_cyclic && cyclic?(object_id).dig("result", "value")
+      def reduce_props(object_id, to)
+        if cyclic?(object_id).dig("result", "value")
           return "(cyclic structure)"
         else
           props = command("Runtime.getProperties", objectId: object_id)
