@@ -286,6 +286,9 @@ module Capybara::Cuprite
         command("Runtime.enable")
         command("Log.enable")
         command("Network.enable")
+        if Capybara.save_path
+          command("Page.setDownloadBehavior", behavior: "allow", downloadPath: Capybara.save_path)
+        end
 
         @browser.extensions.each do |extension|
           @client.command("Page.addScriptToEvaluateOnNewDocument", source: extension)

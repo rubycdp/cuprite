@@ -234,13 +234,13 @@ describe Capybara::Session do
         expect(element.value).to eq("$52.00")
       end
 
-      it "attaches a file when passed a Pathname", skip: true do
+      it "attaches a file when passed a Pathname" do
         filename = Pathname.new("spec/tmp/a_test_pathname").expand_path
         File.open(filename, "w") { |f| f.write("text") }
 
         element = @session.find(:css, "#change_me_file")
         element.set(filename)
-        expect(element.value).to eq("C:\fakepath\a_test_pathname")
+        expect(element.value).to eq("C:\\fakepath\\a_test_pathname")
       end
     end
 
@@ -832,7 +832,7 @@ describe Capybara::Session do
       end
     end
 
-    it "handles obsolete node during an attach_file", skip: true do
+    it "handles obsolete node during an attach_file" do
       @session.visit "/cuprite/attach_file"
       @session.attach_file "file", __FILE__
     end
