@@ -112,7 +112,7 @@ module Capybara::Cuprite
       end
     end
 
-    it "allows the page to be scrolled", skip: true do
+    it "allows the page to be scrolled" do
       @session.visit("/cuprite/long_page")
       @driver.resize(10, 10)
       @driver.scroll_to(200, 100)

@@ -41,7 +41,6 @@ RSpec.configure do |config|
     #check when checkbox hidden with Capybara.automatic_label_click == false with allow_label_click == true should not wait the full time if label can be clicked
     #choose with hidden radio buttons with Capybara.automatic_label_click == true should select self by clicking the label if no locator specified
     #reset_session! handles already open modals
-    #scroll_to
     #click_link can download a file
     #attach_file with normal form should set a file path by id
     #attach_file with normal form should set a file path by label

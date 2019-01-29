@@ -75,8 +75,8 @@ module Capybara::Cuprite
         evaluate_on(node: node, expr: %(_cuprite.trigger(this, "#{event}")), **options)
       end
 
-      def scroll_to(left, top)
-        raise NotImplementedError
+      def scroll_to(top, left)
+        execute("window.scrollTo(#{top}, #{left})")
       end
 
       def send_keys(node, keys)
