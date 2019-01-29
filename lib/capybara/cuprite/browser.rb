@@ -90,21 +90,20 @@ module Capybara::Cuprite
       raise NotImplementedError
     end
 
-    def render(path, _options = {})
-      # check_render_options!(options)
-      # options[:full] = !!options[:full]
-      data = Base64.decode64(render_base64)
-      File.open(path.to_s, "wb") { |f| f.write(data) }
+    def render(path, options = {})
+      format = options.delete(:format)
+      options = options.merge(path: path)
+      bin = Base64.decode64(render_base64(format, options))
+      File.open(path.to_s, "wb") { |f| f.write(bin) }
     end
 
-    def render_base64(format = "png", _options = {})
-      # check_render_options!(options)
-      # options[:full] = !!options[:full]
-      page.command("Page.captureScreenshot", format: format)["data"]
+    def render_base64(format, options = {})
+      options = render_options(format, options)
+      page.command("Page.captureScreenshot", **options)["data"]
     end
 
     def set_zoom_factor(zoom_factor)
-      raise NotImplementedError
+      @zoom_factor = zoom_factor.to_f
     end
 
     def set_paper_size(size)
@@ -185,6 +184,7 @@ module Capybara::Cuprite
 
     def reset
       @headers = {}
+      @zoom_factor = nil
       targets.reset
     end
 
@@ -223,10 +223,36 @@ module Capybara::Cuprite
       @client = Client.new(self, @process.ws_url)
     end
 
-    def check_render_options!(options)
-      return if !options[:full] || !options.key?(:selector)
-      warn "Ignoring :selector in #render since :full => true was given at #{caller(1..1).first}"
-      options.delete(:selector)
+    def render_options(format, opts)
+      options = {}
+
+      format ||= File.extname(opts[:path]).delete(".") || "png"
+      format = "jpeg" if format == "jpg"
+      raise "Not supported format: #{format}. jpeg | png" if format !~ /jpeg|png/i
+      options.merge!(format: format)
+
+      options.merge!(quality: opts[:quality] ? opts[:quality] : 75) if format == "jpeg"
+
+      warn "Ignoring :selector in #render since full: true was given at #{caller(1..1).first}" if !!opts[:full] && opts[:selector]
+
+      if !!opts[:full]
+        width, height = page.evaluate("[document.documentElement.offsetWidth, document.documentElement.offsetHeight]")
+        options.merge!(clip: { x: 0, y: 0, width: width, height: height, scale: @zoom_factor || 1.0 }) if width > 0 && height > 0
+      elsif opts[:selector]
+        rect = page.evaluate("document.querySelector('#{opts[:selector]}').getBoundingClientRect()")
+        options.merge!(clip: { x: rect["x"], y: rect["y"], width: rect["width"], height: rect["height"], scale: @zoom_factor || 1.0 })
+      end
+
+      if @zoom_factor
+        if !options[:clip]
+          width, height = page.evaluate("[document.documentElement.clientWidth, document.documentElement.clientHeight]")
+          options[:clip] = { x: 0, y: 0, width: width, height: height }
+        end
+
+        options[:clip].merge!(scale: @zoom_factor)
+      end
+
+      options
     end
 
     def find_all(method, selector, within = nil)

@@ -3,6 +3,7 @@
 require "spec_helper"
 require "image_size"
 require "pdf/reader"
+require "chunky_png"
 
 module Capybara::Cuprite
   describe Driver do
@@ -100,7 +101,7 @@ module Capybara::Cuprite
       expect(@session.current_window.size).to eq([1366, 768])
     end
 
-    it "allows custom maximization size", skip: true do
+    it "allows custom maximization size" do
       begin
         @driver.options[:screen_size] = [1600, 1200]
         @session.visit("/")
@@ -200,14 +201,14 @@ module Capybara::Cuprite
         el = @session.find(:css, "#middleish")
         # make the page scroll an element into view
         el.click
-        position_script = "document.querySelector("#middleish").getBoundingClientRect()"
+        position_script = "document.querySelector('#middleish').getBoundingClientRect()"
         offset = @session.evaluate_script(position_script)
         create_screenshot file
         expect(@session.evaluate_script(position_script)).to eq offset
       end
     end
 
-    describe "#save_screenshot", skip: true do
+    describe "#save_screenshot" do
       let(:format) { :png }
       let(:file) { CUPRITE_ROOT + "/spec/tmp/screenshot.#{format}" }
 
@@ -248,16 +249,16 @@ module Capybara::Cuprite
       end
 
       it "supports rendering the page with different quality settings" do
-        file2 = CUPRITE_ROOT + "/spec/tmp/screenshot2.#{format}"
-        file3 = CUPRITE_ROOT + "/spec/tmp/screenshot3.#{format}"
+        file2 = CUPRITE_ROOT + "/spec/tmp/screenshot2.jpeg"
+        file3 = CUPRITE_ROOT + "/spec/tmp/screenshot3.jpeg"
         FileUtils.rm_f [file2, file3]
 
         begin
           @session.visit("/")
-          @driver.save_screenshot(file, quality: 0)
+          @driver.save_screenshot(file, quality: 0) # ignored for png
           @driver.save_screenshot(file2) # defaults to a quality of 75
           @driver.save_screenshot(file3, quality: 100)
-          expect(File.size(file)).to be < File.size(file2)
+          expect(File.size(file)).to be > File.size(file2) # png by defult is bigger
           expect(File.size(file2)).to be < File.size(file3)
         ensure
           FileUtils.rm_f [file2, file3]
@@ -265,13 +266,12 @@ module Capybara::Cuprite
       end
 
       shared_examples "when #zoom_factor= is set" do
-        let(:format) { :xbm }
-
         it "changes image dimensions" do
           @session.visit("/cuprite/zoom_test")
 
           black_pixels_count = lambda { |file|
-            File.read(file).to_s[/{.*}/m][1...-1].split(/\W/).map { |n| n.hex.to_s(2).count("1") }.reduce(:+)
+            img = ChunkyPNG::Image.from_file(file)
+            img.pixels.inject(0) { |i, p| p > 255 ? i + 1 : i }
           }
           @driver.save_screenshot(file)
           before = black_pixels_count[file]
@@ -294,7 +294,7 @@ module Capybara::Cuprite
         include_examples "when #zoom_factor= is set"
       end
 
-      context "when #paper_size= is set" do
+      context "when #paper_size= is set", skip: true do
         let(:format) { :pdf }
 
         it "changes pdf size" do
@@ -315,7 +315,7 @@ module Capybara::Cuprite
       include_examples "render screen"
     end
 
-    describe "#render_base64", skip: true do
+    describe "#render_base64" do
       let(:file) { CUPRITE_ROOT + "/spec/tmp/screenshot.#{format}" }
 
       def create_screenshot(file, *args)
