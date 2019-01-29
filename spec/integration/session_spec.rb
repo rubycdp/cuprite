@@ -632,22 +632,22 @@ describe Capybara::Session do
             window.open("/cuprite/simple", "popup")
           JS
         end
-
         @session.within_window(popup) do
           expect(@session.html).to include("Test")
         end
         popup.close
 
-        another_popup = @session.window_opened_by do
+        sleep 0.5 # https://github.com/ChromeDevTools/devtools-protocol/issues/145
+
+        same = @session.window_opened_by do
           @session.execute_script <<-JS
             window.open("/cuprite/simple", "popup")
           JS
         end
-
-        @session.within_window(another_popup) do
+        @session.within_window(same) do
           expect(@session.html).to include("Test")
         end
-        another_popup.close
+        same.close
       end
     end
 
