@@ -90,11 +90,17 @@ module Capybara::Cuprite
         @client.close
       end
 
-      def resize(width, height)
+      def resize(width: nil, height: nil, fullscreen: false)
         result = @browser.command("Browser.getWindowForTarget", targetId: @target_id)
         @window_id, @bounds = result.values_at("windowId", "bounds")
-        @browser.command("Browser.setWindowBounds", windowId: @window_id, bounds: { width: width, height: height })
-        command("Emulation.setDeviceMetricsOverride", width: width, height: height, deviceScaleFactor: 1, mobile: false)
+
+        if fullscreen
+          @browser.command("Browser.setWindowBounds", windowId: @window_id, bounds: { windowState: "fullscreen" })
+        else
+          @browser.command("Browser.setWindowBounds", windowId: @window_id, bounds: { windowState: "normal" })
+          @browser.command("Browser.setWindowBounds", windowId: @window_id, bounds: { width: width, height: height, windowState: "normal" })
+          command("Emulation.setDeviceMetricsOverride", width: width, height: height, deviceScaleFactor: 1, mobile: false)
+        end
       end
 
       def refresh

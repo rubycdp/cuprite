@@ -152,7 +152,7 @@ module Capybara::Cuprite
     end
 
     def resize(width, height)
-      browser.resize(width, height)
+      browser.resize(width: width, height: height)
     end
     alias_method :resize_window, :resize
 
@@ -169,6 +169,12 @@ module Capybara::Cuprite
     def window_size(handle)
       within_window(handle) do
         evaluate_script("[window.innerWidth, window.innerHeight]")
+      end
+    end
+
+    def fullscreen_window(handle)
+      within_window(handle) do
+        browser.resize(fullscreen: true)
       end
     end
 
