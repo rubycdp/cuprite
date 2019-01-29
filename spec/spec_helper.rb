@@ -42,30 +42,6 @@ RSpec.configure do |config|
     #choose with hidden radio buttons with Capybara.automatic_label_click == true should select self by clicking the label if no locator specified
     #reset_session! handles already open modals
     #click_link can download a file
-    #attach_file with normal form should set a file path by id
-    #attach_file with normal form should set a file path by label
-    #attach_file with normal form should be able to set on element if no locator passed
-    #attach_file with normal form casts to string
-    #attach_file with multipart form should set a file path by id
-    #attach_file with multipart form should set a file path by label
-    #attach_file with multipart form should not break if no file is submitted
-    #attach_file with multipart form should send content type text/plain when uploading a text file
-    #attach_file with multipart form should send content type image/jpeg when uploading an image
-    #attach_file with multipart form should not break when uploading a file without extension
-    #attach_file with multipart form should not break when using HTML5 multiple file input
-    #attach_file with multipart form should not break when using HTML5 multiple file input uploading multiple files
-    #attach_file with multipart form should not send anything when attaching no files to a multiple upload field
-    #attach_file with multipart form should not append files to already attached
-    #attach_file with multipart form should fire change once when uploading multiple files from empty
-    #attach_file with multipart form should fire change once for each set of files uploaded
-    #attach_file with a locator that doesn't exist should raise an error
-    #attach_file with a path that doesn't exist should raise an error
-    #attach_file with :exact option should set a file path by partial label when false
-    #attach_file with :exact option should not allow partial matches when true
-    #attach_file with :make_visible option applies a default style change when true
-    #attach_file with :make_visible option accepts a hash of styles to be applied
-    #attach_file with :make_visible option raises an error when the file input is not made visible
-    #attach_file with :make_visible option resets the style when done
     node #drag_to should drag and drop an object
     node #drag_to should drag and drop if scrolling is needed
     node #drag_to should drag a link

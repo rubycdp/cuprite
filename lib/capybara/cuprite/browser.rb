@@ -87,7 +87,7 @@ module Capybara::Cuprite
     end
 
     def select_file(node, value)
-      raise NotImplementedError
+      page.command("DOM.setFileInputFiles", nodeId: node["nodeId"], files: Array(value))
     end
 
     def render(path, options = {})
