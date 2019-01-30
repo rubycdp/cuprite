@@ -99,15 +99,23 @@ module Capybara::Cuprite
         start
       end
 
+      private
+
       def detect_browser_path
-        exe = @options[:path] || BROWSER_PATH
-        if RUBY_PLATFORM.include?('darwin')
-          exe ||= "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
-          @path = exe if File.exist?(exe)
-        else
-          exe ||= "chrome"
-          @path = Cliver.detect(exe) || Cliver.detect("google-chrome")
-        end
+        @path =
+          @options[:path] ||
+          BROWSER_PATH || (
+            if RUBY_PLATFORM.include?('darwin')
+              exe = "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
+              exe if File.exist?(exe)
+            else
+              possible_executable_names = %w[chromium chrome google-chrome]
+              possible_executable_names.reduce(nil) do |path, exe|
+                path = Cliver.detect(exe)
+                break path if path
+              end
+            end
+          )
 
         unless @path
           message = "Could not find an executable `#{exe}`. Try to make it " \
@@ -116,8 +124,6 @@ module Capybara::Cuprite
           raise Cliver::Dependency::NotFound.new(message)
         end
       end
-
-      private
 
       def redirect_stdout(write_io)
         if Capybara::Cuprite.mri?
