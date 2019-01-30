@@ -569,44 +569,45 @@ module Capybara::Cuprite
       end
     end
 
-    context "javascript errors", skip: true do
+    context "javascript errors" do
+      let(:driver) { Capybara::Cuprite::Driver.new(@session.app, js_errors: true) }
+
       it "propagates a Javascript error inside Cuprite to a ruby exception" do
         expect do
-          @driver.browser.command "browser_error"
-        end.to raise_error(BrowserError) { |e|
+          driver.browser.browser_error
+        end.to raise_error(JavaScriptError) { |e|
           expect(e.message).to include("Error: zomg")
-          # 2.1 refers to files as being in code subdirectory
-          expect(e.message).to include("compiled/browser.js").or include("code/browser.js")
+          expect(e.message).to include("Cuprite.browserError")
         }
       end
 
       it "propagates an asynchronous Javascript error on the page to a ruby exception" do
         expect do
-          @driver.execute_script "setTimeout(function() { omg }, 0)"
+          driver.execute_script "setTimeout(function() { omg }, 0)"
           sleep 0.01
-          @driver.execute_script ""
+          driver.execute_script ""
         end.to raise_error(JavaScriptError, /ReferenceError.*omg/)
       end
 
       it "propagates a synchronous Javascript error on the page to a ruby exception" do
         expect do
-          @driver.execute_script "omg"
+          driver.execute_script "omg"
         end.to raise_error(JavaScriptError, /ReferenceError.*omg/)
       end
 
       it "does not re-raise a Javascript error if it is rescued" do
         expect do
-          @driver.execute_script "setTimeout(function() { omg }, 0)"
+          driver.execute_script "setTimeout(function() { omg }, 0)"
           sleep 0.01
-          @driver.execute_script ""
+          driver.execute_script ""
         end.to raise_error(JavaScriptError)
 
         # should not raise again
-        expect(@driver.evaluate_script("1+1")).to eq(2)
+        expect(driver.evaluate_script("1+1")).to eq(2)
       end
 
       it "propagates a Javascript error during page load to a ruby exception" do
-        expect { @session.visit "/cuprite/js_error" }.to raise_error(JavaScriptError)
+        expect { driver.visit session_url("/cuprite/js_error") }.to raise_error(JavaScriptError)
       end
 
       it "does not propagate a Javascript error to ruby if error raising disabled" do
@@ -631,31 +632,6 @@ module Capybara::Cuprite
           expect(driver.body).to include("hello")
         ensure
           driver&.quit
-        end
-      end
-
-      context "browser page settings" do
-        it "can override defaults" do
-          begin
-            driver = Capybara::Cuprite::Driver.new(@session.app, page_settings: { userAgent: "PageSettingsOverride" })
-            driver.visit session_url("/cuprite/headers")
-            expect(driver.body).to include("USER_AGENT: PageSettingsOverride")
-          ensure
-            driver&.quit
-          end
-        end
-
-        it "can set resource timeout" do
-          begin
-            # If PJS resource timeout is less than drivers timeout it should ignore resources not loading in time
-            driver = Capybara::Cuprite::Driver.new(@session.app, page_settings: { resourceTimeout: 1000 })
-            driver.timeout = 3
-            expect do
-              driver.visit session_url("/cuprite/visit_timeout")
-            end.not_to raise_error
-          ensure
-            driver&.quit
-          end
         end
       end
     end

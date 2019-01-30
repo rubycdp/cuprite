@@ -34,12 +34,13 @@ module Capybara::Cuprite
                 go_back go_forward find_modal accept_confirm dismiss_confirm
                 accept_prompt dismiss_prompt reset_modals) => :page
 
-    attr_reader :process, :logger
+    attr_reader :process, :logger, :js_errors
     attr_writer :timeout
 
     def initialize(options = nil)
       @options = Hash(options)
       @logger, @timeout = @options.values_at(:logger, :timeout)
+      @js_errors = @options.fetch(:js_errors, false)
 
       if ENV["CUPRITE_DEBUG"]
         STDOUT.sync = true
@@ -201,6 +202,10 @@ module Capybara::Cuprite
 
     def crash
       command("Browser.crash")
+    end
+
+    def browser_error
+      page.evaluate("_cuprite.browserError()")
     end
 
     def command(*args)

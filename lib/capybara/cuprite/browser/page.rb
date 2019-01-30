@@ -202,6 +202,12 @@ module Capybara::Cuprite
           end
         end
 
+        if @browser.js_errors
+          @client.subscribe("Runtime.exceptionThrown") do |params|
+            Thread.main.raise JavaScriptError.new(params.dig("exceptionDetails", "exception"))
+          end
+        end
+
         @client.subscribe("Page.javascriptDialogOpening") do |params|
           accept_modal = @accept_modal.last
           if accept_modal == true || accept_modal == false

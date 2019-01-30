@@ -144,6 +144,15 @@ end
     test, expressed as a 2-element array, e.g. [1024, 768]. Default: [1024, 768]
   * `:port` (Integer) - Remote debugging port for headless Chrome
   * `:host` (String) - Remote debugging address for headless Chrome
+* `:js_errors` (Boolean) - When true, JavaScript errors get re-raised in Ruby.
+* `:logger` (Object responding to `puts`) - When present, debug output is
+    written to this object.
+* `:timeout` (Numeric) - The number of seconds we'll wait for a response when
+    communicating with browser. Default is 30.
+* `:extensions` (Array) - An array of JS files to be preloaded into the browser
+* `:url_blacklist` (Array) - array of strings to match against requested URLs
+* `:url_whitelist` (Array) - array of strings to match against requested URLs
+
 
 ### URL Blacklisting & Whitelisting ###
 Cuprite supports URL blacklisting, which allows you to prevent scripts from
