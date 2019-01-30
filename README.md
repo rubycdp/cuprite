@@ -137,19 +137,22 @@ end
 
 `options` is a hash of options. The following options are supported:
 
-* `:browser` (Hash) - Hash of options to be passed to chrome process:
-  * `:path` (String) - Path to chrome binary, you can also set ENV variable as
-    `BROWSER_PATH=some/path/chrome bundle exec rspec`
-  * `:window_size` (Array) - The dimensions of the browser window in which to
-    test, expressed as a 2-element array, e.g. [1024, 768]. Default: [1024, 768]
-  * `:port` (Integer) - Remote debugging port for headless Chrome
-  * `:host` (String) - Remote debugging address for headless Chrome
-* `:js_errors` (Boolean) - When true, JavaScript errors get re-raised in Ruby.
+* `:browser_path` (String) - Path to chrome binary, you can also set ENV
+    variable as `BROWSER_PATH=some/path/chrome bundle exec rspec`.
+* `:headless` (Boolean) - Set browser as headless or not, `true` by default.
 * `:logger` (Object responding to `puts`) - When present, debug output is
     written to this object.
 * `:timeout` (Numeric) - The number of seconds we'll wait for a response when
     communicating with browser. Default is 30.
+* `:js_errors` (Boolean) - When true, JavaScript errors get re-raised in Ruby.
+* `:window_size` (Array) - The dimensions of the browser window in which to
+    test, expressed as a 2-element array, e.g. [1024, 768]. Default: [1024, 768]
+* `:browser_options` (Hash) - Additional command line options,
+    [see them all](https://peter.sh/experiments/chromium-command-line-switches/)
+    e.g. `{ "ignore-certificate-errors" => nil }`
 * `:extensions` (Array) - An array of JS files to be preloaded into the browser
+* `:port` (Integer) - Remote debugging port for headless Chrome
+* `:host` (String) - Remote debugging address for headless Chrome
 * `:url_blacklist` (Array) - array of strings to match against requested URLs
 * `:url_whitelist` (Array) - array of strings to match against requested URLs
 

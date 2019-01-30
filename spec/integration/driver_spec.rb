@@ -30,7 +30,7 @@ module Capybara::Cuprite
         file = CUPRITE_ROOT + "/spec/support/custom_chrome_called"
         path = CUPRITE_ROOT + "/spec/support/custom_chrome"
 
-        driver = Driver.new(nil, browser: { path: path })
+        driver = Driver.new(nil, browser_path: path)
         driver.browser
 
         # If the correct custom path is called, it will touch the file.

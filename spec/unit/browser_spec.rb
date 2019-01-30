@@ -16,7 +16,7 @@ module Capybara::Cuprite
     end
 
     it "shows command line options passed" do
-      browser = Browser.new(browser: { "blink-settings" => "imagesEnabled=false" })
+      browser = Browser.new(browser_options: { "blink-settings" => "imagesEnabled=false" })
 
       arguments = browser.command("Browser.getBrowserCommandLine")["arguments"]
 

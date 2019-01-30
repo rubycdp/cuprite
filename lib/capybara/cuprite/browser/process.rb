@@ -53,20 +53,27 @@ module Capybara::Cuprite
       end
 
       def initialize(options)
-        @options = options.fetch(:browser, {})
+        @options = {}
 
-        detect_browser_path
+        detect_browser_path(options)
 
         window_size = options.fetch(:window_size, [1024, 768])
-        @options = @options.merge("window-size" => window_size.join(","))
+        @options.merge!("window-size" => window_size.join(","))
 
         port = options.fetch(:port, BROWSER_PORT)
-        @options = @options.merge("remote-debugging-port" => port)
+        @options.merge!("remote-debugging-port" => port)
 
         host = options.fetch(:host, BROWSER_HOST)
-        @options = @options.merge("remote-debugging-address" => host)
+        @options.merge!("remote-debugging-address" => host)
 
         @options = DEFAULT_OPTIONS.merge(@options)
+
+        unless options.fetch(:headless, true)
+          @options.delete("headless")
+          @options.delete("disable-gpu")
+        end
+
+        @options.merge!(options.fetch(:browser_options, {}))
       end
 
       def start
@@ -101,16 +108,17 @@ module Capybara::Cuprite
 
       private
 
-      def detect_browser_path
+      def detect_browser_path(options)
         @path =
-          @options[:path] ||
+          options[:browser_path] ||
           BROWSER_PATH || (
             if RUBY_PLATFORM.include?('darwin')
-              exe = "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
-              exe if File.exist?(exe)
+              [
+                "/Applications/Chromium.app/Contents/MacOS/Chromium",
+                "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
+              ].find { |path| File.exist?(exe) }
             else
-              possible_executable_names = %w[chromium chrome google-chrome]
-              possible_executable_names.reduce(nil) do |path, exe|
+              %w[chromium google-chrome-unstable google-chrome-beta google-chrome chrome].reduce(nil) do |path, exe|
                 path = Cliver.detect(exe)
                 break path if path
               end
