@@ -76,8 +76,19 @@ module Capybara::Cuprite
           options = options.merge(executionContextId: execution_context_id)
         end
 
-        command("Runtime.callFunctionOn", **options)
-          .dig("result").tap { |r| handle_error(r) }
+        begin
+          response = command("Runtime.callFunctionOn", **options)
+          response.dig("result").tap { |r| handle_error(r) }
+        rescue BrowserError => e
+          case e.message
+          when "No node with given id found", "Cannot find context with specified id"
+            sleep 0.1
+            attemp ||= 0
+            attemp += 1
+            options = options.merge(executionContextId: execution_context_id)
+            retry if attemp == 1
+          end
+        end
       end
 
       # FIXME: We should have a central place to handle all type of errors

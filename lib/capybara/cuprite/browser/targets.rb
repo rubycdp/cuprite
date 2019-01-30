@@ -107,7 +107,14 @@ module Capybara::Cuprite
       end
 
       def targets
-        @browser.command("Target.getTargets")["targetInfos"]
+        attempts ||= 1
+        # Targets cannot be empty the must be at least one default target.
+        targets = @browser.command("Target.getTargets")["targetInfos"]
+        raise TypeError if targets.empty?
+        targets
+      rescue TypeError
+        attempts += 1
+        retry if attempts < 3
       end
 
       def default?(target)
