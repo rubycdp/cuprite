@@ -214,8 +214,13 @@ module Capybara::Cuprite
             @accept_modal.pop
             @modal_messages << params["message"]
             options = { accept: accept_modal }
-            default = params["defaultPrompt"]
             response = @modal_response || params["defaultPrompt"]
+            options.merge!(promptText: response) if response
+            @client.command("Page.handleJavaScriptDialog", **options)
+          else
+            warn "Modal window has been opened, but you didn't wrap your code into (`accept_prompt` | `dismiss_prompt` | `accept_confirm` | `dismiss_confirm` | `accept_alert`), accepting by default"
+            options = { accept: true }
+            response = params["defaultPrompt"]
             options.merge!(promptText: response) if response
             @client.command("Page.handleJavaScriptDialog", **options)
           end

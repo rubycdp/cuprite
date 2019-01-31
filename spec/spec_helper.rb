@@ -36,7 +36,6 @@ end
 RSpec.configure do |config|
   config.define_derived_metadata do |metadata|
     regexes = <<~REGEXP.split("\n").map { |s| Regexp.quote(s.strip) }.join("|")
-    #reset_session! handles already open modals
     node #drag_to should drag and drop an object
     node #drag_to should drag and drop if scrolling is needed
     node #drag_to should drag a link
