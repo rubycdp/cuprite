@@ -171,7 +171,16 @@ module Capybara::Cuprite
       end
 
       def get_content_quads(node)
-        result = command("DOM.getContentQuads", nodeId: node["nodeId"])
+        begin
+          result = command("DOM.getContentQuads", nodeId: node["nodeId"])
+        rescue BrowserError => e
+          if e.message == "Could not compute content quads."
+            raise MouseEventFailed.new("MouseEventFailed: click, none, 0, 0")
+          else
+            raise
+          end
+        end
+
         raise "Node is either not visible or not an HTMLElement" if result["quads"].size == 0
 
         # FIXME: Case when a few quads returned

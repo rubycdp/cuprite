@@ -36,10 +36,6 @@ end
 RSpec.configure do |config|
   config.define_derived_metadata do |metadata|
     regexes = <<~REGEXP.split("\n").map { |s| Regexp.quote(s.strip) }.join("|")
-    #check when checkbox hidden with Capybara.automatic_label_click == true should check via clicking the label with :for attribute if locator nil
-    #check when checkbox hidden with Capybara.automatic_label_click == true should check self via clicking the wrapping label if locator nil
-    #check when checkbox hidden with Capybara.automatic_label_click == false with allow_label_click == true should not wait the full time if label can be clicked
-    #choose with hidden radio buttons with Capybara.automatic_label_click == true should select self by clicking the label if no locator specified
     #reset_session! handles already open modals
     node #drag_to should drag and drop an object
     node #drag_to should drag and drop if scrolling is needed
