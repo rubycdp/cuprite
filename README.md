@@ -5,8 +5,7 @@
 Cuprite is a pure Ruby driver (read as _no_ Java/Selenium/WebDriver/ChromeDriver
 requirement) for [Capybara](https://github.com/teamcapybara/capybara). It allows
 you to run your Capybara tests on a headless [Chrome](https://www.google.com/chrome/)
-or [Chromium](https://www.chromium.org/) browser while the latter is prefered
-for now because we work with tip-of-tree [protocol](https://chromedevtools.github.io/devtools-protocol/).
+or [Chromium](https://www.chromium.org/) browser by [CDP protocol](https://chromedevtools.github.io/devtools-protocol/).
 
 The emphasis was made on raw CDP protocol because Headless Chrome allows you to
 do so many cool things that are barely supported by WebDriver because it should
@@ -21,8 +20,8 @@ Poltergest/PhantomJS:
 
 ```
 cuprite:
-Finished in 8 minutes 44 seconds (files took 0.97501 seconds to load)
-1531 examples, 0 failures, 112 pending
+Finished in 8 minutes 58 seconds (files took 0.89959 seconds to load)
+1555 examples, 0 failures, 27 pending
 
 selenium headless chrome:
 Finished in 9 minutes 13 seconds (files took 0.97749 seconds to load)
@@ -37,11 +36,6 @@ Finished in 11 minutes 49 seconds (files took 0.54019 seconds to load)
 
 ``` ruby
 gem "cuprite"
-```
-
-Though we recommend using github until we release 1.0:
-``` ruby
-gem "cuprite", github: "machinio/cuprite"
 ```
 
 and run `bundle install`.
