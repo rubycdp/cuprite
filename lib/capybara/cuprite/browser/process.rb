@@ -116,7 +116,7 @@ module Capybara::Cuprite
               [
                 "/Applications/Chromium.app/Contents/MacOS/Chromium",
                 "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
-              ].find { |path| File.exist?(exe) }
+              ].find { |path| File.exist?(path) }
             else
               %w[chromium google-chrome-unstable google-chrome-beta google-chrome chrome].reduce(nil) do |path, exe|
                 path = Cliver.detect(exe)
