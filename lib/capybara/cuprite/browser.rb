@@ -34,13 +34,14 @@ module Capybara::Cuprite
                 go_back go_forward find_modal accept_confirm dismiss_confirm
                 accept_prompt dismiss_prompt reset_modals) => :page
 
-    attr_reader :process, :logger, :js_errors
+    attr_reader :process, :logger, :js_errors, :slowmo
     attr_writer :timeout
 
     def initialize(options = nil)
       @options = Hash(options)
       @logger, @timeout = @options.values_at(:logger, :timeout)
       @js_errors = @options.fetch(:js_errors, false)
+      @slowmo = @options[:slowmo]
 
       if ENV["CUPRITE_DEBUG"]
         STDOUT.sync = true
@@ -234,7 +235,7 @@ module Capybara::Cuprite
     def start
       @headers = {}
       @process = Process.start(@options)
-      @client = Client.new(self, @process.ws_url)
+      @client = Client.new(self, @process.ws_url, false)
     end
 
     def render_options(format, opts)

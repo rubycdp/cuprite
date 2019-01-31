@@ -8,10 +8,10 @@ module Capybara::Cuprite
     class Client
       class IdError < RuntimeError; end
 
-      def initialize(browser, ws_url)
+      def initialize(browser, ws_url, allow_slowmo = true)
         @command_id = 0
         @subscribed = Hash.new { |h, k| h[k] = [] }
-        @browser = browser
+        @browser, @allow_slowmo = browser, allow_slowmo
         @commands = Queue.new
         @ws = WebSocket.new(ws_url, @browser.logger)
 
@@ -31,6 +31,7 @@ module Capybara::Cuprite
 
       def command(method, params = {})
         message = build_message(method, params)
+        sleep(@browser.slowmo) if !@browser.slowmo.nil? && @allow_slowmo
         @ws.send_message(message)
         message[:id]
       end

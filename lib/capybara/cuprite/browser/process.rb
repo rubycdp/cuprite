@@ -18,11 +18,19 @@ module Capybara::Cuprite
         "disable-gpu" => nil,
         "hide-scrollbars" => nil,
         "mute-audio" => nil,
+        "enable-automation" => nil,
+        "disable-web-security" => nil,
+        "disable-session-crashed-bubble" => nil,
+        "disable-breakpad" => nil,
+        "disable-sync" => nil,
+        "no-first-run" => nil,
+        "use-mock-keychain" => nil,
+        "keep-alive-for-test" => nil,
+        "disable-popup-blocking" => nil,
+        "disable-extensions" => nil,
         # Note: --no-sandbox is not needed if you properly setup a user in the container.
         # https://github.com/ebidel/lighthouse-ci/blob/master/builder/Dockerfile#L35-L40
         # "no-sandbox" => nil,
-        "enable-automation" => nil,
-        "disable-web-security" => nil,
       }.freeze
 
       attr_reader :host, :port, :ws_url, :pid, :path, :options
@@ -65,6 +73,8 @@ module Capybara::Cuprite
 
         host = options.fetch(:host, BROWSER_HOST)
         @options.merge!("remote-debugging-address" => host)
+
+        @options.merge!("user-data-dir" => Dir.mktmpdir)
 
         @options = DEFAULT_OPTIONS.merge(@options)
 

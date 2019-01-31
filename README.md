@@ -134,6 +134,8 @@ end
 * `:browser_path` (String) - Path to chrome binary, you can also set ENV
     variable as `BROWSER_PATH=some/path/chrome bundle exec rspec`.
 * `:headless` (Boolean) - Set browser as headless or not, `true` by default.
+* `:slowmo` (Integer | Float) - Set a delay to wait before sending command.
+    Usefull companion of headless option, so that you have time to see changes.
 * `:logger` (Object responding to `puts`) - When present, debug output is
     written to this object.
 * `:timeout` (Numeric) - The number of seconds we'll wait for a response when
