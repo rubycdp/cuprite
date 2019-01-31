@@ -294,7 +294,7 @@ module Capybara::Cuprite
         include_examples "when #zoom_factor= is set"
       end
 
-      context "when #paper_size= is set", skip: true do
+      context "when #paper_size= is set" do
         let(:format) { :pdf }
 
         it "changes pdf size" do

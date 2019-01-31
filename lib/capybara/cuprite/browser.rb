@@ -100,7 +100,16 @@ module Capybara::Cuprite
 
     def render_base64(format, options = {})
       options = render_options(format, options)
-      page.command("Page.captureScreenshot", **options)["data"]
+
+      if options[:format].to_s == "pdf"
+        options = {}
+        options[:paperWidth] = @paper_size[:width].to_f if @paper_size
+        options[:paperHeight] = @paper_size[:height].to_f if @paper_size
+        options[:scale] = @zoom_factor if @zoom_factor
+        page.command("Page.printToPDF", **options)
+      else
+        page.command("Page.captureScreenshot", **options)
+      end.fetch("data")
     end
 
     def set_zoom_factor(zoom_factor)
@@ -108,7 +117,7 @@ module Capybara::Cuprite
     end
 
     def set_paper_size(size)
-      raise NotImplementedError
+      @paper_size = size
     end
 
     def headers=(headers)
@@ -233,7 +242,7 @@ module Capybara::Cuprite
 
       format ||= File.extname(opts[:path]).delete(".") || "png"
       format = "jpeg" if format == "jpg"
-      raise "Not supported format: #{format}. jpeg | png" if format !~ /jpeg|png/i
+      raise "Not supported format: #{format}. jpeg | png | pdf" if format !~ /jpeg|png|pdf/i
       options.merge!(format: format)
 
       options.merge!(quality: opts[:quality] ? opts[:quality] : 75) if format == "jpeg"
