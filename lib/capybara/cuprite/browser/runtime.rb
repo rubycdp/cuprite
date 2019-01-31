@@ -86,7 +86,7 @@ module Capybara::Cuprite
             sleep 0.1
             attempts += 1
             options = options.merge(executionContextId: execution_context_id)
-            retry if attemp < 3
+            retry if attempts < 3
           end
         end
       end
