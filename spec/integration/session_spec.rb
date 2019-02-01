@@ -1028,7 +1028,7 @@ describe Capybara::Session do
 
             Timeout.timeout(10) do
               PTY.spawn("bundle exec ruby #{file.path}") do |read, write, pid|
-                sleep 0.1 until read.readline.chomp == "Please type enter"
+                sleep 0.01 until read.readline.chomp == "Please type enter"
                 write.puts
                 sleep 0.1 until (status = PTY.check(pid))
                 @status = status

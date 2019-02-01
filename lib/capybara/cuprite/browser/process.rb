@@ -33,7 +33,7 @@ module Capybara::Cuprite
         # "no-sandbox" => nil,
       }.freeze
 
-      attr_reader :host, :port, :ws_url, :pid, :path, :options
+      attr_reader :host, :port, :ws_url, :pid, :path, :options, :cmd
 
       def self.start(*args)
         new(*args).tap(&:start)
@@ -65,8 +65,8 @@ module Capybara::Cuprite
 
         detect_browser_path(options)
 
-        window_size = options.fetch(:window_size, [1024, 768])
-        @options.merge!("window-size" => window_size.join(","))
+        # Doesn't work on MacOS, so we need to set it by CDP as well
+        @options.merge!("window-size" => options[:window_size].join(","))
 
         port = options.fetch(:port, BROWSER_PORT)
         @options.merge!("remote-debugging-port" => port)
@@ -95,8 +95,8 @@ module Capybara::Cuprite
         end
 
         redirect_stdout(write_io) do
-          cmd = [@path] + @options.map { |k, v| v.nil? ? "--#{k}" : "--#{k}=#{v}" }
-          @pid = ::Process.spawn(*cmd, process_options)
+          @cmd = [@path] + @options.map { |k, v| v.nil? ? "--#{k}" : "--#{k}=#{v}" }
+          @pid = ::Process.spawn(*@cmd, process_options)
           ObjectSpace.define_finalizer(self, self.class.process_killer(@pid))
         end
 

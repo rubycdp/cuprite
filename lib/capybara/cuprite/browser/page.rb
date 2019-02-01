@@ -307,6 +307,9 @@ module Capybara::Cuprite
 
         inject_extensions
 
+        width, height = @browser.window_size
+        resize(width: width, height: height)
+
         response = command("Page.getNavigationHistory")
         if response.dig("entries", 0, "transitionType") != "typed"
           # If we create page by clicking links, submiting forms and so on it

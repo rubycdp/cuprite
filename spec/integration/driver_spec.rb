@@ -946,7 +946,7 @@ module Capybara::Cuprite
     end
 
     context "a new window inherits settings" do
-      it "inherits size", skip: true do
+      it "inherits size" do
         @session.visit "/"
         @session.current_window.resize_to(1200, 800)
         new_tab = @session.open_new_window

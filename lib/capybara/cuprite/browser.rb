@@ -10,13 +10,14 @@ require "capybara/cuprite/browser/page"
 module Capybara::Cuprite
   class Browser
     TIMEOUT = 5
+    WINDOW_SIZE = [1024, 768].freeze
     EXTENSIONS = [
       File.expand_path("browser/javascripts/index.js", __dir__)
     ].freeze
 
     extend Forwardable
 
-    attr_reader :headers
+    attr_reader :headers, :window_size
 
     def self.start(*args)
       new(*args)
@@ -26,19 +27,24 @@ module Capybara::Cuprite
     delegate %i(window_handle window_handles switch_to_window open_new_window
                 close_window within_window page) => :targets
     delegate %i(visit status_code body all_text property attributes attribute
-                value visible? disabled? resize path network_traffic
-                clear_network_traffic response_headers refresh click right_click
-                double_click hover set click_coordinates drag drag_by select
-                trigger scroll_to send_keys evaluate evaluate_on evaluate_async
-                execute frame_url frame_title switch_to_frame current_url title
-                go_back go_forward find_modal accept_confirm dismiss_confirm
+                value visible? disabled? network_traffic clear_network_traffic
+                path response_headers refresh click right_click double_click
+                hover set click_coordinates drag drag_by select trigger
+                scroll_to send_keys evaluate evaluate_on evaluate_async execute
+                frame_url frame_title switch_to_frame current_url title go_back
+                go_forward find_modal accept_confirm dismiss_confirm
                 accept_prompt dismiss_prompt reset_modals) => :page
 
     attr_reader :process, :logger, :js_errors, :slowmo
     attr_writer :timeout
 
     def initialize(options = nil)
-      @options = Hash(options)
+      # Doesn't work on MacOS, so we need to set it by CDP as well
+      options ||= {}
+      @window_size = options.fetch(:window_size, WINDOW_SIZE)
+      @original_window_size = @window_size
+
+      @options = Hash(options.merge(window_size: @window_size)).freeze
       @logger, @timeout = @options.values_at(:logger, :timeout)
       @js_errors = @options.fetch(:js_errors, false)
       @slowmo = @options[:slowmo]
@@ -196,6 +202,7 @@ module Capybara::Cuprite
     def reset
       @headers = {}
       @zoom_factor = nil
+      @window_size = @original_window_size
       targets.reset
     end
 
@@ -216,6 +223,11 @@ module Capybara::Cuprite
 
     def browser_error
       page.evaluate("_cuprite.browserError()")
+    end
+
+    def resize(**options)
+      @window_size = [options[:width], options[:height]]
+      page.resize(**options)
     end
 
     def command(*args)
