@@ -132,15 +132,20 @@ module Capybara::Cuprite
 
           case response["subtype"]
           when "node"
-            node_id = command("DOM.requestNode", objectId: object_id)["nodeId"]
-            node = command("DOM.describeNode", nodeId: node_id)["node"].merge("nodeId" => node_id)
-            { "target_id" => target_id, "node" => node }
+            begin
+              node_id = command("DOM.requestNode", objectId: object_id)["nodeId"]
+              node = command("DOM.describeNode", nodeId: node_id)["node"].merge("nodeId" => node_id)
+              { "target_id" => target_id, "node" => node }
+            rescue BrowserError => e
+              # Node has disappeared while we were trying to get it
+              raise if e.message != "Could not find node with given id"
+            end
           when "array"
             reduce_props(object_id, []) do |memo, key, value|
               next(memo) unless (Integer(key) rescue nil)
               value = value["objectId"] ? handle(value) : value["value"]
               memo.insert(key.to_i, value)
-            end
+            end.compact
           when "date"
             response["description"]
           when "null"
