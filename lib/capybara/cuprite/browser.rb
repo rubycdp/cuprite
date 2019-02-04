@@ -44,7 +44,7 @@ module Capybara::Cuprite
       @window_size = options.fetch(:window_size, WINDOW_SIZE)
       @original_window_size = @window_size
 
-      @options = Hash(options.merge(window_size: @window_size)).freeze
+      @options = Hash(options.merge(window_size: @window_size))
       @logger, @timeout = @options.values_at(:logger, :timeout)
       @js_errors = @options.fetch(:js_errors, false)
       @slowmo = @options[:slowmo]
@@ -52,7 +52,10 @@ module Capybara::Cuprite
       if ENV["CUPRITE_DEBUG"]
         STDOUT.sync = true
         @logger = STDOUT
+        @options[:logger] = @logger
       end
+
+      @options.freeze
 
       start
     end
