@@ -298,7 +298,7 @@ module Capybara::Cuprite
         command("Log.enable")
         command("Network.enable")
         if Capybara.save_path
-          command("Page.setDownloadBehavior", behavior: "allow", downloadPath: Capybara.save_path)
+          command("Page.setDownloadBehavior", behavior: "allow", downloadPath: Capybara.save_path.to_s)
         end
 
         @browser.extensions.each do |extension|
