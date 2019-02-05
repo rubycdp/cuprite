@@ -84,6 +84,8 @@ module Capybara::Cuprite
         end
 
         @options.merge!(options.fetch(:browser_options, {}))
+
+        @logger = options.fetch(:logger, nil)
       end
 
       def start
@@ -186,6 +188,7 @@ module Capybara::Cuprite
         end
 
         unless @ws_url
+          @logger.puts output if @logger
           raise "Chrome process did not produce websocket url within #{timeout} seconds"
         end
       end
