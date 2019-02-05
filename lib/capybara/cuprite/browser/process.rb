@@ -6,6 +6,7 @@ module Capybara::Cuprite
   class Browser
     class Process
       KILL_TIMEOUT = 2
+      PROCESS_TIMEOUT = 1
       BROWSER_PATH = ENV["BROWSER_PATH"]
       BROWSER_HOST = "127.0.0.1"
       BROWSER_PORT = "0"
@@ -96,6 +97,8 @@ module Capybara::Cuprite
           @options.delete("disable-gpu")
         end
 
+        @process_timeout = options.fetch(:process_timeout, PROCESS_TIMEOUT)
+
         @options.merge!(options.fetch(:browser_options, {}))
 
         @logger = options.fetch(:logger, nil)
@@ -115,7 +118,7 @@ module Capybara::Cuprite
           ObjectSpace.define_finalizer(self, self.class.process_killer(@pid))
         end
 
-        parse_ws_url(read_io)
+        parse_ws_url(read_io, @process_timeout)
       ensure
         close_io(read_io, write_io)
       end
@@ -180,7 +183,7 @@ module Capybara::Cuprite
         @pid = nil
       end
 
-      def parse_ws_url(read_io, timeout = 1)
+      def parse_ws_url(read_io, timeout = PROCESS_TIMEOUT)
         output = ""
         start = ::Process.clock_gettime(::Process::CLOCK_MONOTONIC)
         max_time = start + timeout
