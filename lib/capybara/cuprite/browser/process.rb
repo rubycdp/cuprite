@@ -179,7 +179,7 @@ module Capybara::Cuprite
             IO.select([read_io], nil, nil, max_time - now)
           else
             if output.match(regexp)
-              @ws_url = Addressable::URI.parse(output.match(regexp)[1])
+              @ws_url = Addressable::URI.parse(output.match(regexp)[1].strip)
               @host = @ws_url.host
               @port = @ws_url.port
               break
