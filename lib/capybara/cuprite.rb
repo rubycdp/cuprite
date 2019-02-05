@@ -17,6 +17,10 @@ module Capybara::Cuprite
       RbConfig::CONFIG["host_os"] =~ /mingw|mswin|cygwin/
     end
 
+    def mac?
+      RbConfig::CONFIG["host_os"] =~ /darwin/
+    end
+
     def mri?
       defined?(RUBY_ENGINE) && RUBY_ENGINE == "ruby"
     end

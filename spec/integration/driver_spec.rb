@@ -1298,7 +1298,9 @@ module Capybara::Cuprite
       it "sends sequences with modifiers and symbols" do
         input = @session.find(:css, "#empty_input")
 
-        input.native.send_keys("t", "r", "i", "n", "g", %i[Ctrl Left], "s")
+        keys = Capybara::Cuprite.mac? ? %i[Alt Left] : %i[Ctrl Left]
+
+        input.native.send_keys("t", "r", "i", "n", "g", keys, "s")
 
         expect(input.value).to eq("string")
       end
@@ -1306,7 +1308,9 @@ module Capybara::Cuprite
       it "sends sequences with multiple modifiers and symbols" do
         input = @session.find(:css, "#empty_input")
 
-        input.native.send_keys("t", "r", "i", "n", "g", %i[Ctrl Shift Left], "s")
+        keys = Capybara::Cuprite.mac? ? %i[Alt Shift Left] : %i[Ctrl Shift Left]
+
+        input.native.send_keys("t", "r", "i", "n", "g", keys, "s")
 
         expect(input.value).to eq("s")
       end
