@@ -138,7 +138,7 @@ module Capybara::Cuprite
           )
 
         unless @path
-          message = "Could not find an executable `#{exe}`. Try to make it " \
+          message = "Could not find an executable for chrome. Try to make it " \
                     "available on the PATH or set environment varible for " \
                     "example BROWSER_PATH=\"/Applications/Chromium.app/Contents/MacOS/Chromium\""
           raise Cliver::Dependency::NotFound.new(message)
