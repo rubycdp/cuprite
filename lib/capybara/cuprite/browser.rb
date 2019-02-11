@@ -49,7 +49,7 @@ module Capybara::Cuprite
       @js_errors = @options.fetch(:js_errors, false)
       @slowmo = @options[:slowmo]
 
-      if ENV["CUPRITE_DEBUG"]
+      if ENV["CUPRITE_DEBUG"] && !@logger
         STDOUT.sync = true
         @logger = STDOUT
         @options[:logger] = @logger
