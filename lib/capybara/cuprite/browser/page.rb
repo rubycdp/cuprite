@@ -74,7 +74,11 @@ module Capybara::Cuprite
         options = { url: url }
         options.merge!(referrer: referrer) if referrer
         response = command("Page.navigate", **options)
-        if %w[net::ERR_NAME_NOT_RESOLVED net::ERR_NAME_RESOLUTION_FAILED].include?(response["errorText"])
+        # https://cs.chromium.org/chromium/src/net/base/net_error_list.h
+        if %w[net::ERR_NAME_NOT_RESOLVED
+              net::ERR_NAME_RESOLUTION_FAILED
+              net::ERR_INTERNET_DISCONNECTED
+              net::ERR_CONNECTION_TIMED_OUT].include?(response["errorText"])
           raise StatusFailError, "url" => url
         end
         response["frameId"]
