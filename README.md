@@ -67,6 +67,10 @@ All the mandatory capybara features plus optional ones:
 * `page.response_headers`
 * `page.save_screenshot`
 * `page.driver.render_base64(format, options)`
+* `page.driver.scroll_to(left, top)`
+* `page.driver.basic_authorize(user, password)`
+* `element.send_keys(*keys)`
+* `page.driver.set_proxy(ip, port, type, user, password)`
 * window API
 * cookie handling
 
@@ -158,14 +162,14 @@ Cuprite supports URL blacklisting, which allows you to prevent scripts from
 running on designated domains:
 
 ```ruby
-page.driver.browser.url_blacklist = ['http://www.example.com']
+page.driver.browser.url_blacklist = ["http://www.example.com"]
 ```
 
 and also URL whitelisting, which allows scripts to only run
 on designated domains:
 
 ```ruby
-page.driver.browser.url_whitelist = ['http://www.example.com']
+page.driver.browser.url_whitelist = ["http://www.example.com"]
 ```
 
 If you are experiencing slower run times, consider creating a URL whitelist of

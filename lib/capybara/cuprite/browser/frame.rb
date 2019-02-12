@@ -38,6 +38,8 @@ module Capybara::Cuprite
       private
 
       def subscribe_events
+        super if defined?(super)
+
         @client.subscribe("Page.frameAttached") do |params|
           @frames[params["frameId"]] = { "parent_id" => params["parentFrameId"] }
         end
