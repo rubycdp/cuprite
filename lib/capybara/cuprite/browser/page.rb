@@ -5,6 +5,7 @@ require "capybara/cuprite/browser/input"
 require "capybara/cuprite/browser/runtime"
 require "capybara/cuprite/browser/frame"
 require "capybara/cuprite/browser/client"
+require "capybara/cuprite/browser/net"
 require "capybara/cuprite/network/error"
 require "capybara/cuprite/network/request"
 require "capybara/cuprite/network/response"
@@ -29,7 +30,7 @@ require "capybara/cuprite/network/response"
 module Capybara::Cuprite
   class Browser
     class Page
-      include Input, DOM, Runtime, Frame
+      include Input, DOM, Runtime, Frame, Net
 
       attr_accessor :referrer
       attr_reader :target_id, :status_code, :response_headers
@@ -278,10 +279,6 @@ module Capybara::Cuprite
           end
         end
 
-        @client.subscribe("Network.requestIntercepted") do |params|
-          @client.command("Network.continueInterceptedRequest", interceptionId: params["interceptionId"], errorReason: "Aborted")
-        end
-
         @client.subscribe("Log.entryAdded") do |params|
           source = params.dig("entry", "source")
           level = params.dig("entry", "level")
@@ -301,6 +298,7 @@ module Capybara::Cuprite
         command("Runtime.enable")
         command("Log.enable")
         command("Network.enable")
+
         if Capybara.save_path
           command("Page.setDownloadBehavior", behavior: "allow", downloadPath: Capybara.save_path.to_s)
         end
@@ -313,6 +311,10 @@ module Capybara::Cuprite
 
         width, height = @browser.window_size
         resize(width: width, height: height)
+
+        url_whitelist = Array(@browser.url_whitelist)
+        url_blacklist = Array(@browser.url_blacklist)
+        intercept_request("*") if !url_whitelist.empty? || !url_blacklist.empty?
 
         response = command("Page.getNavigationHistory")
         if response.dig("entries", 0, "transitionType") != "typed"

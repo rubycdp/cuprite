@@ -33,9 +33,10 @@ module Capybara::Cuprite
                 scroll_to send_keys evaluate evaluate_on evaluate_async execute
                 frame_url frame_title switch_to_frame current_url title go_back
                 go_forward find_modal accept_confirm dismiss_confirm
-                accept_prompt dismiss_prompt reset_modals) => :page
+                accept_prompt dismiss_prompt reset_modals authorize) => :page
 
-    attr_reader :process, :logger, :js_errors, :slowmo
+    attr_reader :process, :logger, :js_errors, :slowmo,
+                :url_blacklist, :url_whitelist
     attr_writer :timeout
 
     def initialize(options = nil)
@@ -48,6 +49,9 @@ module Capybara::Cuprite
       @logger, @timeout = @options.values_at(:logger, :timeout)
       @js_errors = @options.fetch(:js_errors, false)
       @slowmo = @options[:slowmo]
+
+      self.url_blacklist = @options[:url_blacklist]
+      self.url_whitelist = @options[:url_whitelist]
 
       if ENV["CUPRITE_DEBUG"] && !@logger
         STDOUT.sync = true
@@ -179,23 +183,14 @@ module Capybara::Cuprite
       page.command("Network.clearBrowserCookies")
     end
 
-    def set_http_auth(user, password)
-      raise NotImplementedError
+    def url_whitelist=(wildcards)
+      @url_whitelist = prepare_wildcards(wildcards)
+      page.intercept_request("*") if @client && !@url_whitelist.empty?
     end
 
-    def page_settings=(settings)
-      raise NotImplementedError
-    end
-
-    def url_whitelist=(whitelist)
-      @url_whitelist = Array(whitelist).map { |p| { urlPattern: p } }
-      page.command("Network.setRequestInterception", patterns: @url_whitelist)
-    end
-
-    def url_blacklist=(blacklist)
-      # FIXME: We have to change the format and make it compatible with Chrome not PhantomJS
-      @url_blacklist = Array(blacklist).map { |p| { urlPattern: p.include?("*") ? p : "*#{p}*" } }
-      page.command("Network.setRequestInterception", patterns: @url_blacklist)
+    def url_blacklist=(wildcards)
+      @url_blacklist = prepare_wildcards(wildcards)
+      page.intercept_request("*") if @client && !@url_blacklist.empty?
     end
 
     def clear_memory_cache
@@ -304,6 +299,17 @@ module Capybara::Cuprite
           raise InvalidSelector.new(e.response, method, selector)
         end
         raise
+      end
+    end
+
+    def prepare_wildcards(wc)
+      Array(wc).map do |wildcard|
+        if wildcard.is_a?(Regexp)
+          wildcard
+        else
+          wildcard = wildcard.gsub("*", ".*")
+          Regexp.new(wildcard, Regexp::IGNORECASE)
+        end
       end
     end
   end

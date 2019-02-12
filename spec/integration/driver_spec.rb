@@ -953,7 +953,7 @@ module Capybara::Cuprite
         expect(new_tab.size).to eq [1200, 800]
       end
 
-      it "inherits url_blacklist", skip: true do
+      it "inherits url_blacklist" do
         @driver.browser.url_blacklist = ["unwanted"]
         @session.visit "/"
         new_tab = @session.open_new_window
@@ -961,7 +961,7 @@ module Capybara::Cuprite
           @session.visit "/cuprite/url_blacklist"
           expect(@session).to have_content("We are loading some unwanted action here")
           @session.within_frame "framename" do
-            expect(@session.html).not_to include("We shouldn\"t see this.")
+            expect(@session.html).not_to include("We shouldn't see this.")
           end
         end
       end
@@ -1027,7 +1027,7 @@ module Capybara::Cuprite
       expect(value).to be_nil
     end
 
-    context "basic http authentication", skip: true do
+    context "basic http authentication" do
       it "denies without credentials" do
         @session.visit "/cuprite/basic_auth"
 
@@ -1046,7 +1046,7 @@ module Capybara::Cuprite
 
       it "allows even overwriting headers" do
         @driver.basic_authorize("login", "pass")
-        @driver.headers = [{ "Cuprite" => "true" }]
+        @driver.headers = { "Cuprite" => "true" }
 
         @session.visit "/cuprite/basic_auth"
 
@@ -1083,7 +1083,7 @@ module Capybara::Cuprite
         expect(@session.status_code).to eq(200)
         expect(@session).to have_content("We are loading some unwanted action here")
         @session.within_frame "framename" do
-          expect(@session.html).not_to include("We shouldn\"t see this.")
+          expect(@session.html).not_to include("We shouldn't see this.")
         end
       end
 
@@ -1141,7 +1141,7 @@ module Capybara::Cuprite
         end
       end
 
-      it "supports wildcards", skip: true do
+      it "supports wildcards" do
         @driver.browser.url_whitelist = ["url_whitelist", "/*wanted"]
 
         @session.visit "/cuprite/url_whitelist"
@@ -1156,7 +1156,7 @@ module Capybara::Cuprite
         end
       end
 
-      it "blocks overruled urls", skip: true do
+      it "blocks overruled urls" do
         @driver.browser.url_whitelist = ["url_whitelist"]
         @driver.browser.url_blacklist = ["url_whitelist"]
 

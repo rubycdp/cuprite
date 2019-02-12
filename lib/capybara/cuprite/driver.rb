@@ -129,8 +129,8 @@ module Capybara::Cuprite
 
     def reset!
       browser.reset
-      browser.url_blacklist = @options[:url_blacklist] if @options.key?(:url_blacklist)
-      browser.url_whitelist = @options[:url_whitelist] if @options.key?(:url_whitelist)
+      browser.url_blacklist = @options[:url_blacklist]
+      browser.url_whitelist = @options[:url_whitelist]
       @started = false
     end
 
@@ -246,16 +246,10 @@ module Capybara::Cuprite
       browser.clear_memory_cache
     end
 
-    # * Browser with set settings does not send `Authorize` on POST request
-    # * With manually set header browser makes next request with
-    # `Authorization: Basic Og==` header when settings are empty and the
-    # response was `401 Unauthorized` (which means Base64.encode64(":")).
-    # Combining both methods to reach proper behavior.
     def basic_authorize(user, password)
-      browser.set_http_auth(user, password)
-      credentials = ["#{user}:#{password}"].pack("m*").strip
-      add_header("Authorization", "Basic #{credentials}")
+      browser.authorize(user, password)
     end
+    alias_method :authorize, :basic_authorize
 
     def pause
       # STDIN is not necessarily connected to a keyboard. It might even be closed.
