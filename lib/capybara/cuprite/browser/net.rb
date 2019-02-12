@@ -1,6 +1,13 @@
 module Capybara::Cuprite
   class Browser
     module Net
+      def proxy_authorize(user, password)
+        if user && password
+          @proxy_username, @proxy_password = user, password
+          intercept_request("*")
+        end
+      end
+
       def authorize(user, password)
         @username, @password = user, password
         intercept_request("*")
@@ -32,11 +39,22 @@ module Capybara::Cuprite
 
         @client.subscribe("Network.requestIntercepted") do |params|
           @authorized_ids ||= []
+          @proxy_authorized_ids ||= []
           url = params.dig("request", "url")
           interception_id = params["interceptionId"]
 
           if params["authChallenge"]
-            response =
+            response = if params.dig("authChallenge", "source") == "Proxy"
+              if @proxy_authorized_ids.include?(interception_id)
+                { response: "CancelAuth" }
+              elsif @proxy_username && @proxy_password
+                { response: "ProvideCredentials",
+                  username: @proxy_username,
+                  password: @proxy_password }
+              else
+                { response: "CancelAuth" }
+              end
+            else
               if @authorized_ids.include?(interception_id)
                 { response: "CancelAuth" }
               elsif @username && @password
@@ -46,6 +64,7 @@ module Capybara::Cuprite
               else
                 { response: "CancelAuth" }
               end
+            end
 
             @authorized_ids << interception_id
             continue_request(interception_id, authChallengeResponse: response)

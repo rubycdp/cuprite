@@ -33,7 +33,8 @@ module Capybara::Cuprite
                 scroll_to send_keys evaluate evaluate_on evaluate_async execute
                 frame_url frame_title switch_to_frame current_url title go_back
                 go_forward find_modal accept_confirm dismiss_confirm
-                accept_prompt dismiss_prompt reset_modals authorize) => :page
+                accept_prompt dismiss_prompt reset_modals authorize
+                proxy_authorize) => :page
 
     attr_reader :process, :logger, :js_errors, :slowmo,
                 :url_blacklist, :url_whitelist
