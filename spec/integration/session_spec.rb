@@ -2,9 +2,7 @@
 
 require "spec_helper"
 
-skip = []
-skip << :download # Browser doesn't support downloading files
-Capybara::SpecHelper.run_specs TestSessions::Cuprite, "Cuprite", capybara_skip: skip
+Capybara::SpecHelper.run_specs TestSessions::Cuprite, "Cuprite"
 
 describe Capybara::Session do
   context "with cuprite driver" do
@@ -235,12 +233,16 @@ describe Capybara::Session do
       end
 
       it "attaches a file when passed a Pathname" do
-        filename = Pathname.new("spec/tmp/a_test_pathname").expand_path
-        File.open(filename, "w") { |f| f.write("text") }
+        begin
+          filename = Pathname.new("spec/tmp/a_test_pathname").expand_path
+          File.open(filename, "w") { |f| f.write("text") }
 
-        element = @session.find(:css, "#change_me_file")
-        element.set(filename)
-        expect(element.value).to eq("C:\\fakepath\\a_test_pathname")
+          element = @session.find(:css, "#change_me_file")
+          element.set(filename)
+          expect(element.value).to eq("C:\\fakepath\\a_test_pathname")
+        ensure
+          FileUtils.rm_f(filename)
+        end
       end
     end
 

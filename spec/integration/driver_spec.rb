@@ -210,9 +210,12 @@ module Capybara::Cuprite
 
     describe "#save_screenshot" do
       let(:format) { :png }
-      let(:file) { CUPRITE_ROOT + "/spec/tmp/screenshot.#{format}" }
+      let(:file) { "#{CUPRITE_ROOT}/spec/tmp/screenshot.#{format}" }
 
-      before(:each) { FileUtils.rm_f file }
+      after do
+        FileUtils.rm_f("#{CUPRITE_ROOT}/spec/tmp/screenshot.pdf")
+        FileUtils.rm_f("#{CUPRITE_ROOT}/spec/tmp/screenshot.png")
+      end
 
       def create_screenshot(file, *args)
         @driver.save_screenshot(file, *args)
@@ -237,21 +240,20 @@ module Capybara::Cuprite
       it "supports rendering the page to file without extension when format is specified" do
         begin
           file = CUPRITE_ROOT + "/spec/tmp/screenshot"
-          FileUtils.rm_f file
           @session.visit("/")
 
           @driver.save_screenshot(file, format: "jpg")
 
           expect(File.exist?(file)).to be true
         ensure
-          FileUtils.rm_f file
+          FileUtils.rm_f(file)
         end
       end
 
       it "supports rendering the page with different quality settings" do
         file2 = CUPRITE_ROOT + "/spec/tmp/screenshot2.jpeg"
         file3 = CUPRITE_ROOT + "/spec/tmp/screenshot3.jpeg"
-        FileUtils.rm_f [file2, file3]
+        FileUtils.rm_f([file2, file3])
 
         begin
           @session.visit("/")
@@ -261,7 +263,7 @@ module Capybara::Cuprite
           expect(File.size(file)).to be > File.size(file2) # png by defult is bigger
           expect(File.size(file2)).to be < File.size(file3)
         ensure
-          FileUtils.rm_f [file2, file3]
+          FileUtils.rm_f([file2, file3])
         end
       end
 
@@ -316,7 +318,7 @@ module Capybara::Cuprite
     end
 
     describe "#render_base64" do
-      let(:file) { CUPRITE_ROOT + "/spec/tmp/screenshot.#{format}" }
+      let(:file) { "#{CUPRITE_ROOT}/spec/tmp/screenshot.#{format}" }
 
       def create_screenshot(file, *args)
         image = @driver.render_base64(format, *args)
@@ -333,11 +335,15 @@ module Capybara::Cuprite
 
       context "png" do
         let(:format) { :png }
+        after { FileUtils.rm_f(file) }
+
         include_examples "render screen"
       end
 
       context "jpeg" do
         let(:format) { :jpeg }
+        after { FileUtils.rm_f(file) }
+
         include_examples "render screen"
       end
     end
