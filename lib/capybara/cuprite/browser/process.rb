@@ -24,6 +24,23 @@ module Capybara::Cuprite
         "keep-alive-for-test" => nil,
         "disable-popup-blocking" => nil,
         "disable-extensions" => nil,
+        "disable-hang-monitor" => nil,
+        "disable-features" => "site-per-process,TranslateUI",
+        "disable-translate" => nil,
+        "disable-background-networking" => nil,
+        "enable-features" => "NetworkService,NetworkServiceInProcess",
+        "disable-background-timer-throttling" => nil,
+        "disable-backgrounding-occluded-windows" => nil,
+        "disable-client-side-phishing-detection" => nil,
+        "disable-default-apps" => nil,
+        "disable-dev-shm-usage" => nil,
+        "disable-ipc-flooding-protection" => nil,
+        "disable-prompt-on-repost" => nil,
+        "disable-renderer-backgrounding" => nil,
+        "force-color-profile" => "srgb",
+        "metrics-recording-only" => nil,
+        "safebrowsing-disable-auto-update" => nil,
+        "password-store" => "basic",
         # Note: --no-sandbox is not needed if you properly setup a user in the container.
         # https://github.com/ebidel/lighthouse-ci/blob/master/builder/Dockerfile#L35-L40
         # "no-sandbox" => nil,
@@ -41,7 +58,7 @@ module Capybara::Cuprite
             if Capybara::Cuprite.windows?
               ::Process.kill("KILL", pid)
             else
-              ::Process.kill("TERM", pid)
+              ::Process.kill("USR1", pid)
               start = Time.now
               while ::Process.wait(pid, ::Process::WNOHANG).nil?
                 sleep 0.05

@@ -17,7 +17,7 @@ module Capybara::Cuprite
 
           subject.send(:start)
 
-          expect(::Process).to receive(:kill).with("TERM", 5678).ordered
+          expect(::Process).to receive(:kill).with("USR1", 5678).ordered
           expect(::Process).to receive(:kill).with("KILL", 5678).ordered
 
           subject.quit
