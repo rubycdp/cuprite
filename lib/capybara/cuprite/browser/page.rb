@@ -114,13 +114,13 @@ module Capybara::Cuprite
       end
 
       def network_traffic(type = nil)
-        case type
+        case type.to_s
         when "all"
           @network_traffic
         when "blocked"
-          @network_traffic # when request blocked
+          @network_traffic.select { |r| r.response.nil? } # when request blocked
         else
-          @network_traffic # when not request blocked
+          @network_traffic.select { |r| r.response } # when request isn't blocked
         end
       end
 
