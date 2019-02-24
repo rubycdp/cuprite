@@ -60,10 +60,10 @@ module Capybara::Cuprite
               ::Process.kill("KILL", pid)
             else
               ::Process.kill("USR1", pid)
-              start = Time.now
+              start = Capybara::Helpers.monotonic_time
               while ::Process.wait(pid, ::Process::WNOHANG).nil?
                 sleep 0.05
-                next unless (Time.now - start) > KILL_TIMEOUT
+                next unless (Capybara::Helpers.monotonic_time - start) > KILL_TIMEOUT
                 ::Process.kill("KILL", pid)
                 ::Process.wait(pid)
                 break
