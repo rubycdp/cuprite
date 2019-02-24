@@ -154,7 +154,7 @@ module Capybara::Cuprite
       end
 
       def find_modal(options)
-        start_time    = Time.now
+        start_time    = Capybara::Helpers.monotonic_time
         timeout_sec   = options.fetch(:wait) { session_wait_time }
         expect_text   = options[:text]
         expect_regexp = expect_text.is_a?(Regexp) ? expect_text : Regexp.escape(expect_text.to_s)
@@ -165,7 +165,7 @@ module Capybara::Cuprite
           modal_text = @modal_messages.shift
           raise Capybara::ModalNotFound if modal_text.nil? || (expect_text && !modal_text.match(expect_regexp))
         rescue Capybara::ModalNotFound => e
-          raise e, not_found_msg if (Time.now - start_time) >= timeout_sec
+          raise e, not_found_msg if (Capybara::Helpers.monotonic_time - start_time) >= timeout_sec
           sleep(0.05)
           retry
         end
@@ -184,9 +184,9 @@ module Capybara::Cuprite
 
         @mutex.synchronize do
           id = @client.command(*args)
-          stop_at = Time.now.to_f + @wait
+          stop_at = Capybara::Helpers.monotonic_time + @wait
 
-          while @wait > 0 && (remain = stop_at - Time.now.to_f) > 0
+          while @wait > 0 && (remain = stop_at - Capybara::Helpers.monotonic_time) > 0
             @resource.wait(@mutex, remain)
           end
 
