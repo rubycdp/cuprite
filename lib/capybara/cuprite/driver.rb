@@ -190,9 +190,10 @@ module Capybara::Cuprite
       browser.clear_network_traffic
     end
 
-    def set_proxy(ip, port, type = "http", user = nil, password = nil, bypass = nil)
+    def set_proxy(ip, port, type = nil, user = nil, password = nil, bypass = nil)
       @options[:browser_options] ||= {}
-      @options[:browser_options].merge!("proxy-server" => "#{type}=#{ip}:#{port}")
+      server = type ? "#{type}=#{ip}:#{port}" : "#{ip}:#{port}"
+      @options[:browser_options].merge!("proxy-server" => server)
       @options[:browser_options].merge!("proxy-bypass-list" => bypass) if bypass
       browser.proxy_authorize(user, password)
     end
