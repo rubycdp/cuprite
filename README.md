@@ -13,25 +13,6 @@ have consistent design with other browsers. The design of the driver will be as
 close to [Poltergeist](https://github.com/teampoltergeist/poltergeist) as
 possible but it's not a goal.
 
-## Speed comparison and missing features ##
-
-Almost all capybara tests are passing with quite good speed in comparison with
-Poltergest/PhantomJS:
-
-```
-cuprite:
-Finished in 8 minutes 58 seconds (files took 0.89959 seconds to load)
-1555 examples, 0 failures, 27 pending
-
-selenium headless chrome:
-Finished in 9 minutes 13 seconds (files took 0.97749 seconds to load)
-1445 examples, 0 failures, 3 pending
-
-poltergeist:
-Finished in 11 minutes 49 seconds (files took 0.54019 seconds to load)
-1560 examples, 0 failures, 6 pending
-```
-
 ## Installation ##
 
 ``` ruby
@@ -46,10 +27,6 @@ In your test setup add:
 require "capybara/cuprite"
 Capybara.javascript_driver = :cuprite
 ```
-
-If you were previously using the `:rack_test` driver, be aware that
-your app will now run in a separate thread and this can have
-consequences for transactional tests. [See the Capybara README for more detail](https://github.com/jnicklas/capybara/blob/master/README.md#transactions-and-database-setup).
 
 ## Installing Chromium ##
 

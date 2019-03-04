@@ -22,18 +22,6 @@ module TestSessions
   Cuprite = Capybara::Session.new(:cuprite, TestApp)
 end
 
-module Cuprite
-  module SpecHelper
-    class << self
-      def set_capybara_wait_time(t)
-        Capybara.default_max_wait_time = t
-      rescue StandardError
-        Capybara.default_wait_time = t
-      end
-    end
-  end
-end
-
 RSpec.configure do |config|
   config.define_derived_metadata do |metadata|
     regexes = <<~REGEXP.split("\n").map { |s| Regexp.quote(s.strip) }.join("|")
@@ -46,14 +34,4 @@ RSpec.configure do |config|
   end
 
   Capybara::SpecHelper.configure(config)
-
-  config.before(:each) do
-    Cuprite::SpecHelper.set_capybara_wait_time(0)
-  end
-
-  %i[js modals windows].each do |cond|
-    config.before(:each, requires: cond) do
-      Cuprite::SpecHelper.set_capybara_wait_time(1)
-    end
-  end
 end

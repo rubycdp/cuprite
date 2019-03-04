@@ -80,21 +80,17 @@ describe Capybara::Session do
         end
 
         it "raises a MouseEventFailed error" do
-          expect { @session.click_link("O hai") }.to raise_error(Capybara::Cuprite::MouseEventFailed)
+          expect { @session.click_link("O hai") }
+            .to raise_error(Capybara::Cuprite::MouseEventFailed)
         end
 
         context "and is then brought in" do
           before do
             @session.execute_script %Q($("#off-the-left").animate({left: "10"});)
-            Cuprite::SpecHelper.set_capybara_wait_time(1)
           end
 
           it "clicks properly" do
             expect { @session.click_link "O hai" }.to_not raise_error
-          end
-
-          after do
-            Cuprite::SpecHelper.set_capybara_wait_time(0)
           end
         end
       end
