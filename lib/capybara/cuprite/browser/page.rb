@@ -279,6 +279,19 @@ module Capybara::Cuprite
           end
         end
 
+        @client.subscribe("Network.loadingFinished") do |params|
+          if request = @network_traffic.find { |r| r.id == params["requestId"] }
+            # Sometimes we never get the Network.responseReceived event.
+            # See https://crbug.com/883475
+            #
+            # Network.loadingFinished's encodedDataLength contains both body and headers
+            # sizes received by wire. See https://crbug.com/764946
+            if response = request.response
+              response.body_size = params["encodedDataLength"] - response.headers_size
+            end
+          end
+        end
+
         @client.subscribe("Log.entryAdded") do |params|
           source = params.dig("entry", "source")
           level = params.dig("entry", "level")

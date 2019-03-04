@@ -762,6 +762,21 @@ module Capybara::Cuprite
 
         expect(@driver.network_traffic(:blocked).length).to eq(0)
       end
+
+      it "counts network traffic for each loaded resource" do
+        @session.visit("/cuprite/with_js")
+        responses = @driver.network_traffic.map(&:response)
+        resources_size = {
+          %r{/cuprite/jquery.min.js$}    => File.size(CUPRITE_ROOT + "/spec/support/public/jquery-1.11.3.min.js"),
+          %r{/cuprite/jquery-ui.min.js$} => File.size(CUPRITE_ROOT + "/spec/support/public/jquery-ui-1.11.4.min.js"),
+          %r{/cuprite/test.js$}          => File.size(CUPRITE_ROOT + "/spec/support/public/test.js"),
+          %r{/cuprite/with_js$}          => 2329
+        }
+
+        resources_size.each do |resource, size|
+          expect(responses.find { |r| r.url[resource] }.body_size).to eq(size)
+        end
+      end
     end
 
     it "can clear memory cache" do

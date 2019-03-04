@@ -2,6 +2,8 @@
 
 module Capybara::Cuprite::Network
   class Response
+    attr_accessor :body_size
+
     def initialize(data)
       @data = data
     end
@@ -26,13 +28,13 @@ module Capybara::Cuprite::Network
       @data["headers"]
     end
 
+    def headers_size
+      @data["encodedDataLength"]
+    end
+
     # FIXME: didn't check if we have it on redirect response
     def redirect_url
       @data["redirectURL"]
-    end
-
-    def body_size
-      @body_size ||= @data.dig("headers", "Content-Length").to_i
     end
 
     def content_type
