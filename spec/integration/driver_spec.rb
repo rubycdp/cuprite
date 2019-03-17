@@ -1426,6 +1426,45 @@ module Capybara::Cuprite
         @session.find(:css, "#existing_content_editable_child").set("WYSIWYG")
         expect(@session.find(:css, "#existing_content_editable_child").text).to eq("WYSIWYG")
       end
+
+      describe "events" do
+        let(:input) { @session.find(:css, "#input") }
+        let(:output) { @session.find(:css, "#output") }
+
+        before { @session.visit("/cuprite/input_events") }
+
+        it "calls event handlers in the correct order" do
+          input.set("a")
+          expect(output.text).to eq("keydown keypress input keyup change")
+          expect(input.value).to eq("a")
+        end
+
+        it "respects preventDefault() calls in keydown handlers" do
+          @session.execute_script "input.addEventListener('keydown', e => e.preventDefault())"
+          input.set("a")
+          expect(output.text).to eq("keydown keyup")
+          expect(input.value).to be_empty
+        end
+
+        it "respects preventDefault() calls in keypress handlers" do
+          @session.execute_script "input.addEventListener('keypress', e => e.preventDefault())"
+          input.set("a")
+          expect(output.text).to eq("keydown keypress keyup")
+          expect(input.value).to be_empty
+        end
+
+        it "calls event handlers for each character input" do
+          input.set("abc")
+          expect(output.text).to eq((["keydown keypress input keyup"] * 3).join(" ") + " change")
+          expect(input.value).to eq("abc")
+        end
+
+        it "doesn't call the change event if there is no change" do
+          input.set("a")
+          input.set("a")
+          expect(output.text).to eq("keydown keypress input keyup change keydown keypress input keyup")
+        end
+      end
     end
 
     context "date_fields" do
