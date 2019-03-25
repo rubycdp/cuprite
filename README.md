@@ -51,6 +51,24 @@ All the mandatory capybara features plus optional ones:
 * window API
 * cookie handling
 
+### Remote debugging ###
+
+If you use the `inspector: true` option, remote debugging will be enabled. When
+this option is enabled, you can insert `page.driver.debug` into your tests to
+pause the test and launch a browser which gives you the Chrome inspector to view
+all your open pages and inspect them.
+
+You can register this debugger driver with a different name and set it
+as the current javascript driver. By example, in your helper file:
+
+```ruby
+Capybara.register_driver :cuprite_debug do |app|
+  Capybara::Cuprite::Driver.new(app, inspector: true)
+end
+
+Capybara.javascript_driver = :cuprite_debug
+```
+
 ### Clicking coordinates ###
 
 Sometimes its desirable to click a very specific area of the screen. You can

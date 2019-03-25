@@ -252,6 +252,16 @@ module Capybara::Cuprite
     end
     alias_method :authorize, :basic_authorize
 
+    def debug
+      if @options[:inspector]
+        Process.spawn(browser.process.path, "http://#{browser.process.host}:#{browser.process.port}")
+        pause
+      else
+        raise Error, "To use the remote debugging, you have to launch " \
+                     "the driver with `inspector: true` configuration option"
+      end
+    end
+
     def pause
       # STDIN is not necessarily connected to a keyboard. It might even be closed.
       # So we need a method other than keypress to continue.

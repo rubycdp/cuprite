@@ -12,7 +12,9 @@ require "capybara/cuprite"
 require "support/test_app"
 
 Capybara.register_driver(:cuprite) do |app|
-  driver = Capybara::Cuprite::Driver.new(app, {})
+  options = {}
+  options.merge!(inspector: true) if ENV["INSPECTOR"]
+  driver = Capybara::Cuprite::Driver.new(app, options)
   puts driver.browser.process.cmd.join(" ")
   puts `"#{driver.browser.process.path}" -version --headless --no-gpu`
   driver
