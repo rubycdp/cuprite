@@ -254,7 +254,9 @@ module Capybara::Cuprite
 
     def debug
       if @options[:inspector]
-        Process.spawn(browser.process.path, "http://#{browser.process.host}:#{browser.process.port}")
+        url = browser.ws_url
+        # TODO: fixme
+        Process.spawn(url.path, "http://#{url.host}:#{url.port}")
         pause
       else
         raise Error, "To use the remote debugging, you have to launch " \
