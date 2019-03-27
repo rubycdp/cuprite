@@ -7,6 +7,8 @@ require "chunky_png"
 
 module Capybara::Cuprite
   describe Driver do
+    include Spec::Support::ExternalBrowser
+
     around do |example|
       begin
         @session = TestSessions::Cuprite
@@ -923,6 +925,18 @@ module Capybara::Cuprite
     end
 
     it "allows the driver to have a custom host" do
+      with_external_browser do |url|
+        begin
+          driver = Capybara::Cuprite::Driver.new(@driver.app, url: url)
+          driver.visit session_url("/")
+          expect(driver.html).to include("Hello world!")
+        ensure
+          driver&.quit
+        end
+      end
+    end
+
+    it "allows for a custom browser url to be specified which" do
       begin
         # Use custom host "pointing" to localhost, specified by BROWSER_TEST_HOST env var.
         # Use /etc/hosts or iptables for this: https://superuser.com/questions/516208/how-to-change-ip-address-to-point-to-localhost

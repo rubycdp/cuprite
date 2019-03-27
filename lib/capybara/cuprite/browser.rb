@@ -9,6 +9,8 @@ require "capybara/cuprite/browser/page"
 
 module Capybara::Cuprite
   class Browser
+    HOST = "127.0.0.1"
+    PORT = "0"
     TIMEOUT = 5
     WINDOW_SIZE = [1024, 768].freeze
     EXTENSIONS = [
@@ -17,7 +19,7 @@ module Capybara::Cuprite
 
     extend Forwardable
 
-    attr_reader :headers, :window_size
+    attr_reader :headers, :window_size, :host, :psot
 
     def self.start(*args)
       new(*args)
@@ -37,12 +39,20 @@ module Capybara::Cuprite
                 proxy_authorize) => :page
 
     attr_reader :process, :logger, :js_errors, :slowmo,
-                :url_blacklist, :url_whitelist
+                :url_blacklist, :url_whitelist, :url, :host, :port
     attr_writer :timeout
 
     def initialize(options = nil)
       # Doesn't work on MacOS, so we need to set it by CDP as well
       options ||= {}
+
+      @url = options.key?(:url) ? Addressable::URI.parse(options[:url]) : nil
+      @port = @url ? @url.port : options.fetch(:port, PORT)
+      @host = @url ? @url.host : options.fetch(:host, HOST)
+
+      options[:port] ||= @port
+      options[:host] ||= @host
+
       @window_size = options.fetch(:window_size, WINDOW_SIZE)
       @original_window_size = @window_size
 
@@ -212,7 +222,7 @@ module Capybara::Cuprite
 
     def quit
       @client.close
-      @process.stop
+      @process&.stop
       @client = @process = @targets = nil
     end
 
@@ -241,12 +251,29 @@ module Capybara::Cuprite
       @targets ||= Targets.new(self)
     end
 
+
+    def ws_url
+      return @ws_url if defined?(@ws_url)
+      return @process.ws_url if @process
+
+      require 'net/http'
+      require 'json'
+
+      response = ::Net::HTTP.get(URI.parse(@url.to_s + '/json/version'))
+      url_string = JSON.parse(response)["webSocketDebuggerUrl"]
+      @ws_url = Addressable::URI.parse(url_string)
+    end
+
     private
 
     def start
       @headers = {}
-      @process = Process.start(@options)
-      @client = Client.new(self, @process.ws_url, false)
+
+      if @url.nil?
+        @process = Process.start(@options)
+      end
+
+      @client = Client.new(self, ws_url, false)
     end
 
     def render_options(format, opts)

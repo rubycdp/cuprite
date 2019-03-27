@@ -10,6 +10,7 @@ require "capybara/spec/spec_helper"
 require "capybara/cuprite"
 
 require "support/test_app"
+require "support/external_browser"
 
 Capybara.register_driver(:cuprite) do |app|
   options = {}

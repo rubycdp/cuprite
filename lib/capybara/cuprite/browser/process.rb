@@ -8,8 +8,6 @@ module Capybara::Cuprite
       KILL_TIMEOUT = 2
       PROCESS_TIMEOUT = 1
       BROWSER_PATH = ENV["BROWSER_PATH"]
-      BROWSER_HOST = "127.0.0.1"
-      BROWSER_PORT = "0"
       DEFAULT_OPTIONS = {
         "headless" => nil,
         "disable-gpu" => nil,
@@ -82,10 +80,10 @@ module Capybara::Cuprite
         # Doesn't work on MacOS, so we need to set it by CDP as well
         @options.merge!("window-size" => options[:window_size].join(","))
 
-        port = options.fetch(:port, BROWSER_PORT)
+        port = options.fetch(:port)
         @options.merge!("remote-debugging-port" => port)
 
-        host = options.fetch(:host, BROWSER_HOST)
+        host = options.fetch(:host)
         @options.merge!("remote-debugging-address" => host)
 
         @options.merge!("user-data-dir" => Dir.mktmpdir)
@@ -134,23 +132,27 @@ module Capybara::Cuprite
         start
       end
 
+      def self.detect_browser_path
+        if RUBY_PLATFORM.include?('darwin')
+          [
+            "/Applications/Chromium.app/Contents/MacOS/Chromium",
+            "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
+          ].find { |path| File.exist?(path) }
+        else
+          %w[chromium google-chrome-unstable google-chrome-beta google-chrome chrome chromium-browser google-chrome-stable].reduce(nil) do |path, exe|
+            path = Cliver.detect(exe)
+            break path if path
+          end
+        end
+      end
+
       private
 
       def detect_browser_path(options)
         @path =
           options[:browser_path] ||
           BROWSER_PATH || (
-            if RUBY_PLATFORM.include?('darwin')
-              [
-                "/Applications/Chromium.app/Contents/MacOS/Chromium",
-                "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
-              ].find { |path| File.exist?(path) }
-            else
-              %w[chromium google-chrome-unstable google-chrome-beta google-chrome chrome chromium-browser google-chrome-stable].reduce(nil) do |path, exe|
-                path = Cliver.detect(exe)
-                break path if path
-              end
-            end
+            self.class.detect_browser_path
           )
 
         unless @path
