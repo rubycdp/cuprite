@@ -151,6 +151,7 @@ end
 * `:url_blacklist` (Array) - array of strings to match against requested URLs
 * `:url_whitelist` (Array) - array of strings to match against requested URLs
 * `:process_timeout` (Integer) - How long to wait for the Chrome process to respond on startup
+* `:url` (String) - URL for a running instance of Chrome. If this is set, a browser process will not be spawned.
 
 
 ### URL Blacklisting & Whitelisting ###
