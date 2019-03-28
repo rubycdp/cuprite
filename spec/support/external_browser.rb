@@ -17,23 +17,15 @@ module Spec
       end
 
       def with_external_browser
-        pid = nil
-        tmp = nil
+        url = URI.parse("http://127.0.0.1:32001")
+        opts = { host: url.host, port: url.port, window_size: [1400, 1400], headless: true }
+        process = Capybara::Cuprite::Browser::Process.new(opts)
 
         begin
-
-          tmp = Dir.mktmpdir
-          remote_debugging_port = 32222
-          args = "--user-data-dir=#{tmp} --remote-debugging-port=#{remote_debugging_port}"
-          exe = Capybara::Cuprite::Browser::Process.detect_browser_path
-          pid = Process.spawn("#{exe} #{args}", out: File::NULL)
-          wait_for_connection('localhost', remote_debugging_port)
-
-          url = "http://localhost:#{remote_debugging_port}"
-          yield url
+          process.start
+          yield url.to_s
         ensure
-          Process.kill('SIGTERM', pid)
-          FileUtils.rm_f tmp
+          process.stop
         end
       end
     end
