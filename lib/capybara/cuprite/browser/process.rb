@@ -5,6 +5,8 @@ require "cliver"
 module Capybara::Cuprite
   class Browser
     class Process
+      HOST = "127.0.0.1"
+      PORT = "0"
       KILL_TIMEOUT = 2
       PROCESS_TIMEOUT = 1
       BROWSER_PATH = ENV["BROWSER_PATH"]
@@ -80,10 +82,10 @@ module Capybara::Cuprite
         # Doesn't work on MacOS, so we need to set it by CDP as well
         @options.merge!("window-size" => options[:window_size].join(","))
 
-        port = options.fetch(:port)
+        port = options.fetch(:port, PORT)
         @options.merge!("remote-debugging-port" => port)
 
-        host = options.fetch(:host)
+        host = options.fetch(:host, HOST)
         @options.merge!("remote-debugging-address" => host)
 
         @options.merge!("user-data-dir" => Dir.mktmpdir)
