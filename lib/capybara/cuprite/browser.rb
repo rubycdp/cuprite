@@ -9,8 +9,6 @@ require "capybara/cuprite/browser/page"
 
 module Capybara::Cuprite
   class Browser
-    HOST = "127.0.0.1"
-    PORT = "0"
     TIMEOUT = 5
     WINDOW_SIZE = [1024, 768].freeze
     EXTENSIONS = [
@@ -19,7 +17,7 @@ module Capybara::Cuprite
 
     extend Forwardable
 
-    attr_reader :headers, :window_size, :host, :psot
+    attr_reader :headers, :window_size
 
     def self.start(*args)
       new(*args)
@@ -39,7 +37,7 @@ module Capybara::Cuprite
                 proxy_authorize) => :page
 
     attr_reader :process, :logger, :js_errors, :slowmo,
-                :url_blacklist, :url_whitelist, :url, :host, :port
+                :url_blacklist, :url_whitelist, :url
     attr_writer :timeout
 
     def initialize(options = nil)
@@ -47,11 +45,6 @@ module Capybara::Cuprite
       options ||= {}
 
       @url = options.key?(:url) ? Addressable::URI.parse(options[:url]) : nil
-      @port = @url ? @url.port : options.fetch(:port, PORT)
-      @host = @url ? @url.host : options.fetch(:host, HOST)
-
-      options[:port] ||= @port
-      options[:host] ||= @host
 
       @window_size = options.fetch(:window_size, WINDOW_SIZE)
       @original_window_size = @window_size
