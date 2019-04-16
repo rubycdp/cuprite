@@ -57,8 +57,8 @@ module Capybara::Cuprite
           end
         end
 
-        host = @browser.ws_url.host
-        port = @browser.ws_url.port
+        host = @browser.process.host
+        port = @browser.process.port
         ws_url = "ws://#{host}:#{port}/devtools/page/#{@target_id}"
         @client = Client.new(browser, ws_url)
 

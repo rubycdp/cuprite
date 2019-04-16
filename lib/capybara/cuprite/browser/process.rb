@@ -1,15 +1,17 @@
 # frozen_string_literal: true
 
 require "cliver"
+require "net/http"
+require "json"
 
 module Capybara::Cuprite
   class Browser
     class Process
-      HOST = "127.0.0.1"
-      PORT = "0"
       KILL_TIMEOUT = 2
       PROCESS_TIMEOUT = 1
       BROWSER_PATH = ENV["BROWSER_PATH"]
+      BROWSER_HOST = "127.0.0.1"
+      BROWSER_PORT = "0"
       DEFAULT_OPTIONS = {
         "headless" => nil,
         "disable-gpu" => nil,
@@ -47,6 +49,11 @@ module Capybara::Cuprite
         # "no-sandbox" => nil,
       }.freeze
 
+      NOT_FOUND = "Could not find an executable for chrome. Try to make it " \
+                  "available on the PATH or set environment varible for " \
+                  "example BROWSER_PATH=\"/Applications/Chromium.app/Contents/MacOS/Chromium\""
+
+
       attr_reader :host, :port, :ws_url, :pid, :path, :options, :cmd
 
       def self.start(*args)
@@ -74,18 +81,39 @@ module Capybara::Cuprite
         end
       end
 
+      def self.detect_browser_path
+        if RUBY_PLATFORM.include?("darwin")
+          [
+            "/Applications/Chromium.app/Contents/MacOS/Chromium",
+            "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
+          ].find { |path| File.exist?(path) }
+        else
+          %w[chromium google-chrome-unstable google-chrome-beta google-chrome chrome chromium-browser google-chrome-stable].reduce(nil) do |path, exe|
+            path = Cliver.detect(exe)
+            break path if path
+          end
+        end
+      end
+
       def initialize(options)
         @options = {}
 
-        detect_browser_path(options)
+        @path = options[:browser_path] || BROWSER_PATH || self.class.detect_browser_path
+
+        if options[:url]
+          url = URI.join(options[:url].to_s, "/json/version")
+          response = JSON.parse(::Net::HTTP.get(url))
+          set_ws_url(response["webSocketDebuggerUrl"])
+          return
+        end
 
         # Doesn't work on MacOS, so we need to set it by CDP as well
         @options.merge!("window-size" => options[:window_size].join(","))
 
-        port = options.fetch(:port, PORT)
+        port = options.fetch(:port, BROWSER_PORT)
         @options.merge!("remote-debugging-port" => port)
 
-        host = options.fetch(:host, HOST)
+        host = options.fetch(:host, BROWSER_HOST)
         @options.merge!("remote-debugging-address" => host)
 
         @options.merge!("user-data-dir" => Dir.mktmpdir)
@@ -101,26 +129,33 @@ module Capybara::Cuprite
 
         @options.merge!(options.fetch(:browser_options, {}))
 
-        @logger = options.fetch(:logger, nil)
+        @logger = options[:logger]
       end
 
       def start
-        read_io, write_io = IO.pipe
-        process_options = { in: File::NULL }
-        process_options[:pgroup] = true unless Capybara::Cuprite.windows?
-        if Capybara::Cuprite.mri?
-          process_options[:out] = process_options[:err] = write_io
-        end
+        # Don't do anything as browser is already running as external process.
+        return if ws_url
 
-        redirect_stdout(write_io) do
-          @cmd = [@path] + @options.map { |k, v| v.nil? ? "--#{k}" : "--#{k}=#{v}" }
-          @pid = ::Process.spawn(*@cmd, process_options)
-          ObjectSpace.define_finalizer(self, self.class.process_killer(@pid))
-        end
+        begin
+          read_io, write_io = IO.pipe
+          process_options = { in: File::NULL }
+          process_options[:pgroup] = true unless Capybara::Cuprite.windows?
+          if Capybara::Cuprite.mri?
+            process_options[:out] = process_options[:err] = write_io
+          end
 
-        parse_ws_url(read_io, @process_timeout)
-      ensure
-        close_io(read_io, write_io)
+          raise Cliver::Dependency::NotFound.new(NOT_FOUND) unless @path
+
+          redirect_stdout(write_io) do
+            @cmd = [@path] + @options.map { |k, v| v.nil? ? "--#{k}" : "--#{k}=#{v}" }
+            @pid = ::Process.spawn(*@cmd, process_options)
+            ObjectSpace.define_finalizer(self, self.class.process_killer(@pid))
+          end
+
+          parse_ws_url(read_io, @process_timeout)
+        ensure
+          close_io(read_io, write_io)
+        end
       end
 
       def stop
@@ -134,36 +169,7 @@ module Capybara::Cuprite
         start
       end
 
-      def self.detect_browser_path
-        if RUBY_PLATFORM.include?('darwin')
-          [
-            "/Applications/Chromium.app/Contents/MacOS/Chromium",
-            "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
-          ].find { |path| File.exist?(path) }
-        else
-          %w[chromium google-chrome-unstable google-chrome-beta google-chrome chrome chromium-browser google-chrome-stable].reduce(nil) do |path, exe|
-            path = Cliver.detect(exe)
-            break path if path
-          end
-        end
-      end
-
       private
-
-      def detect_browser_path(options)
-        @path =
-          options[:browser_path] ||
-          BROWSER_PATH || (
-            self.class.detect_browser_path
-          )
-
-        unless @path
-          message = "Could not find an executable for chrome. Try to make it " \
-                    "available on the PATH or set environment varible for " \
-                    "example BROWSER_PATH=\"/Applications/Chromium.app/Contents/MacOS/Chromium\""
-          raise Cliver::Dependency::NotFound.new(message)
-        end
-      end
 
       def redirect_stdout(write_io)
         if Capybara::Cuprite.mri?
@@ -199,18 +205,22 @@ module Capybara::Cuprite
             IO.select([read_io], nil, nil, max_time - now)
           else
             if output.match(regexp)
-              @ws_url = Addressable::URI.parse(output.match(regexp)[1].strip)
-              @host = @ws_url.host
-              @port = @ws_url.port
+              set_ws_url(output.match(regexp)[1].strip)
               break
             end
           end
         end
 
-        unless @ws_url
+        unless ws_url
           @logger.puts output if @logger
           raise "Chrome process did not produce websocket url within #{timeout} seconds"
         end
+      end
+
+      def set_ws_url(url)
+        @ws_url = Addressable::URI.parse(url)
+        @host = @ws_url.host
+        @port = @ws_url.port
       end
 
       def close_io(*ios)
