@@ -148,11 +148,12 @@ end
 * `:extensions` (Array) - An array of JS files to be preloaded into the browser
 * `:port` (Integer) - Remote debugging port for headless Chrome
 * `:host` (String) - Remote debugging address for headless Chrome
+* `:url` (String) - URL for a running instance of Chrome. If this is set, a
+    browser process will not be spawned.
 * `:url_blacklist` (Array) - array of strings to match against requested URLs
 * `:url_whitelist` (Array) - array of strings to match against requested URLs
-* `:process_timeout` (Integer) - How long to wait for the Chrome process to respond on startup
-* `:url` (String) - URL for a running instance of Chrome. If this is set, a browser process will not be spawned.
-
+* `:process_timeout` (Integer) - How long to wait for the Chrome process to
+    respond on startup
 
 ### URL Blacklisting & Whitelisting ###
 Cuprite supports URL blacklisting, which allows you to prevent scripts from
