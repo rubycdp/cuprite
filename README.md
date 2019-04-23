@@ -154,6 +154,21 @@ end
 * `:url_whitelist` (Array) - array of strings to match against requested URLs
 * `:process_timeout` (Integer) - How long to wait for the Chrome process to
     respond on startup
+    
+## Running in Docker ##
+
+In docker as root you must pass the no-sandbox browser option:
+
+```ruby
+Capybara.register_driver :cuprite do |app|
+  Capybara::Cuprite::Driver.new(
+    app,
+    browser_options: {
+      'no-sandbox': nil
+    }
+  )
+end
+```
 
 ### URL Blacklisting & Whitelisting ###
 Cuprite supports URL blacklisting, which allows you to prevent scripts from
