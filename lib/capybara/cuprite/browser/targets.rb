@@ -3,6 +3,10 @@
 module Capybara::Cuprite
   class Browser
     class Targets
+      EmptyTargetsError = Class.new(RuntimeError)
+      TARGETS_RETRY_ATTEMPTS = 3
+      TARGETS_RETRY_WAIT = 0.001
+
       def initialize(browser)
         @mutex = Mutex.new
         @browser = browser
@@ -107,14 +111,18 @@ module Capybara::Cuprite
       end
 
       def targets
-        attempts ||= 1
-        # Targets cannot be empty the must be at least one default target.
-        targets = @browser.command("Target.getTargets")["targetInfos"]
-        raise TypeError if targets.empty?
-        targets
-      rescue TypeError
-        attempts += 1
-        retry if attempts < 3
+        attempts = 1
+        begin
+          # Targets cannot be empty the must be at least one default target.
+          targets = @browser.command("Target.getTargets")["targetInfos"]
+          raise EmptyTargetsError.new("No target browser available") if targets.empty?
+          targets
+        rescue EmptyTargetsError
+          raise if attempts > TARGETS_RETRY_ATTEMPTS
+          attempts += 1
+          sleep TARGETS_RETRY_WAIT
+          retry
+        end
       end
 
       def default?(target)
