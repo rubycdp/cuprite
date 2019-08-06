@@ -354,11 +354,11 @@ module Capybara::Cuprite
       it "allows headers to be set" do
         @driver.headers = {
           "Cookie" => "foo=bar",
-          "Host" => "foo.com"
+          "DV" => "hello"
         }
         @session.visit("/cuprite/headers")
         expect(@driver.body).to include("COOKIE: foo=bar")
-        expect(@driver.body).to include("HOST: foo.com")
+        expect(@driver.body).to include("DV: hello")
       end
 
       it "allows headers to be read" do
@@ -389,11 +389,11 @@ module Capybara::Cuprite
       end
 
       it "adds new headers" do
-        @driver.headers = { "User-Agent" => "Browser", "Host" => "foo.com" }
+        @driver.headers = { "User-Agent" => "Browser", "DV" => "hello" }
         @driver.add_headers("User-Agent" => "Cuprite", "Appended" => "true")
         @session.visit("/cuprite/headers")
         expect(@driver.body).to include("USER_AGENT: Cuprite")
-        expect(@driver.body).to include("HOST: foo.com")
+        expect(@driver.body).to include("DV: hello")
         expect(@driver.body).to include("APPENDED: true")
       end
 

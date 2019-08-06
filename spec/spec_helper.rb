@@ -29,6 +29,7 @@ RSpec.configure do |config|
   config.define_derived_metadata do |metadata|
     regexes = <<~REGEXP.split("\n").map { |s| Regexp.quote(s.strip) }.join("|")
     node #obscured?
+    node #drag_to should work with jsTree
     node #drag_to should drag and drop an object
     node #drag_to should drag and drop if scrolling is needed
     node #drag_to should drag a link
@@ -44,6 +45,7 @@ RSpec.configure do |config|
     node Element#drop can drop multiple files
     node Element#drop can drop strings
     node Element#drop can drop multiple strings
+    node #visible? details non-summary descendants should be non-visible
     #all with obscured filter should only find nodes on top in the viewport when fals
     #all with obscured filter should not find nodes on top outside the viewport when false
     #all with obscured filter should find top nodes outside the viewport when true
@@ -58,6 +60,7 @@ RSpec.configure do |config|
     #right_click offset when w3c_click_offset is true should offset from center of element
     #right_click offset when w3c_click_offset is true should offset outside from center of element
     #fill_in should fill in a color field
+    #has_field with valid should be false if field is invalid
     REGEXP
 
     metadata[:skip] = true if metadata[:full_description].match(/#{regexes}/)
