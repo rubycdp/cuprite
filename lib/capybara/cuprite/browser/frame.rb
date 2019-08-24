@@ -62,7 +62,7 @@ module Capybara::Cuprite
           @mutex.try_lock
         end
 
-        handle_frame_end = proc do |params|
+        @client.subscribe("Page.frameStoppedLoading") do |params|
           # `DOM.performSearch` doesn't work without getting #document node first.
           # It returns node with nodeId 1 and nodeType 9 from which descend the
           # tree and we save it in a variable because if we call that again root
@@ -78,9 +78,6 @@ module Capybara::Cuprite
             signal if @waiting_frames.empty?
           end
         end
-
-        @client.subscribe("Page.frameStoppedLoading", &handle_frame_end)
-        @client.subscribe("Page.frameClearedScheduledNavigation", &handle_frame_end)
 
         @client.subscribe("Runtime.executionContextCreated") do |params|
           frame_id = params.dig("context", "auxData", "frameId")
