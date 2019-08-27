@@ -56,12 +56,6 @@ module Capybara::Cuprite
           end
         end
 
-        @client.subscribe("Page.frameScheduledNavigation") do |params|
-          # Trying to lock mutex if frame is the main frame
-          @waiting_frames << params["frameId"]
-          @mutex.try_lock
-        end
-
         @client.subscribe("Page.frameStoppedLoading") do |params|
           # `DOM.performSearch` doesn't work without getting #document node first.
           # It returns node with nodeId 1 and nodeType 9 from which descend the
