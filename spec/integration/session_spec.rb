@@ -352,7 +352,7 @@ describe Capybara::Session do
       expect(@session.evaluate_script("new Array")).to eq([])
       expect(@session.evaluate_script("new Function")).to eq({})
 
-      expect { @session.evaluate_script(%(throw "smth")) }.to raise_error(Capybara::Cuprite::JavaScriptError)
+      expect { @session.evaluate_script(%(throw "smth")) }.to raise_error(Ferrum::JavaScriptError)
     end
 
     it "ignores cyclic structure errors in evaluate_script" do
@@ -826,7 +826,7 @@ describe Capybara::Session do
         expect do
           @session.within_frame("omg") {}
         end.to(raise_error do |e|
-          expect(e).to be_a(Capybara::Cuprite::FrameNotFound).or be_a(Capybara::ElementNotFound)
+          expect(e).to be_a(Capybara::ElementNotFound)
         end)
       end
     end
@@ -1015,7 +1015,7 @@ describe Capybara::Session do
       end
     end
 
-    if Capybara::Cuprite.mri? && !Capybara::Cuprite.windows?
+    if Ferrum.mri? && !Ferrum.windows?
       require "pty"
       require "timeout"
 
@@ -1039,7 +1039,7 @@ describe Capybara::Session do
         let(:script) do
           <<-RUBY
             require "capybara/cuprite"
-            browser = Capybara::Cuprite::Browser.start
+            browser = Capybara::Cuprite::Browser.new
             browser.visit("http://example.com")
             puts "Please type enter"
             sleep 1
