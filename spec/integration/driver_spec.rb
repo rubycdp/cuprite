@@ -981,7 +981,12 @@ module Capybara::Cuprite
 
       @session.within_window(popup2) do
         expect(@session.html).to include("Test")
-        @session.execute_script("window.close()")
+        # Browser isn't dead, current page after executing JS closes connection
+        # and we don't have a chance to push response to the Queue. Since the
+        # queue and websocket are closed and response is nil the proper guess
+        # would be that browser is dead, but in fact the page is dead and
+        # browser is fully alive.
+        @session.execute_script("window.close()") rescue Ferrum::DeadBrowserError
       end
 
       sleep 0.1
