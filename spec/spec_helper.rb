@@ -15,6 +15,7 @@ require "support/external_browser"
 Capybara.register_driver(:cuprite) do |app|
   options = {}
   options.merge!(inspector: true) if ENV["INSPECTOR"]
+  options.merge!(logger: StringIO.new)
   driver = Capybara::Cuprite::Driver.new(app, options)
   puts driver.browser.process.cmd.join(" ")
   puts `"#{driver.browser.process.path}" -version --headless --no-gpu`
@@ -46,6 +47,7 @@ RSpec.configure do |config|
     node Element#drop can drop strings
     node Element#drop can drop multiple strings
     node #visible? details non-summary descendants should be non-visible
+    node #visible? works when details is toggled open and closed
     #all with obscured filter should only find nodes on top in the viewport when fals
     #all with obscured filter should not find nodes on top outside the viewport when false
     #all with obscured filter should find top nodes outside the viewport when true
@@ -61,9 +63,30 @@ RSpec.configure do |config|
     #right_click offset when w3c_click_offset is true should offset outside from center of element
     #fill_in should fill in a color field
     #has_field with valid should be false if field is invalid
+    #find with spatial filters should find an element above another element
+    #find with spatial filters should find an element below another element
+    #find with spatial filters should find an element left of another element
+    #find with spatial filters should find an element right of another element
+    #find with spatial filters should combine spatial filters
+    #find with spatial filters should find an element "near" another element
+    #has_css? with spatial requirements accepts spatial options
+    #has_css? with spatial requirements supports spatial sugar
     REGEXP
 
     metadata[:skip] = true if metadata[:full_description].match(/#{regexes}/)
+  end
+
+  config.before do
+    session = @session || TestSessions::Cuprite
+    session.driver.browser.logger.truncate(0)
+    session.driver.browser.logger.rewind
+  end
+
+  config.after do |example|
+    if example.exception
+      session = @session || TestSessions::Cuprite
+      raise session.driver.browser.logger.string
+    end
   end
 
   Capybara::SpecHelper.configure(config)

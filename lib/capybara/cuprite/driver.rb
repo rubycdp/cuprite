@@ -1,21 +1,31 @@
 # frozen_string_literal: true
 
 require "uri"
-
 require "forwardable"
 
 module Capybara::Cuprite
   class Driver < Capybara::Driver::Base
+    DEFAULT_MAXIMIZE_SCREEN_SIZE = [1366, 768].freeze
+    EXTENSION = File.expand_path("javascripts/index.js", __dir__)
+
     extend Forwardable
 
     delegate %i(restart quit status_code timeout timeout=) => :browser
 
-    attr_reader :app, :options
+    attr_reader :app, :options, :screen_size
 
     def initialize(app, options = {})
       @app     = app
-      @options = options
+      @options = options.dup
       @started = false
+
+      @options[:extensions] ||= []
+      @options[:extensions] << EXTENSION
+
+      @screen_size = @options.delete(:screen_size)
+      @screen_size ||= DEFAULT_MAXIMIZE_SCREEN_SIZE
+
+      @options[:save_path] = Capybara.save_path.to_s if Capybara.save_path
     end
 
     def needs_server?
@@ -23,7 +33,7 @@ module Capybara::Cuprite
     end
 
     def browser
-      @browser ||= Browser.start(@options)
+      @browser ||= Browser.new(@options)
     end
 
     def visit(url)
@@ -64,20 +74,20 @@ module Capybara::Cuprite
       browser.frame_title
     end
 
-    def find(method, selector)
-      browser.find(method, selector).map { |target_id, node| Node.new(self, target_id, node) }
-    end
-
     def find_xpath(selector)
-      find :xpath, selector
+      find(:xpath, selector)
     end
 
     def find_css(selector)
-      find :css, selector
+      find(:css, selector)
+    end
+
+    def find(method, selector)
+      browser.find(method, selector).map { |native| Node.new(self, native) }
     end
 
     def click(x, y)
-      browser.click_coordinates(x, y)
+      browser.mouse.click(x: x, y: y, timeout: 0.05)
     end
 
     def evaluate_script(script, *args)
@@ -96,7 +106,14 @@ module Capybara::Cuprite
     end
 
     def switch_to_frame(locator)
-      browser.switch_to_frame(locator)
+      handle = case locator
+      when Capybara::Node::Element
+        locator.native.description["frameId"]
+      when :parent, :top
+        locator
+      end
+
+      browser.switch_to_frame(handle)
     end
 
     def current_window_handle
@@ -124,31 +141,47 @@ module Capybara::Cuprite
     end
 
     def no_such_window_error
-      NoSuchWindowError
+      Ferrum::NoSuchWindowError
     end
 
     def reset!
-      browser.reset
+      @zoom_factor = nil
+      @paper_size = nil
       browser.url_blacklist = @options[:url_blacklist]
       browser.url_whitelist = @options[:url_whitelist]
+      browser.reset
       @started = false
     end
 
     def save_screenshot(path, options = {})
-      browser.render(path, options)
+      options[:scale] = @zoom_factor if @zoom_factor
+
+      if pdf?(path, options)
+        options[:paperWidth] = @paper_size[:width].to_f if @paper_size
+        options[:paperHeight] = @paper_size[:height].to_f if @paper_size
+        browser.pdf(path: path, **options)
+      else
+        browser.screenshot(path: path, **options)
+      end
     end
     alias_method :render, :save_screenshot
 
     def render_base64(format = :png, options = {})
-      browser.render_base64(format, options)
+      if pdf?(nil, options)
+        options[:paperWidth] = @paper_size[:width].to_f if @paper_size
+        options[:paperHeight] = @paper_size[:height].to_f if @paper_size
+        browser.pdf(encoding: :base64, **options)
+      else
+        browser.screenshot(format: format, encoding: :base64, **options)
+      end
     end
 
-    def paper_size=(size = {})
-      browser.set_paper_size(size)
+    def zoom_factor=(value)
+      @zoom_factor = value.to_f
     end
 
-    def zoom_factor=(zoom_factor)
-      browser.set_zoom_factor(zoom_factor)
+    def paper_size=(value)
+      @paper_size = value
     end
 
     def resize(width, height)
@@ -199,19 +232,19 @@ module Capybara::Cuprite
     end
 
     def headers
-      browser.headers
+      browser.headers.get
     end
 
     def headers=(headers)
-      browser.headers=(headers)
+      browser.headers.set(headers)
     end
 
     def add_headers(headers)
-      browser.add_headers(headers)
+      browser.headers.add(headers)
     end
 
     def add_header(name, value, permanent: true)
-      browser.add_header({ name => value }, permanent: permanent)
+      browser.headers.add({ name => value }, permanent: permanent)
     end
 
     def response_headers
@@ -219,7 +252,7 @@ module Capybara::Cuprite
     end
 
     def cookies
-      browser.cookies
+      browser.cookies.all
     end
 
     def set_cookie(name, value, options = {})
@@ -227,20 +260,16 @@ module Capybara::Cuprite
       options[:name]   ||= name
       options[:value]  ||= value
       options[:domain] ||= default_domain
-
-      expires = options.delete(:expires).to_i
-      options[:expires] = expires if expires > 0
-
-      browser.set_cookie(options)
+      browser.cookies.set(**options)
     end
 
     def remove_cookie(name, **options)
       options[:domain] = default_domain if options.empty?
-      browser.remove_cookie(options.merge(name: name))
+      browser.cookies.remove(**options.merge(name: name))
     end
 
     def clear_cookies
-      browser.clear_cookies
+      browser.cookies.clear
     end
 
     def clear_memory_cache
@@ -294,15 +323,17 @@ module Capybara::Cuprite
     end
 
     def invalid_element_errors
-      [Capybara::Cuprite::ObsoleteNode, Capybara::Cuprite::MouseEventFailed]
+      [Capybara::Cuprite::ObsoleteNode,
+       Capybara::Cuprite::MouseEventFailed,
+       Ferrum::NoExecutionContextError]
     end
 
     def go_back
-      browser.go_back
+      browser.back
     end
 
     def go_forward
-      browser.go_forward
+      browser.forward
     end
 
     def refresh
@@ -346,11 +377,7 @@ module Capybara::Cuprite
     end
 
     def native_args(args)
-      args.map { |arg| arg.is_a?(Capybara::Cuprite::Node) ? arg.native : arg }
-    end
-
-    def screen_size
-      @options[:screen_size] || [1366, 768]
+      args.map { |arg| arg.is_a?(Capybara::Cuprite::Node) ? arg.node : arg }
     end
 
     def session_wait_time
@@ -378,11 +405,17 @@ module Capybara::Cuprite
       when Array
         arg.map { |e| unwrap_script_result(e) }
       when Hash
-        return Capybara::Cuprite::Node.new(self, arg["target_id"], arg["node"]) if arg["target_id"]
         arg.each { |k, v| arg[k] = unwrap_script_result(v) }
+      when Ferrum::Node
+        Node.new(self, arg)
       else
         arg
       end
+    end
+
+    def pdf?(path, options)
+      (path && File.extname(path).delete(".") == "pdf") ||
+      options[:format].to_s == "pdf"
     end
   end
 end

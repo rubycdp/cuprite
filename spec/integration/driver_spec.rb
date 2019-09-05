@@ -57,7 +57,7 @@ module Capybara::Cuprite
       let(:session) { Capybara::Session.new(:cuprite_with_logger, TestApp) }
 
       before do
-        Capybara.register_driver :cuprite_with_logger do |app|
+        Capybara.register_driver(:cuprite_with_logger) do |app|
           Capybara::Cuprite::Driver.new(app, logger: logger)
         end
       end
@@ -72,7 +72,7 @@ module Capybara::Cuprite
 
     it "raises an error and restarts the client if the client dies while executing a command" do
       driver = Capybara::Cuprite::Driver.new(nil)
-      expect { driver.browser.crash }.to raise_error(DeadBrowser)
+      expect { driver.browser.crash }.to raise_error(Ferrum::DeadBrowserError)
       driver.visit(session_url("/"))
       expect(driver.html).to include("Hello world")
     end
@@ -103,14 +103,21 @@ module Capybara::Cuprite
       expect(@session.current_window.size).to eq([1366, 768])
     end
 
-    it "allows custom maximization size" do
-      begin
-        @driver.options[:screen_size] = [1600, 1200]
-        @session.visit("/")
-        @session.current_window.maximize
-        expect(@session.current_window.size).to eq([1600, 1200])
-      ensure
-        @driver.options.delete(:screen_size)
+    context "custom maximization size" do
+      let(:session) { Capybara::Session.new(:cuprite_with_screen_size, TestApp) }
+
+      before do
+        Capybara.register_driver(:cuprite_with_screen_size) do |app|
+          Capybara::Cuprite::Driver.new(app, screen_size: [1600, 1200])
+        end
+      end
+
+      after { session.driver.quit }
+
+      it "allows passing screen size" do
+        session.visit("/")
+        session.current_window.maximize
+        expect(session.current_window.size).to eq([1600, 1200])
       end
     end
 
@@ -187,7 +194,7 @@ module Capybara::Cuprite
 
       it "ignores :selector in #save_screenshot if full: true" do
         @session.visit("/cuprite/long_page")
-        expect(@driver.browser).to receive(:warn).with(/Ignoring :selector/)
+        expect(@driver.browser.page).to receive(:warn).with(/Ignoring :selector/)
 
         create_screenshot file, full: true, selector: "#penultimate"
 
@@ -518,17 +525,17 @@ module Capybara::Cuprite
       expect(@driver.evaluate_script("window.result")).to eq(3)
     end
 
-    it "operates a timeout when communicating with browser", skip: true do
+    it "operates a timeout when communicating with browser" do
       begin
         prev_timeout = @driver.timeout
         @driver.timeout = 0.1
-        expect { @driver.visit(session_url("/cuprite/really_slow")) }.to raise_error(TimeoutError)
+        expect { @driver.visit(session_url("/cuprite/really_slow")) }.to raise_error(Ferrum::TimeoutError)
       ensure
         @driver.timeout = prev_timeout
       end
     end
 
-    it "supports stopping the session", skip: Capybara::Cuprite.windows? do
+    it "supports stopping the session", skip: Ferrum.windows? do
       driver = Capybara::Cuprite::Driver.new(nil)
       pid = driver.browser.process.pid
 
@@ -583,7 +590,7 @@ module Capybara::Cuprite
       it "propagates a Javascript error inside Cuprite to a ruby exception" do
         expect do
           driver.browser.browser_error
-        end.to raise_error(JavaScriptError) { |e|
+        end.to raise_error(Ferrum::JavaScriptError) { |e|
           expect(e.message).to include("Error: zomg")
           expect(e.message).to include("Cuprite.browserError")
         }
@@ -594,13 +601,13 @@ module Capybara::Cuprite
           driver.execute_script "setTimeout(function() { omg }, 0)"
           sleep 0.01
           driver.execute_script ""
-        end.to raise_error(JavaScriptError, /ReferenceError.*omg/)
+        end.to raise_error(Ferrum::JavaScriptError, /ReferenceError.*omg/)
       end
 
       it "propagates a synchronous Javascript error on the page to a ruby exception" do
         expect do
           driver.execute_script "omg"
-        end.to raise_error(JavaScriptError, /ReferenceError.*omg/)
+        end.to raise_error(Ferrum::JavaScriptError, /ReferenceError.*omg/)
       end
 
       it "does not re-raise a Javascript error if it is rescued" do
@@ -608,14 +615,14 @@ module Capybara::Cuprite
           driver.execute_script "setTimeout(function() { omg }, 0)"
           sleep 0.01
           driver.execute_script ""
-        end.to raise_error(JavaScriptError)
+        end.to raise_error(Ferrum::JavaScriptError)
 
         # should not raise again
         expect(driver.evaluate_script("1+1")).to eq(2)
       end
 
       it "propagates a Javascript error during page load to a ruby exception" do
-        expect { driver.visit session_url("/cuprite/js_error") }.to raise_error(JavaScriptError)
+        expect { driver.visit session_url("/cuprite/js_error") }.to raise_error(Ferrum::JavaScriptError)
       end
 
       it "does not propagate a Javascript error to ruby if error raising disabled" do
@@ -652,14 +659,14 @@ module Capybara::Cuprite
       end
 
       it "handles when DNS incorrect" do
-        expect { @session.visit("http://nope:#{@port}/") }.to raise_error(StatusFailError)
+        expect { @session.visit("http://nope:#{@port}/") }.to raise_error(Ferrum::StatusError)
       end
 
       it "has a descriptive message when DNS incorrect" do
         url = "http://nope:#{@port}/"
         expect { @session.visit(url) }
           .to raise_error(
-            StatusFailError,
+            Ferrum::StatusError,
             %(Request to #{url} failed to reach server, check DNS and/or server status)
           )
       end
@@ -670,7 +677,7 @@ module Capybara::Cuprite
           @session.driver.timeout = 2
           expect do
             @session.visit("/cuprite/visit_timeout")
-          end.to raise_error(StatusFailError, %r{resources still waiting http://.*/cuprite/really_slow})
+          end.to raise_error(Ferrum::StatusError, %r{resources still waiting http://.*/cuprite/really_slow})
         ensure
           @session.driver.timeout = old_timeout
         end
@@ -682,7 +689,7 @@ module Capybara::Cuprite
           @session.driver.timeout = 2
           expect do
             @session.visit("/cuprite/really_slow")
-          end.to raise_error(StatusFailError) { |error|
+          end.to raise_error(Ferrum::StatusError) { |error|
             expect(error.message).not_to include("resources still waiting")
           }
         ensure
@@ -960,6 +967,8 @@ module Capybara::Cuprite
         window.open("/cuprite/simple", "popup")
       JS
 
+      sleep 0.1
+
       expect(@driver.window_handles.size).to eq(2)
 
       popup2 = @session.window_opened_by do
@@ -972,7 +981,12 @@ module Capybara::Cuprite
 
       @session.within_window(popup2) do
         expect(@session.html).to include("Test")
-        @session.execute_script("window.close()")
+        # Browser isn't dead, current page after executing JS closes connection
+        # and we don't have a chance to push response to the Queue. Since the
+        # queue and websocket are closed and response is nil the proper guess
+        # would be that browser is dead, but in fact the page is dead and
+        # browser is fully alive.
+        @session.execute_script("window.close()") rescue Ferrum::DeadBrowserError
       end
 
       sleep 0.1
@@ -1333,7 +1347,7 @@ module Capybara::Cuprite
       it "sends sequences with modifiers and symbols" do
         input = @session.find(:css, "#empty_input")
 
-        keys = Capybara::Cuprite.mac? ? %i[Alt Left] : %i[Ctrl Left]
+        keys = Ferrum.mac? ? %i[Alt Left] : %i[Ctrl Left]
 
         input.native.send_keys("t", "r", "i", "n", "g", keys, "s")
 
@@ -1343,7 +1357,7 @@ module Capybara::Cuprite
       it "sends sequences with multiple modifiers and symbols" do
         input = @session.find(:css, "#empty_input")
 
-        keys = Capybara::Cuprite.mac? ? %i[Alt Shift Left] : %i[Ctrl Shift Left]
+        keys = Ferrum.mac? ? %i[Alt Shift Left] : %i[Ctrl Shift Left]
 
         input.native.send_keys("t", "r", "i", "n", "g", keys, "s")
 
@@ -1503,12 +1517,13 @@ module Capybara::Cuprite
       it "can return an element" do
         @session.visit("/cuprite/send_keys")
         element = @session.driver.evaluate_script(%(document.getElementById("empty_input")))
-        expect(element).to eq(@session.find(:id, "empty_input").native)
+        expect(element).to eq(@session.find(:id, "empty_input"))
       end
 
       it "can return structures with elements" do
         @session.visit("/cuprite/send_keys")
         result = @session.driver.evaluate_script(%({ a: document.getElementById("empty_input"), b: { c: document.querySelectorAll("#empty_textarea, #filled_textarea") } }))
+
         expect(result).to eq(
           "a" => @session.driver.find_css("#empty_input").first,
           "b" => {
@@ -1532,7 +1547,7 @@ module Capybara::Cuprite
         @session.using_wait_time(1) do
           expect do
             @session.driver.evaluate_async_script("var callback=arguments[0]; setTimeout(function(){callback(true)}, 4000)")
-          end.to raise_error Capybara::Cuprite::ScriptTimeoutError
+          end.to raise_error Ferrum::ScriptTimeoutError
         end
       end
     end
