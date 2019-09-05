@@ -72,7 +72,7 @@ Capybara::Cuprite::Driver.new(app, browser_options: { 'no-sandbox': nil })
   * `:logger` (Object responding to `puts`) - When present, debug output is
       written to this object.
   * `:timeout` (Numeric) - The number of seconds we'll wait for a response when
-      communicating with browser. Default is 30.
+      communicating with browser. Default is 5.
   * `:js_errors` (Boolean) - When true, JavaScript errors get re-raised in Ruby.
   * `:window_size` (Array) - The dimensions of the browser window in which to
       test, expressed as a 2-element array, e.g. [1024, 768]. Default: [1024, 768]

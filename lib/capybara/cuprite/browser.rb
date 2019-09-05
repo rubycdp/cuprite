@@ -6,6 +6,7 @@ module Capybara::Cuprite
   class Browser < Ferrum::Browser
     extend Forwardable
 
+    delegate %i[find_or_create_page] => :targets
     delegate %i[send_keys select set hover trigger before_click switch_to_frame] => :page
 
     attr_reader :url_blacklist, :url_whitelist
