@@ -212,7 +212,7 @@ module Capybara::Cuprite
     end
 
     def scroll_to(left, top)
-      browser.scroll_to(left, top)
+      browser.mouse.scroll_to(left, top)
     end
 
     def network_traffic(type = nil)

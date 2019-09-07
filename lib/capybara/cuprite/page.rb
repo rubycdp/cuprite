@@ -90,14 +90,14 @@ module Capybara::Cuprite
       end
     end
 
-    def get_content_quads(*args)
-      super
+    def find_position(node, *args)
+      x, y = node.find_position(*args)
     rescue Ferrum::BrowserError => e
       if e.message == "Could not compute content quads."
         raise MouseEventFailed.new("MouseEventFailed: click, none, 0, 0")
+      else
+        raise
       end
-
-      raise
     end
   end
 end
