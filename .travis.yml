@@ -4,6 +4,7 @@ gemfile:
   - gemfiles/capybara-2.x.gemfile
   - gemfiles/capybara-3.x.gemfile
   - gemfiles/websocket-driver-6.x.gemfile
+  - gemfiles/ferrum-master.gemfile
 language: ruby
 rvm:
   - 2.3
