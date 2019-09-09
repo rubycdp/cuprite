@@ -228,7 +228,7 @@ module Capybara::Cuprite
       server = type ? "#{type}=#{ip}:#{port}" : "#{ip}:#{port}"
       @options[:browser_options].merge!("proxy-server" => server)
       @options[:browser_options].merge!("proxy-bypass-list" => bypass) if bypass
-      browser.proxy_authorize(user, password)
+      browser.authorize(type: :proxy, user: user, password: password)
     end
 
     def headers
@@ -277,7 +277,7 @@ module Capybara::Cuprite
     end
 
     def basic_authorize(user, password)
-      browser.authorize(user, password)
+      browser.authorize(user: user, password: password)
     end
     alias_method :authorize, :basic_authorize
 
