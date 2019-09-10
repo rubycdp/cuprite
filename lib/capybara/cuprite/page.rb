@@ -13,7 +13,7 @@ module Capybara::Cuprite
 
     def trigger(node, event)
       options = {}
-      options.merge!(timeout: 0.1) if event.to_s == "click"
+      options.merge!(wait: Ferrum::Mouse::CLICK_WAIT) if event.to_s == "click"
       evaluate_on(node: node, expression: %(_cuprite.trigger(this, "#{event}")), **options)
     end
 

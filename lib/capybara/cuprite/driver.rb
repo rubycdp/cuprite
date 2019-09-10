@@ -87,7 +87,7 @@ module Capybara::Cuprite
     end
 
     def click(x, y)
-      browser.mouse.click(x: x, y: y, timeout: 0.05)
+      browser.mouse.click(x: x, y: y)
     end
 
     def evaluate_script(script, *args)
