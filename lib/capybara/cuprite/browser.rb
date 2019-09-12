@@ -7,7 +7,9 @@ module Capybara::Cuprite
     extend Forwardable
 
     delegate %i[find_or_create_page] => :targets
-    delegate %i[send_keys select set hover trigger before_click switch_to_frame] => :page
+    delegate %i[send_keys select set hover trigger before_click switch_to_frame
+                find_modal accept_confirm dismiss_confirm accept_prompt
+                dismiss_prompt reset_modals] => :page
 
     attr_reader :url_blacklist, :url_whitelist
 
