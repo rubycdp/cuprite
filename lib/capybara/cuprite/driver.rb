@@ -216,11 +216,21 @@ module Capybara::Cuprite
     end
 
     def network_traffic(type = nil)
-      browser.network_traffic(type)
+      traffic = browser.network.traffic
+
+      case type.to_s
+      when "all"
+        traffic
+      when "blocked"
+        traffic.select(&:blocked?)
+      else
+        # when request isn't blocked
+        traffic.reject(&:blocked?)
+      end
     end
 
     def clear_network_traffic
-      browser.clear_network_traffic
+      browser.network.clear(:traffic)
     end
 
     def set_proxy(ip, port, type = nil, user = nil, password = nil, bypass = nil)
@@ -228,7 +238,7 @@ module Capybara::Cuprite
       server = type ? "#{type}=#{ip}:#{port}" : "#{ip}:#{port}"
       @options[:browser_options].merge!("proxy-server" => server)
       @options[:browser_options].merge!("proxy-bypass-list" => bypass) if bypass
-      browser.authorize(type: :proxy, user: user, password: password)
+      browser.network.authorize(type: :proxy, user: user, password: password)
     end
 
     def headers
@@ -248,7 +258,7 @@ module Capybara::Cuprite
     end
 
     def response_headers
-      browser.response_headers
+      browser.network.response&.headers
     end
 
     def cookies
@@ -273,11 +283,11 @@ module Capybara::Cuprite
     end
 
     def clear_memory_cache
-      browser.clear_memory_cache
+      browser.network.clear(:cache)
     end
 
     def basic_authorize(user, password)
-      browser.authorize(user: user, password: password)
+      browser.network.authorize(user: user, password: password)
     end
     alias_method :authorize, :basic_authorize
 

@@ -23,12 +23,12 @@ module Capybara::Cuprite
 
     def url_whitelist=(patterns)
       @url_whitelist = prepare_wildcards(patterns)
-      page.intercept_request if @client && !@url_whitelist.empty?
+      page.network.intercept if @client && !@url_whitelist.empty?
     end
 
     def url_blacklist=(patterns)
       @url_blacklist = prepare_wildcards(patterns)
-      page.intercept_request if @client && !@url_blacklist.empty?
+      page.network.intercept if @client && !@url_blacklist.empty?
     end
 
     def visit(*args)
@@ -36,7 +36,7 @@ module Capybara::Cuprite
     end
 
     def status_code
-      status
+      network.status
     end
 
     def find(method, selector)

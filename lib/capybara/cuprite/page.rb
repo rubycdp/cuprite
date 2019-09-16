@@ -109,10 +109,10 @@ module Capybara::Cuprite
     def prepare_page
       super
 
-      intercept_request if !Array(@browser.url_whitelist).empty? ||
+      network.intercept if !Array(@browser.url_whitelist).empty? ||
                            !Array(@browser.url_blacklist).empty?
 
-      on(:request_intercepted) do |request, index, total|
+      on(:request) do |request, index, total|
         if @browser.url_blacklist && !@browser.url_blacklist.empty?
           if @browser.url_blacklist.any? { |r| request.match?(r) }
             request.abort and return
@@ -134,7 +134,7 @@ module Capybara::Cuprite
         end
       end
 
-      @client.on("Page.javascriptDialogOpening") do |params|
+      on("Page.javascriptDialogOpening") do |params|
         accept_modal = @accept_modal.last
         if accept_modal == true || accept_modal == false
           @accept_modal.pop

@@ -701,7 +701,7 @@ module Capybara::Cuprite
     context "network traffic" do
       it "keeps track of network traffic" do
         @session.visit("/cuprite/with_js")
-        urls = @driver.network_traffic.map(&:url)
+        urls = @driver.network_traffic.map { |e| e.request.url }
 
         expect(urls.grep(%r{/cuprite/jquery.min.js$}).size).to eq(1)
         expect(urls.grep(%r{/cuprite/jquery-ui.min.js$}).size).to eq(1)
@@ -713,7 +713,7 @@ module Capybara::Cuprite
 
         @session.visit "/cuprite/url_blacklist"
 
-        blocked_urls = @driver.network_traffic(:blocked).map(&:url)
+        blocked_urls = @driver.network_traffic(:blocked).map { |e| e.request.url }
 
         expect(blocked_urls).to include(/unwanted/)
       end
