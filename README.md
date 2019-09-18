@@ -179,15 +179,12 @@ this option is enabled, you can insert `page.driver.debug` into your tests to
 pause the test and launch a browser which gives you the Chrome inspector to view
 all your open pages and inspect them.
 
-You can register this debugger driver with a different name and set it
-as the current javascript driver. By example, in your helper file:
+You could set the inspector option via an environment variable:
 
 ```ruby
-Capybara.register_driver :cuprite_debug do |app|
-  Capybara::Cuprite::Driver.new(app, inspector: true)
+Capybara.register_driver :cuprite do |app|
+  Capybara::Cuprite::Driver.new(app, inspector: ENV['INSPECTOR'])
 end
-
-Capybara.javascript_driver = :cuprite_debug
 ```
 
 ## License ##
