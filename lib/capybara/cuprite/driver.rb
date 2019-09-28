@@ -129,7 +129,7 @@ module Capybara::Cuprite
     end
 
     def open_new_window
-      browser.open_new_window
+      browser.create_page
     end
 
     def switch_to_window(handle)
@@ -141,7 +141,7 @@ module Capybara::Cuprite
     end
 
     def no_such_window_error
-      Ferrum::NoSuchWindowError
+      Ferrum::NoSuchPageError
     end
 
     def reset!

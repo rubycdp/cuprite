@@ -6,7 +6,6 @@ module Capybara::Cuprite
   class Browser < Ferrum::Browser
     extend Forwardable
 
-    delegate %i[find_or_create_page] => :targets
     delegate %i[send_keys select set hover trigger before_click switch_to_frame
                 find_modal accept_confirm dismiss_confirm accept_prompt
                 dismiss_prompt reset_modals] => :page
@@ -19,6 +18,22 @@ module Capybara::Cuprite
       self.url_whitelist = options[:url_whitelist]
 
       super
+      @page = false
+    end
+
+    def page
+      raise Ferrum::NoSuchPageError if @page.nil?
+      @page ||= default_context.page
+    end
+
+    def reset
+      super
+      @page = default_context.page
+    end
+
+    def quit
+      super
+      @page = false
     end
 
     def url_whitelist=(patterns)
@@ -53,16 +68,46 @@ module Capybara::Cuprite
       find_all(method, selector, { "objectId" => object_id })
     end
 
+    def window_handle
+      page.target_id
+    end
+
+    def window_handles
+      targets.keys
+    end
+
     def within_window(locator = nil, &block)
+      original = window_handle
+
       if Capybara::VERSION.to_f < 3.0
         target_id = window_handles.find do |target_id|
-          page = find_or_create_page(target_id)
+          page = targets[target_id].page
           locator == page.frame_name
         end
         locator = target_id if target_id
       end
 
-      targets.within_window(locator, &block)
+      if window_handles.include?(locator)
+        switch_to_window(locator)
+        yield
+      else
+        raise Ferrum::NoSuchPageError
+      end
+    ensure
+      switch_to_window(original)
+    end
+
+    def switch_to_window(target_id)
+      target = targets[target_id]
+      raise Ferrum::NoSuchPageError unless target
+      @page = target.page
+    end
+
+    def close_window(target_id)
+      target = targets[target_id]
+      raise Ferrum::NoSuchPageError unless target
+      @page = nil if @page == target.page
+      target.page.close
     end
 
     def browser_error
