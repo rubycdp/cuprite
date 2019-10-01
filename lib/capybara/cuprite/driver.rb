@@ -50,7 +50,7 @@ module Capybara::Cuprite
     end
 
     def frame_url
-      browser.frame_url
+      evaluate_script("window.location.href")
     end
 
     def html
@@ -71,7 +71,7 @@ module Capybara::Cuprite
     end
 
     def frame_title
-      browser.frame_title
+      evaluate_script("document.title")
     end
 
     def find_xpath(selector)

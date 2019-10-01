@@ -1,13 +1,22 @@
 # frozen_string_literal: true
 
+require "forwardable"
+
 module Capybara::Cuprite
   module Page
     MODAL_WAIT = ENV.fetch("CUPRITE_MODAL_WAIT", 0.05).to_f
 
+    extend Forwardable
+    delegate %i[at_css at_xpath css xpath
+                current_url current_title body
+                execution_id evaluate evaluate_on evaluate_async execute] => :active_frame
+
+
     def initialize(*args)
-      super
+      @frame_stack = []
       @accept_modal = []
       @modal_messages = []
+      super
     end
 
     def set(node, value)
@@ -104,6 +113,10 @@ module Capybara::Cuprite
       end
     end
 
+    def title
+      active_frame.current_title
+    end
+
     private
 
     def prepare_page
@@ -160,6 +173,14 @@ module Capybara::Cuprite
         raise MouseEventFailed.new("MouseEventFailed: click, none, 0, 0")
       else
         raise
+      end
+    end
+
+    def active_frame
+      if @frame_stack.empty?
+        main_frame
+      else
+        @frames[@frame_stack.last]
       end
     end
   end
