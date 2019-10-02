@@ -68,7 +68,7 @@ module Capybara::Cuprite
 
     def find_modal(options)
       start = Ferrum.monotonic_time
-      timeout = options.fetch(:wait) { session_wait_time }
+      timeout = options.fetch(:wait, browser.timeout)
       expect_text = options[:text]
       expect_regexp = expect_text.is_a?(Regexp) ? expect_text : Regexp.escape(expect_text.to_s)
       not_found_msg = "Unable to find modal dialog"
