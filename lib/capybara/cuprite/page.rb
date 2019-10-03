@@ -5,6 +5,7 @@ require "forwardable"
 module Capybara::Cuprite
   module Page
     MODAL_WAIT = ENV.fetch("CUPRITE_MODAL_WAIT", 0.05).to_f
+    TRIGGER_CLICK_WAIT = ENV.fetch("CUPRITE_TRIGGER_CLICK_WAIT", 0.1).to_f
 
     extend Forwardable
     delegate %i[at_css at_xpath css xpath
@@ -30,7 +31,7 @@ module Capybara::Cuprite
 
     def trigger(node, event)
       options = {}
-      options.merge!(wait: Ferrum::Mouse::CLICK_WAIT) if event.to_s == "click"
+      options.merge!(wait: TRIGGER_CLICK_WAIT) if event.to_s == "click" && TRIGGER_CLICK_WAIT > 0
       evaluate_on(node: node, expression: %(_cuprite.trigger(this, "#{event}")), **options)
     end
 
