@@ -158,7 +158,11 @@ module Capybara::Cuprite
           options.merge!(promptText: response) if response
           command("Page.handleJavaScriptDialog", **options)
         else
-          warn "Modal window has been opened, but you didn't wrap your code into (`accept_prompt` | `dismiss_prompt` | `accept_confirm` | `dismiss_confirm` | `accept_alert`), accepting by default"
+          with_text = params["message"] ? "with text `#{params["message"]}` " : ""
+          warn "Modal window #{with_text}has been opened, but you didn't wrap "\
+               "your code into (`accept_prompt` | `dismiss_prompt` | "\
+               "`accept_confirm` | `dismiss_confirm` | `accept_alert`), "\
+               "accepting by default"
           options = { accept: true }
           response = params["defaultPrompt"]
           options.merge!(promptText: response) if response
