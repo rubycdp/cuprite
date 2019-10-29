@@ -114,6 +114,10 @@ module Capybara::Cuprite
       end
     end
 
+    def frame_name
+      evaluate("window.name")
+    end
+
     def title
       active_frame.current_title
     end
