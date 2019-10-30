@@ -3,15 +3,14 @@
 require "forwardable"
 
 module Capybara::Cuprite
-  module Page
+  class Page < Ferrum::Page
     MODAL_WAIT = ENV.fetch("CUPRITE_MODAL_WAIT", 0.05).to_f
     TRIGGER_CLICK_WAIT = ENV.fetch("CUPRITE_TRIGGER_CLICK_WAIT", 0.1).to_f
 
     extend Forwardable
     delegate %i[at_css at_xpath css xpath
-                current_url current_title body
-                execution_id evaluate evaluate_on evaluate_async execute] => :active_frame
-
+                current_url current_title body execution_id
+                evaluate evaluate_on evaluate_async execute] => :active_frame
 
     def initialize(*args)
       @frame_stack = []

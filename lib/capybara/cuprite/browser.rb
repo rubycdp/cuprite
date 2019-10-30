@@ -23,12 +23,12 @@ module Capybara::Cuprite
 
     def page
       raise Ferrum::NoSuchPageError if @page.nil?
-      @page ||= default_context.page
+      @page ||= attach_page
     end
 
     def reset
       super
-      @page = default_context.page
+      @page = attach_page
     end
 
     def quit
@@ -81,7 +81,7 @@ module Capybara::Cuprite
 
       if Capybara::VERSION.to_f < 3.0
         target_id = window_handles.find do |target_id|
-          page = targets[target_id].page
+          page = attach_page(target_id)
           locator == page.frame_name
         end
         locator = target_id if target_id
@@ -100,13 +100,13 @@ module Capybara::Cuprite
     def switch_to_window(target_id)
       target = targets[target_id]
       raise Ferrum::NoSuchPageError unless target
-      @page = target.page
+      @page = attach_page(target.id)
     end
 
     def close_window(target_id)
       target = targets[target_id]
       raise Ferrum::NoSuchPageError unless target
-      @page = nil if @page == target.page
+      @page = nil if @page.target_id == target.id
       target.page.close
     end
 
@@ -199,6 +199,16 @@ module Capybara::Cuprite
           Regexp.new(wildcard, Regexp::IGNORECASE)
         end
       end
+    end
+
+    def attach_page(target_id = nil)
+      target = targets[target_id] if target_id
+      target ||= default_context.default_target
+      return target.page if target.attached?
+
+      target.maybe_sleep_if_new_window
+      target.page = Page.new(target.id, self)
+      target.page
     end
   end
 end

@@ -129,7 +129,10 @@ module Capybara::Cuprite
     end
 
     def open_new_window
-      browser.create_page
+      target = browser.default_context.create_target
+      target.maybe_sleep_if_new_window
+      target.page = Page.new(target.id, browser)
+      target.page
     end
 
     def switch_to_window(handle)
