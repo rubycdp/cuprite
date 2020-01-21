@@ -17,8 +17,9 @@ Capybara.register_driver(:cuprite) do |app|
   options.merge!(inspector: true) if ENV["INSPECTOR"]
   options.merge!(logger: StringIO.new)
   driver = Capybara::Cuprite::Driver.new(app, options)
-  puts driver.browser.process.cmd.join(" ")
-  puts `"#{driver.browser.process.path}" -version --headless --no-gpu`
+  process = driver.browser.process
+  puts process.command.to_a.join(" ")
+  puts process.browser_version
   driver
 end
 
