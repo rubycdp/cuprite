@@ -1567,5 +1567,16 @@ module Capybara::Cuprite
       expect(@session.driver.frame_url).to end_with("/cuprite/frames")
       expect(@session.driver.current_url).to end_with("/cuprite/frames")
     end
+
+    it "waits for network idle" do
+      @session.visit "/cuprite/show_cookies"
+      expect(@session).not_to have_content("test_cookie")
+
+      @session.click_button "Set cookie slow"
+      @session.driver.wait_for_network_idle
+      @session.refresh
+
+      expect(@session).to have_content("test_cookie")
+    end
   end
 end
