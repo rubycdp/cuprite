@@ -285,10 +285,6 @@ module Capybara::Cuprite
       browser.cookies.clear
     end
 
-    def wait_for_network_idle(**options)
-      browser.network.wait_for_idle(**options)
-    end
-
     def clear_memory_cache
       browser.network.clear(:cache)
     end
