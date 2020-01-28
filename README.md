@@ -116,16 +116,25 @@ be automatically cleared at the end of the test.
 * `page.driver.network_traffic` Inspect network traffic (resources have been
   loaded) on the current page. This returns an array of request objects.
 
-
 ```ruby
 page.driver.network_traffic # => [Request, ...]
 request = page.driver.network_traffic.first
 request.response
 ```
 
+* `page.driver.wait_for_network_idle` Natively waits for network idle and if
+there are no active connections returns or raises `TimeoutError` error. Accepts
+the same options as Ferrum's [`wait_for_idle`](https://github.com/route/ferrum#wait_for_idleoptions)
+
+```ruby
+page.driver.wait_for_network_idle
+page.driver.refresh
+```
+
 Please note that network traffic is not cleared when you visit new page. You can
 manually clear the network traffic by calling `page.driver.clear_network_traffic`
 or `page.driver.reset`
+
 
 ### Manipulating cookies ###
 
@@ -189,7 +198,7 @@ end
 
 ## License ##
 
-Copyright 2018-2019 Machinio
+Copyright 2018-2020 Machinio
 
 Permission is hereby granted, free of charge, to any person obtaining
 a copy of this software and associated documentation files (the
