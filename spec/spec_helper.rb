@@ -15,10 +15,15 @@ require "support/external_browser"
 Capybara.register_driver(:cuprite) do |app|
   options = {}
   options.merge!(inspector: true) if ENV["INSPECTOR"]
-  options.merge!(logger: StringIO.new)
+  options.merge!(logger: StringIO.new) if ENV["TRAVIS"]
   driver = Capybara::Cuprite::Driver.new(app, options)
-  puts driver.browser.process.cmd.join(" ")
-  puts `"#{driver.browser.process.path}" -version --headless --no-gpu`
+  process = driver.browser.process
+
+  puts "Browser: #{process.browser_version}"
+  puts "Protocol: #{process.protocol_version}"
+  puts "V8: #{process.v8_version}"
+  puts "Webkit: #{process.webkit_version}"
+
   driver
 end
 
@@ -42,6 +47,13 @@ RSpec.configure do |config|
     node #drag_to HTML5 should HTML5 drag and drop when scrolling needed
     node #drag_to HTML5 should drag HTML5 default draggable elements
     node #drag_to HTML5 should drag HTML5 default draggable element child
+    node #drag_to should simulate a single held down modifier key
+    node #drag_to should simulate multiple held down modifier keys
+    node #drag_to should support key aliases
+    node #drag_to HTML5 should preserve clientX/Y from last dragover event
+    node #drag_to HTML5 should simulate a single held down modifier key
+    node #drag_to HTML5 should simulate multiple held down modifier keys
+    node #drag_to HTML5 should support key aliases
     node Element#drop can drop a file
     node Element#drop can drop multiple files
     node Element#drop can drop strings
@@ -76,17 +88,24 @@ RSpec.configure do |config|
     metadata[:skip] = true if metadata[:full_description].match(/#{regexes}/)
   end
 
-  config.before do
-    session = @session || TestSessions::Cuprite
-    session.driver.browser.logger.truncate(0)
-    session.driver.browser.logger.rewind
-  end
+  config.around do |example|
+    if ENV["TRAVIS"]
+      session = @session || TestSessions::Cuprite
+      session.driver.browser.logger.truncate(0)
+      session.driver.browser.logger.rewind
+    end
 
-  config.after do |example|
-    if example.exception
+    example.run
+
+    if ENV["TRAVIS"] && example.exception
       session = @session || TestSessions::Cuprite
       raise session.driver.browser.logger.string
     end
+  end
+
+  config.after do
+    FileUtils.rm_rf(CUPRITE_ROOT + "/screenshots")
+    FileUtils.rm_rf(CUPRITE_ROOT + "/save_path_tmp")
   end
 
   Capybara::SpecHelper.configure(config)

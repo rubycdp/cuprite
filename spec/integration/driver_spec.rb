@@ -525,16 +525,6 @@ module Capybara::Cuprite
       expect(@driver.evaluate_script("window.result")).to eq(3)
     end
 
-    it "operates a timeout when communicating with browser" do
-      begin
-        prev_timeout = @driver.timeout
-        @driver.timeout = 0.1
-        expect { @driver.visit(session_url("/cuprite/really_slow")) }.to raise_error(Ferrum::TimeoutError)
-      ensure
-        @driver.timeout = prev_timeout
-      end
-    end
-
     it "supports stopping the session", skip: Ferrum.windows? do
       driver = Capybara::Cuprite::Driver.new(nil)
       pid = driver.browser.process.pid
@@ -671,27 +661,41 @@ module Capybara::Cuprite
           )
       end
 
-      it "reports open resource requests", skip: true do
-        old_timeout = @session.driver.timeout
+      it "operates a timeout when communicating with browser" do
         begin
+          old_timeout = @driver.timeout
+          @driver.timeout = 0.1
+          expect {
+            @driver.visit(session_url("/cuprite/really_slow"))
+          }.to raise_error(
+            Ferrum::StatusError,
+            %r{there are still pending connections: http://.*/cuprite/really_slow}
+          )
+        ensure
+          @driver.timeout = old_timeout
+        end
+      end
+
+      it "reports open resource requests" do
+        begin
+          old_timeout = @session.driver.timeout
           @session.driver.timeout = 2
-          expect do
+          expect {
             @session.visit("/cuprite/visit_timeout")
-          end.to raise_error(Ferrum::StatusError, %r{resources still waiting http://.*/cuprite/really_slow})
+          }.to raise_error(
+            Ferrum::StatusError,
+            %r{there are still pending connections: http://.*/cuprite/really_slow}
+          )
         ensure
           @session.driver.timeout = old_timeout
         end
       end
 
-      it "does not report open resources where there are none", skip: true do
+      it "does not report open resources where there are none" do
         old_timeout = @session.driver.timeout
         begin
-          @session.driver.timeout = 2
-          expect do
-            @session.visit("/cuprite/really_slow")
-          end.to raise_error(Ferrum::StatusError) { |error|
-            expect(error.message).not_to include("resources still waiting")
-          }
+          @session.driver.timeout = 4
+          expect { @session.visit("/cuprite/really_slow") }.not_to raise_error
         ensure
           @session.driver.timeout = old_timeout
         end
