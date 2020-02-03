@@ -309,7 +309,7 @@ module Capybara::Cuprite
         Process.spawn(browser.process.path, debug_url)
 
         if binding&.respond_to?(:pry)
-          binding.pry
+          Pry.start(binding)
         elsif binding&.respond_to?(:irb)
           binding.irb
         else
