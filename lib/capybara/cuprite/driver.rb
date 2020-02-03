@@ -300,13 +300,26 @@ module Capybara::Cuprite
     end
     alias_method :authorize, :basic_authorize
 
-    def debug
+    def debug_url
+      "http://#{browser.process.host}:#{browser.process.port}"
+    end
+
+    def debug(binding = nil)
       if @options[:inspector]
-        Process.spawn(browser.process.path, "http://#{browser.process.host}:#{browser.process.port}")
-        pause
+        Process.spawn(browser.process.path, debug_url)
+
+        if binding&.respond_to?(:pry)
+          binding.pry
+        elsif binding&.respond_to?(:irb)
+          binding.irb
+        else
+          pause
+        end
       else
         raise Error, "To use the remote debugging, you have to launch " \
-                     "the driver with `inspector: true` configuration option"
+                     "the driver with `inspector: ENV['INSPECTOR']` " \
+                     "configuration option and run your test suite passing " \
+                     "env variable"
       end
     end
 

@@ -1,4 +1,4 @@
-# Cuprite - Headless Chrome driver for Capybara #
+# Cuprite - Headless Chrome driver for Capybara
 
 [![Build Status](https://travis-ci.org/machinio/cuprite.svg?branch=master)](https://travis-ci.org/machinio/cuprite)
 
@@ -15,7 +15,7 @@ consistent design with other browsers. The design of the driver will be as
 close to [Poltergeist](https://github.com/teampoltergeist/poltergeist) as
 possible though it's not a goal.
 
-## Install ##
+## Install
 
 Add these lines to your `Gemfile` and run `bundle install`.
 
@@ -37,7 +37,7 @@ If you already had tests on Poltergeist then it should simply work, for Selenium
 you better check your code for `.manage` calls because things are much easier
 with Cuprite, see the documentation below.
 
-## Install Chrome ##
+## Install Chrome
 
 There's no official Chrome or Chromium package for Linux don't install it this
 way because it either will be outdated or unofficial, both are bad. Download it
@@ -45,7 +45,7 @@ from official [source](https://www.chromium.org/getting-involved/download-chromi
 Chrome binary should be in the `PATH` or `BROWSER_PATH` or you can pass it as an
 option
 
-## Customization ##
+## Customization
 
 You can customize options with the following code in your test setup:
 
@@ -55,7 +55,7 @@ Capybara.register_driver(:cuprite) do |app|
 end
 ```
 
-#### Running in Docker ####
+#### Running in Docker
 
 In docker as root you must pass the no-sandbox browser option:
 
@@ -89,13 +89,44 @@ Capybara::Cuprite::Driver.new(app, browser_options: { 'no-sandbox': nil })
   * `:process_timeout` (Integer) - How long to wait for the Chrome process to
       respond on startup
 
-### Clicking/Scrolling ###
+### Remote debugging
+
+If you pass `inspector: ENV['INSPECTOR']` option, remote debugging will be
+enabled. When this option is enabled, you can insert `page.driver.debug` or
+`page.driver.debug(binding)` into your tests to pause the test and launch a
+browser which gives you the Chrome inspector to view all of your open pages and
+inspect them.
+
+```ruby
+Capybara.register_driver :cuprite do |app|
+  Capybara::Cuprite::Driver.new(app, inspector: ENV['INSPECTOR'])
+end
+```
+
+then somewhere deep in the test:
+
+```ruby
+it "does something useful" do
+  visit root_path
+
+  fill_in "field", with: "value"
+  page.driver.debug(binding)
+
+  expect(page).to have_content("value")
+end
+```
+
+In the middle of the execution Chrome will open a new tab where you can inspect
+page's content and also if you passed binding an `irb` or `pry` console will be
+opened where you can further test some expressions.
+
+### Clicking/Scrolling
 
 * `page.driver.click(x, y)` Click a very specific area of the screen.
 * `page.driver.scroll_to(left, top)` Scroll to given position.
 * `element.send_keys(*keys)` Send keys to given node.
 
-### Request headers ###
+### Request headers
 
 Manipulate HTTP request headers like a boss:
 
@@ -111,7 +142,7 @@ Notice that `headers=` will overwrite already set headers. You should use
 subsequent HTTP requests (including requests for assets, AJAX, etc). They will
 be automatically cleared at the end of the test.
 
-### Network traffic ###
+### Network traffic
 
 * `page.driver.network_traffic` Inspect network traffic (resources have been
   loaded) on the current page. This returns an array of request objects.
@@ -136,7 +167,7 @@ manually clear the network traffic by calling `page.driver.clear_network_traffic
 or `page.driver.reset`
 
 
-### Manipulating cookies ###
+### Manipulating cookies
 
 The following methods are used to inspect and manipulate cookies:
 
@@ -151,18 +182,18 @@ The following methods are used to inspect and manipulate cookies:
 * `page.driver.remove_cookie(name)` - remove a cookie
 * `page.driver.clear_cookies` - clear all cookies
 
-### Screenshot ###
+### Screenshot
 
 Besides capybara screenshot method you can get image as Base64:
 
 * `page.driver.render_base64(format, options)`
 
-### Authorization ###
+### Authorization
 
 * `page.driver.basic_authorize(user, password)`
 * `page.driver.set_proxy(ip, port, type, user, password)`
 
-### URL Blacklisting & Whitelisting ###
+### URL Blacklisting & Whitelisting
 Cuprite supports URL blacklisting, which allows you to prevent scripts from
 running on designated domains:
 
@@ -181,22 +212,7 @@ If you are experiencing slower run times, consider creating a URL whitelist of
 domains that are essential or a blacklist of domains that are not essential,
 such as ad networks or analytics, to your testing environment.
 
-### Remote debugging ###
-
-If you use the `inspector: true` option, remote debugging will be enabled. When
-this option is enabled, you can insert `page.driver.debug` into your tests to
-pause the test and launch a browser which gives you the Chrome inspector to view
-all your open pages and inspect them.
-
-You could set the inspector option via an environment variable:
-
-```ruby
-Capybara.register_driver :cuprite do |app|
-  Capybara::Cuprite::Driver.new(app, inspector: ENV['INSPECTOR'])
-end
-```
-
-## License ##
+## License
 
 Copyright 2018-2020 Machinio
 
