@@ -177,7 +177,7 @@ The following methods are used to inspect and manipulate cookies:
   `httponly?`, `session?`, `expires`.
 * `page.driver.set_cookie(name, value, options = {})` - set a cookie.
   The options hash can take the following keys: `:domain`, `:path`,
-  `:secure`, `:httponly`, `:expires`. `:expires` should be a
+  `:secure`, `:httpOnly`, `:expires`. `:expires` should be a
   `Time` object.
 * `page.driver.remove_cookie(name)` - remove a cookie
 * `page.driver.clear_cookies` - clear all cookies
