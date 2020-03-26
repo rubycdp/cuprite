@@ -2,25 +2,31 @@
 
 [![Build Status](https://travis-ci.org/rubycdp/cuprite.svg?branch=master)](https://travis-ci.org/rubycdp/cuprite)
 
-Cuprite is a pure Ruby driver (read as _no_ Java/Selenium/WebDriver/ChromeDriver
-requirement) for [Capybara](https://github.com/teamcapybara/capybara). It allows
-you to run your Capybara tests on a headless [Chrome](https://www.google.com/chrome/)
-or [Chromium](https://www.chromium.org/) by [CDP protocol](https://chromedevtools.github.io/devtools-protocol/).
-Under the hood it uses [Ferrum](https://github.com/route/ferrum) which is
-high-level API to the browser again by CDP protocol.
+Cuprite is a pure Ruby driver (read as _no_ Selenium/WebDriver/ChromeDriver
+dependency) for [Capybara](https://github.com/teamcapybara/capybara). It allows
+you to run Capybara tests on a headless Chrome or Chromium. Under the hood it
+uses [Ferrum](https://github.com/rubycdp/ferrum#index) which is high-level API
+to the browser by CDP protocol. The design of the driver is as close to
+[Poltergeist](https://github.com/teampoltergeist/poltergeist) as possible though
+it's not a goal.
 
-The emphasis was made on raw CDP protocol because Headless Chrome allows you to
-do so many things that are barely supported by WebDriver because it should have
-consistent design with other browsers. The design of the driver will be as
-close to [Poltergeist](https://github.com/teampoltergeist/poltergeist) as
-possible though it's not a goal.
+Since Cuprite uses [Ferrum](https://github.com/rubycdp/ferrum#examples) there
+are many useful methods you can call even using this driver:
+
+```ruby
+browser = page.driver.browser
+browser.mouse.move(x: 123, y: 456).down.up
+```
+
 
 ## Install
 
-Add these lines to your `Gemfile` and run `bundle install`.
+Add this to your `Gemfile` and run `bundle install`.
 
 ``` ruby
-gem "cuprite", group: :test
+group :test do
+  gem "cuprite"
+end
 ```
 
 In your test setup add:
@@ -33,21 +39,23 @@ Capybara.register_driver(:cuprite) do |app|
 end
 ```
 
-If you already had tests on Poltergeist then it should simply work, for Selenium
-you better check your code for `.manage` calls because things are much easier
-with Cuprite, see the documentation below.
+if you use `Docker` don't forget to pass `no-sandbox` option:
 
-## Install Chrome
+```ruby
+Capybara::Cuprite::Driver.new(app, browser_options: { 'no-sandbox': nil })
+```
 
-There's no official Chrome or Chromium package for Linux don't install it this
-way because it either will be outdated or unofficial, both are bad. Download it
-from official [source](https://www.chromium.org/getting-involved/download-chromium).
-Chrome binary should be in the `PATH` or `BROWSER_PATH` or you can pass it as an
-option
+If you already have tests on Poltergeist then it should simply work, for
+Selenium you better check your code for `manage` calls because it works
+differently in Cuprite, see the documentation below.
+
 
 ## Customization
 
-You can customize options with the following code in your test setup:
+See the full list of options for
+[Ferrum](https://github.com/rubycdp/ferrum#customization).
+
+You can pass options with the following code in your test setup:
 
 ``` ruby
 Capybara.register_driver(:cuprite) do |app|
@@ -55,47 +63,19 @@ Capybara.register_driver(:cuprite) do |app|
 end
 ```
 
-#### Running in Docker
-
-In docker as root you must pass the no-sandbox browser option:
-
-```ruby
-Capybara::Cuprite::Driver.new(app, browser_options: { 'no-sandbox': nil })
-```
+`Cuprite`-specific options are:
 
 * options `Hash`
-  * `:browser_path` (String) - Path to chrome binary, you can also set ENV
-      variable as `BROWSER_PATH=some/path/chrome bundle exec rspec`.
-  * `:headless` (Boolean) - Set browser as headless or not, `true` by default.
-  * `:slowmo` (Integer | Float) - Set a delay to wait before sending command.
-      Usefull companion of headless option, so that you have time to see changes.
-  * `:logger` (Object responding to `puts`) - When present, debug output is
-      written to this object.
-  * `:timeout` (Numeric) - The number of seconds we'll wait for a response when
-      communicating with browser. Default is 5.
-  * `:js_errors` (Boolean) - When true, JavaScript errors get re-raised in Ruby.
-  * `:window_size` (Array) - The dimensions of the browser window in which to
-      test, expressed as a 2-element array, e.g. [1024, 768]. Default: [1024, 768]
-  * `:browser_options` (Hash) - Additional command line options,
-      [see them all](https://peter.sh/experiments/chromium-command-line-switches/)
-      e.g. `{ "ignore-certificate-errors" => nil }`
-  * `:extensions` (Array) - An array of JS files to be preloaded into the browser
-  * `:port` (Integer) - Remote debugging port for headless Chrome
-  * `:host` (String) - Remote debugging address for headless Chrome
-  * `:url` (String) - URL for a running instance of Chrome. If this is set, a
-      browser process will not be spawned.
   * `:url_blacklist` (Array) - array of strings to match against requested URLs
   * `:url_whitelist` (Array) - array of strings to match against requested URLs
-  * `:process_timeout` (Integer) - How long to wait for the Chrome process to
-      respond on startup
 
-### Remote debugging
 
-If you pass `inspector: ENV['INSPECTOR']` option, remote debugging will be
-enabled. When this option is enabled, you can insert `page.driver.debug` or
-`page.driver.debug(binding)` into your tests to pause the test and launch a
-browser which gives you the Chrome inspector to view all of your open pages and
-inspect them.
+## Debugging
+
+If you pass `inspector` option, remote debugging will be enabled if you run
+tests with `INSPECTOR=true`. Then you can put `page.driver.debug` or
+`page.driver.debug(binding)` in your test to pause it. This will launch the
+browser where you can inspect the content.
 
 ```ruby
 Capybara.register_driver :cuprite do |app|
@@ -103,7 +83,7 @@ Capybara.register_driver :cuprite do |app|
 end
 ```
 
-then somewhere deep in the test:
+then somewhere in the test:
 
 ```ruby
 it "does something useful" do
@@ -117,16 +97,16 @@ end
 ```
 
 In the middle of the execution Chrome will open a new tab where you can inspect
-page's content and also if you passed binding an `irb` or `pry` console will be
-opened where you can further test some expressions.
+the content and also if you passed `binding` an `irb` or `pry` console will be
+opened where you can further experiment with the test.
 
-### Clicking/Scrolling
+## Clicking/Scrolling
 
 * `page.driver.click(x, y)` Click a very specific area of the screen.
-* `page.driver.scroll_to(left, top)` Scroll to given position.
-* `element.send_keys(*keys)` Send keys to given node.
+* `page.driver.scroll_to(left, top)` Scroll to a given position.
+* `element.send_keys(*keys)` Send keys to a given node.
 
-### Request headers
+## Request headers
 
 Manipulate HTTP request headers like a boss:
 
@@ -142,10 +122,10 @@ Notice that `headers=` will overwrite already set headers. You should use
 subsequent HTTP requests (including requests for assets, AJAX, etc). They will
 be automatically cleared at the end of the test.
 
-### Network traffic
+## Network traffic
 
-* `page.driver.network_traffic` Inspect network traffic (resources have been
-  loaded) on the current page. This returns an array of request objects.
+* `page.driver.network_traffic` Inspect network traffic (loaded resources) on
+the current page. This returns an array of request objects.
 
 ```ruby
 page.driver.network_traffic # => [Request, ...]
@@ -155,7 +135,8 @@ request.response
 
 * `page.driver.wait_for_network_idle` Natively waits for network idle and if
 there are no active connections returns or raises `TimeoutError` error. Accepts
-the same options as Ferrum's [`wait_for_idle`](https://github.com/route/ferrum#wait_for_idleoptions)
+the same options as
+[`wait_for_idle`](https://github.com/rubycdp/ferrum#wait_for_idleoptions)
 
 ```ruby
 page.driver.wait_for_network_idle
@@ -167,7 +148,7 @@ manually clear the network traffic by calling `page.driver.clear_network_traffic
 or `page.driver.reset`
 
 
-### Manipulating cookies
+## Manipulating cookies
 
 The following methods are used to inspect and manipulate cookies:
 
@@ -182,18 +163,19 @@ The following methods are used to inspect and manipulate cookies:
 * `page.driver.remove_cookie(name)` - remove a cookie
 * `page.driver.clear_cookies` - clear all cookies
 
-### Screenshot
+## Screenshot
 
 Besides capybara screenshot method you can get image as Base64:
 
 * `page.driver.render_base64(format, options)`
 
-### Authorization
+## Authorization
 
 * `page.driver.basic_authorize(user, password)`
 * `page.driver.set_proxy(ip, port, type, user, password)`
 
-### URL Blacklisting & Whitelisting
+## URL Blacklisting & Whitelisting
+
 Cuprite supports URL blacklisting, which allows you to prevent scripts from
 running on designated domains:
 
@@ -201,8 +183,8 @@ running on designated domains:
 page.driver.browser.url_blacklist = ["http://www.example.com"]
 ```
 
-and also URL whitelisting, which allows scripts to only run
-on designated domains:
+and also URL whitelisting, which allows scripts to only run on designated
+domains:
 
 ```ruby
 page.driver.browser.url_whitelist = ["http://www.example.com"]
