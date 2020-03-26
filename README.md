@@ -10,14 +10,6 @@ to the browser by CDP protocol. The design of the driver is as close to
 [Poltergeist](https://github.com/teampoltergeist/poltergeist) as possible though
 it's not a goal.
 
-Since Cuprite uses [Ferrum](https://github.com/rubycdp/ferrum#examples) there
-are many useful methods you can call even using this driver:
-
-```ruby
-browser = page.driver.browser
-browser.mouse.move(x: 123, y: 456).down.up
-```
-
 
 ## Install
 
@@ -43,6 +35,14 @@ if you use `Docker` don't forget to pass `no-sandbox` option:
 
 ```ruby
 Capybara::Cuprite::Driver.new(app, browser_options: { 'no-sandbox': nil })
+```
+
+Since Cuprite uses [Ferrum](https://github.com/rubycdp/ferrum#examples) there
+are many useful methods you can call even using this driver:
+
+```ruby
+browser = page.driver.browser
+browser.mouse.move(x: 123, y: 456).down.up
 ```
 
 If you already have tests on Poltergeist then it should simply work, for
@@ -100,11 +100,13 @@ In the middle of the execution Chrome will open a new tab where you can inspect
 the content and also if you passed `binding` an `irb` or `pry` console will be
 opened where you can further experiment with the test.
 
+
 ## Clicking/Scrolling
 
 * `page.driver.click(x, y)` Click a very specific area of the screen.
 * `page.driver.scroll_to(left, top)` Scroll to a given position.
 * `element.send_keys(*keys)` Send keys to a given node.
+
 
 ## Request headers
 
@@ -121,6 +123,7 @@ Notice that `headers=` will overwrite already set headers. You should use
 `add_headers` if you want to add a few more. These headers will apply to all
 subsequent HTTP requests (including requests for assets, AJAX, etc). They will
 be automatically cleared at the end of the test.
+
 
 ## Network traffic
 
@@ -163,16 +166,19 @@ The following methods are used to inspect and manipulate cookies:
 * `page.driver.remove_cookie(name)` - remove a cookie
 * `page.driver.clear_cookies` - clear all cookies
 
+
 ## Screenshot
 
 Besides capybara screenshot method you can get image as Base64:
 
 * `page.driver.render_base64(format, options)`
 
+
 ## Authorization
 
 * `page.driver.basic_authorize(user, password)`
 * `page.driver.set_proxy(ip, port, type, user, password)`
+
 
 ## URL Blacklisting & Whitelisting
 
@@ -193,6 +199,7 @@ page.driver.browser.url_whitelist = ["http://www.example.com"]
 If you are experiencing slower run times, consider creating a URL whitelist of
 domains that are essential or a blacklist of domains that are not essential,
 such as ad networks or analytics, to your testing environment.
+
 
 ## License
 
