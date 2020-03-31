@@ -10,6 +10,9 @@ to the browser by CDP protocol. The design of the driver is as close to
 [Poltergeist](https://github.com/teampoltergeist/poltergeist) as possible though
 it's not a goal.
 
+[Cuprite](https://evrone.com/cuprite) designed & supported by [Evrone](https://evrone.com/)
+What else we build [with Ruby](https://evrone.com/ruby)
+
 
 ## Install
 
