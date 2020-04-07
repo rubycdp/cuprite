@@ -94,7 +94,12 @@ module Capybara::Cuprite
 
     def before_click(node, name, keys = [], offset = {})
       evaluate_on(node: node, expression: "_cuprite.scrollIntoViewport(this)")
-      x, y = find_position(node, offset[:x], offset[:y])
+
+      # If offset is given it may go outside of the element and likely error
+      # will be raised that we detected another element at this position.
+      return true if offset[:x] || offset[:y]
+
+      x, y = find_position(node, **offset)
       evaluate_on(node: node, expression: "_cuprite.mouseEventTest(this, '#{name}', #{x}, #{y})")
       true
     rescue Ferrum::JavaScriptError => e
@@ -174,8 +179,8 @@ module Capybara::Cuprite
       end
     end
 
-    def find_position(node, *args)
-      x, y = node.find_position(*args)
+    def find_position(node, **options)
+      x, y = node.find_position(**options)
     rescue Ferrum::BrowserError => e
       if e.message == "Could not compute content quads."
         raise MouseEventFailed.new("MouseEventFailed: click, none, 0, 0")

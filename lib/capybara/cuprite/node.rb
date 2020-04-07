@@ -144,16 +144,16 @@ module Capybara::Cuprite
       command(:disabled?)
     end
 
-    def click(keys = [], offset = {})
-      prepare_and_click(:left, __method__, keys, offset)
+    def click(keys = [], **options)
+      prepare_and_click(:left, __method__, keys, options)
     end
 
-    def right_click(keys = [], offset = {})
-      prepare_and_click(:right, __method__, keys, offset)
+    def right_click(keys = [], **options)
+      prepare_and_click(:right, __method__, keys, options)
     end
 
-    def double_click(keys = [], offset = {})
-      prepare_and_click(:double, __method__, keys, offset)
+    def double_click(keys = [], **options)
+      prepare_and_click(:double, __method__, keys, options)
     end
 
     def hover
@@ -225,9 +225,12 @@ module Capybara::Cuprite
 
     private
 
-    def prepare_and_click(mode, name, keys, offset)
+    def prepare_and_click(mode, name, keys, options)
+      delay = options[:delay].to_i
+      x, y = options.values_at(:x, :y)
+      offset = { x: x, y: y, position: options[:offset] || :top }
       command(:before_click, name, keys, offset)
-      node.click(mode: mode, keys: keys, offset: offset)
+      node.click(mode: mode, keys: keys, offset: offset, delay: delay)
     end
 
     def filter_text(text)

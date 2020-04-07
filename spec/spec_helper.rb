@@ -60,19 +60,10 @@ RSpec.configure do |config|
     node Element#drop can drop multiple strings
     node #visible? details non-summary descendants should be non-visible
     node #visible? works when details is toggled open and closed
-    #all with obscured filter should only find nodes on top in the viewport when fals
+    #all with obscured filter should only find nodes on top in the viewport when false
     #all with obscured filter should not find nodes on top outside the viewport when false
     #all with obscured filter should find top nodes outside the viewport when true
     #all with obscured filter should only find non-top nodes when true
-    #click offset when w3c_click_offset is false should offset outside the element
-    #click offset when w3c_click_offset is true should offset from center of element
-    #click offset when w3c_click_offset is true should offset outside from center of element
-    #double_click offset when w3c_click_offset is false should offset outside the element
-    #double_click offset when w3c_click_offset is true should offset from center of element
-    #double_click offset when w3c_click_offset is true should offset outside from center of element
-    #right_click offset when w3c_click_offset is false should offset outside the element
-    #right_click offset when w3c_click_offset is true should offset from center of element
-    #right_click offset when w3c_click_offset is true should offset outside from center of element
     #fill_in should fill in a color field
     #has_field with valid should be false if field is invalid
     #find with spatial filters should find an element above another element
