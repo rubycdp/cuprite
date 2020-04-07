@@ -330,7 +330,7 @@ module Capybara::Cuprite
       # In jRuby - STDIN returns immediately from select
       # see https://github.com/jruby/jruby/issues/1783
       read, write = IO.pipe
-      Thread.new { IO.copy_stream(STDIN, write); write.close }
+      thread = Thread.new { IO.copy_stream(STDIN, write); write.close }
 
       STDERR.puts "Cuprite execution paused. Press enter (or run 'kill -CONT #{Process.pid}') to continue."
 
@@ -346,6 +346,8 @@ module Capybara::Cuprite
         end
       end
     ensure
+      thread.kill
+      read.close
       trap("SIGCONT", old_trap) # Restore the previous signal handler, if there was one.
       STDERR.puts "Continuing"
     end
