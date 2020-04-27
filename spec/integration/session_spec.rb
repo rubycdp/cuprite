@@ -4,7 +4,7 @@ require "spec_helper"
 
 Capybara::SpecHelper.run_specs TestSessions::Cuprite, "Cuprite"
 
-describe Capybara::Session do
+describe Capybara::Cuprite do
   context "with cuprite driver" do
     before { @session = TestSessions::Cuprite }
     after { @session.reset! }
