@@ -8,7 +8,7 @@ Gem::Specification.new do |s|
   s.version       = Capybara::Cuprite::VERSION
   s.authors       = ["Dmitry Vorotilin"]
   s.email         = ["d.vorotilin@gmail.com"]
-  s.homepage      = "https://github.com/machinio/cuprite"
+  s.homepage      = "https://github.com/rubycdp/cuprite"
   s.summary       = "Headless Chrome driver for Capybara"
   s.description   = "Cuprite is a driver for Capybara that allows you to " \
                     "run your tests on a headless Chrome browser"
