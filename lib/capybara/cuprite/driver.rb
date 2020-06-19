@@ -374,6 +374,10 @@ module Capybara::Cuprite
       browser.refresh
     end
 
+    def wait_for_reload(*args)
+      browser.wait_for_reload(*args)
+    end
+
     def accept_modal(type, options = {})
       case type
       when :alert, :confirm
