@@ -4,8 +4,8 @@ CUPRITE_ROOT = File.expand_path("..", __dir__)
 $:.unshift(CUPRITE_ROOT + "/lib")
 
 require "bundler/setup"
-
 require "rspec"
+
 require "capybara/spec/spec_helper"
 require "capybara/cuprite"
 
@@ -15,10 +15,11 @@ require "support/external_browser"
 Capybara.register_driver(:cuprite) do |app|
   options = {}
   options.merge!(inspector: true) if ENV["INSPECTOR"]
-  options.merge!(logger: StringIO.new) if ENV["TRAVIS"]
+  options.merge!(logger: StringIO.new) if ENV["CI"]
   driver = Capybara::Cuprite::Driver.new(app, options)
   process = driver.browser.process
 
+  puts ""
   puts "Browser: #{process.browser_version}"
   puts "Protocol: #{process.protocol_version}"
   puts "V8: #{process.v8_version}"
@@ -80,7 +81,7 @@ RSpec.configure do |config|
   end
 
   config.around do |example|
-    if ENV["TRAVIS"]
+    if ENV["CI"]
       session = @session || TestSessions::Cuprite
       session.driver.browser.logger.truncate(0)
       session.driver.browser.logger.rewind
@@ -88,9 +89,10 @@ RSpec.configure do |config|
 
     example.run
 
-    if ENV["TRAVIS"] && example.exception
+    if ENV["CI"] && example.exception
       session = @session || TestSessions::Cuprite
       raise session.driver.browser.logger.string
+      save_exception_aftifacts(session.driver.browser, example.metadata)
     end
   end
 
@@ -100,4 +102,19 @@ RSpec.configure do |config|
   end
 
   Capybara::SpecHelper.configure(config)
+
+  def save_exception_aftifacts(browser, meta)
+    time_now = Time.now
+    filename = File.basename(meta[:file_path])
+    line_number = meta[:line_number]
+    timestamp = "#{time_now.strftime('%Y-%m-%d-%H-%M-%S.')}#{'%03d' % (time_now.usec/1000).to_i}"
+
+    screenshot_name = "screenshot-#{filename}-#{line_number}-#{timestamp}.png"
+    screenshot_path = "#{ENV["CIRCLE_ARTIFACTS"]}/screenshots/#{screenshot_name}"
+    browser.screenshot(path: screenshot_path, full: true)
+
+    log_name = "ferrum-#{filename}-#{line_number}-#{timestamp}.txt"
+    log_path = "#{ENV["CIRCLE_ARTIFACTS"]}/logs/#{log_name}"
+    File.open(log_path, 'wb') { |file| file.write(FERRUM_LOGGER.string) }
+  end
 end
