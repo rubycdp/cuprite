@@ -91,14 +91,8 @@ RSpec.configure do |config|
 
     if ENV["CI"] && example.exception
       session = @session || TestSessions::Cuprite
-      raise session.driver.browser.logger.string
       save_exception_aftifacts(session.driver.browser, example.metadata)
     end
-  end
-
-  config.after do
-    FileUtils.rm_rf(CUPRITE_ROOT + "/screenshots")
-    FileUtils.rm_rf(CUPRITE_ROOT + "/save_path_tmp")
   end
 
   Capybara::SpecHelper.configure(config)
@@ -115,6 +109,6 @@ RSpec.configure do |config|
 
     log_name = "ferrum-#{filename}-#{line_number}-#{timestamp}.txt"
     log_path = "#{ENV["CIRCLE_ARTIFACTS"]}/logs/#{log_name}"
-    File.open(log_path, 'wb') { |file| file.write(FERRUM_LOGGER.string) }
+    File.open(log_path, 'wb') { |file| file.write(browser.logger.string) }
   end
 end
