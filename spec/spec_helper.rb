@@ -107,7 +107,7 @@ RSpec.configure do |config|
     screenshot_path = "#{ENV["CIRCLE_ARTIFACTS"]}/screenshots/#{screenshot_name}"
     browser.screenshot(path: screenshot_path, full: true)
 
-    log_name = "ferrum-#{filename}-#{line_number}-#{timestamp}.txt"
+    log_name = "cuprite-#{filename}-#{line_number}-#{timestamp}.txt"
     log_path = "#{ENV["CIRCLE_ARTIFACTS"]}/logs/#{log_name}"
     File.open(log_path, 'wb') { |file| file.write(browser.logger.string) }
   end
