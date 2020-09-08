@@ -269,6 +269,10 @@ describe Capybara::Session do
       it "returns empty text for elements with all children hidden" do
         expect(@session.find(:css, "div").text).to eq("")
       end
+
+      it "considers out-of-viewport elements to not be visible" do
+        expect(@session.find(:css, "li", text: "Out of viewport", visible: false).visible?).to be false
+      end
     end
 
     describe "Node#checked?" do
