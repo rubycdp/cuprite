@@ -266,7 +266,7 @@ describe Capybara::Session do
         expect(@session.find(:css, "li", text: "Transparent", visible: false).visible?).to be false
       end
 
-      it "element with all children hidden returns empty text" do
+      it "returns empty text for elements with all children hidden" do
         expect(@session.find(:css, "div").text).to eq("")
       end
     end
