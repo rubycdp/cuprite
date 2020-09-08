@@ -241,6 +241,12 @@ describe Capybara::Session do
           FileUtils.rm_f(filename)
         end
       end
+
+      it "sets a value for a color input" do
+        element = @session.find(:css, "#change_me_color")
+        element.set("#ddeeff")
+        expect(element.value).to eq("#ddeeff")
+      end
     end
 
     describe "Node#visible" do

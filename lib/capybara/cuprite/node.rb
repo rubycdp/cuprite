@@ -104,6 +104,8 @@ module Capybara::Cuprite
         when "file"
           files = value.respond_to?(:to_ary) ? value.to_ary.map(&:to_s) : value.to_s
           command(:select_file, files)
+        when "color"
+          node.evaluate("this.setAttribute('value', '#{value}')")
         else
           command(:set, value.to_s)
         end
