@@ -359,7 +359,8 @@ module Capybara::Cuprite
     def invalid_element_errors
       [Capybara::Cuprite::ObsoleteNode,
        Capybara::Cuprite::MouseEventFailed,
-       Ferrum::NoExecutionContextError]
+       Ferrum::NoExecutionContextError,
+       Ferrum::NodeNotFoundError]
     end
 
     def go_back
