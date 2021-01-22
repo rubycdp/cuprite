@@ -4,4 +4,4 @@ source "https://rubygems.org"
 
 gem "ferrum", github: "route/ferrum"
 
-gemspec path: "../"
+gemspec path: "../../"

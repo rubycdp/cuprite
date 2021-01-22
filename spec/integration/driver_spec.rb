@@ -783,7 +783,7 @@ module Capybara::Cuprite
           %r{/cuprite/jquery.min.js$}    => File.size(CUPRITE_ROOT + "/spec/support/public/jquery-1.11.3.min.js"),
           %r{/cuprite/jquery-ui.min.js$} => File.size(CUPRITE_ROOT + "/spec/support/public/jquery-ui-1.11.4.min.js"),
           %r{/cuprite/test.js$}          => File.size(CUPRITE_ROOT + "/spec/support/public/test.js"),
-          %r{/cuprite/with_js$}          => 2329
+          %r{/cuprite/with_js$}          => 2405
         }
 
         resources_size.each do |resource, size|

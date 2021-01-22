@@ -1016,11 +1016,28 @@ describe Capybara::Session do
     context "in threadsafe mode" do
       before do
         skip "No threadsafe mode in this version" unless Capybara.respond_to?(:threadsafe)
-        Capybara::SpecHelper.reset_threadsafe(true, @session) if Capybara.respond_to?(:threadsafe)
+
+        if Capybara.respond_to?(:threadsafe)
+          parameters = Capybara::SpecHelper.method(:reset_threadsafe).parameters
+
+          if parameters[0][0] == :opt
+            Capybara::SpecHelper.reset_threadsafe(true, @session)
+          else
+            Capybara::SpecHelper.reset_threadsafe(bool: true, session: @session)
+          end
+        end
       end
 
       after do
-        Capybara::SpecHelper.reset_threadsafe(false, @session) if Capybara.respond_to?(:threadsafe)
+        if Capybara.respond_to?(:threadsafe)
+          parameters = Capybara::SpecHelper.method(:reset_threadsafe).parameters
+
+          if parameters[0][0] == :opt
+            Capybara::SpecHelper.reset_threadsafe(false, @session)
+          else
+            Capybara::SpecHelper.reset_threadsafe(bool: false, session: @session)
+          end
+        end
       end
 
       it "uses per session wait setting" do
