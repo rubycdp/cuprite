@@ -1,28 +1,28 @@
 name: Linter
 on: [push]
 
-# jobs:
-#   linters:
-#     name: Linters
-#     runs-on: ubuntu-latest
-#     steps:
-#       - name: Checkout code
-#         uses: actions/checkout@v2
+jobs:
+  # linters:
+  #   name: Linters
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - name: Checkout code
+  #       uses: actions/checkout@v2
 
-#       - name: Setup Ruby
-#         uses: ruby/setup-ruby@v1
-#       - name: Ruby gem cache
-#         uses: actions/cache@v1
-#         with:
-#           path: vendor/bundle
-#           key: ${{ runner.os }}-gems-${{ hashFiles('**/Gemfile.lock') }}
-#           restore-keys: |
-#             ${{ runner.os }}-gems-
-#       - name: Install gems
-#         run: |
-#           bundle config path vendor/bundle
-#           bundle install --jobs 4 --retry 3
+  #     - name: Setup Ruby
+  #       uses: ruby/setup-ruby@v1
+  #     - name: Ruby gem cache
+  #       uses: actions/cache@v1
+  #       with:
+  #         path: vendor/bundle
+  #         key: ${{ runner.os }}-gems-${{ hashFiles('**/Gemfile.lock') }}
+  #         restore-keys: |
+  #           ${{ runner.os }}-gems-
+  #     - name: Install gems
+  #       run: |
+  #         bundle config path vendor/bundle
+  #         bundle install --jobs 4 --retry 3
 
-#       - name: Run linters
-#         run: |
-#           bin/rubocop --parallel
+  #     - name: Run linters
+  #       run: |
+  #         bin/rubocop --parallel
