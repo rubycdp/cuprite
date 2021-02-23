@@ -657,7 +657,7 @@ module Capybara::Cuprite
         expect { @session.visit(url) }
           .to raise_error(
             Ferrum::StatusError,
-            %(Request to #{url} failed to reach server, check DNS and/or server status)
+            %(Request to #{url} failed to reach server, check DNS and server status)
           )
       end
 
