@@ -109,11 +109,11 @@ RSpec.configure do |config|
     line_number = meta[:line_number]
     timestamp = "#{time_now.strftime('%Y-%m-%d-%H-%M-%S.')}#{'%03d' % (time_now.usec/1000).to_i}"
 
-    save_exception_log(filename, line_number, timestamp)
-    save_exception_screenshot(filename, line_number, timestamp)
+    save_exception_log(browser, filename, line_number, timestamp)
+    save_exception_screenshot(browser, filename, line_number, timestamp)
   end
 
-  def save_exception_screenshot(filename, line_number, timestamp)
+  def save_exception_screenshot(browser, filename, line_number, timestamp)
     screenshot_name = "screenshot-#{filename}-#{line_number}-#{timestamp}.png"
     screenshot_path = "/tmp/cuprite/#{screenshot_name}"
     browser.screenshot(path: screenshot_path, full: true)
@@ -121,7 +121,7 @@ RSpec.configure do |config|
     puts "#{e.class}: #{e.message}"
   end
 
-  def save_exception_log(filename, line_number, timestamp)
+  def save_exception_log(browser, filename, line_number, timestamp)
     log_name = "logfile-#{filename}-#{line_number}-#{timestamp}.txt"
     File.open("/tmp/cuprite/#{log_name}", "wb") { |f| f.write(browser.logger.string) }
   rescue => e
