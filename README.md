@@ -208,3 +208,8 @@ page.driver.browser.url_whitelist = ["http://www.example.com"]
 If you are experiencing slower run times, consider creating a URL whitelist of
 domains that are essential or a blacklist of domains that are not essential,
 such as ad networks or analytics, to your testing environment.
+
+## License
+
+The gem is available as open source under the terms of the
+[MIT License](https://opensource.org/licenses/MIT).
