@@ -15,6 +15,12 @@ Gem::Specification.new do |s|
   s.license       = "MIT"
   s.require_paths = ["lib"]
   s.files         = Dir["{lib}/**/*"] + %w[LICENSE README.md]
+  s.metadata = {
+    "homepage_uri" => "https://cuprite.rubycdp.com/",
+    "bug_tracker_uri" => "https://github.com/rubycdp/cuprite/issues",
+    "documentation_uri" => "https://github.com/rubycdp/cuprite/blob/master/README.md",
+    "source_code_uri" => "https://github.com/rubycdp/cuprite",
+  }
 
   s.required_ruby_version = ">= 2.3.0"
 
