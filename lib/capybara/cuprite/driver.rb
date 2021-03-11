@@ -363,6 +363,7 @@ module Capybara::Cuprite
     def invalid_element_errors
       [Capybara::Cuprite::ObsoleteNode,
        Capybara::Cuprite::MouseEventFailed,
+       Ferrum::CoordinatesNotFoundError,
        Ferrum::NoExecutionContextError,
        Ferrum::NodeNotFoundError]
     end
