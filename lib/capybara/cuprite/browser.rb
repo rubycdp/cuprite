@@ -47,7 +47,8 @@ module Capybara::Cuprite
       page.network.intercept if @client && !@url_blacklist.empty?
     end
 
-    def on_mouse_event_failed=(setting = :warn)
+    def on_mouse_event_failed=(setting)
+      setting ||= :warn
       valid_settings = %i[raise silence warn]
       if !valid_settings.include?(setting)
         raise "on_mouse_event_failed config must be one of: #{valid_settings}"
@@ -178,6 +179,15 @@ module Capybara::Cuprite
 
     def all_text(node)
       node.text
+    end
+
+    def notify_silenceable_exception(exception)
+      case on_mouse_event_failed
+      when :raise
+        raise exception
+      when :warn
+        warn(exception.message)
+      end
     end
 
     private

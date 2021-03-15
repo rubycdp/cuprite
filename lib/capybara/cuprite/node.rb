@@ -9,7 +9,7 @@ module Capybara::Cuprite
     extend Forwardable
 
     delegate %i(description) => :node
-    delegate %i(browser notify_silenceable_exception) => :driver
+    delegate %i(browser) => :driver
 
     def initialize(driver, node)
       super(driver, self)
@@ -23,7 +23,7 @@ module Capybara::Cuprite
     rescue Ferrum::BrowserError => e
       case e.message
       when "Cuprite.MouseEventFailed"
-        notify_silenceable_exception(MouseEventFailed.new(self, e.response))
+        browser.notify_silenceable_exception(MouseEventFailed.new(self, e.response))
       else
         raise
       end
