@@ -461,5 +461,14 @@ module Capybara::Cuprite
       (path && File.extname(path).delete(".") == "pdf") ||
       options[:format].to_s == "pdf"
     end
+
+    def notify_silenceable_exception(exception)
+      case on_mouse_event_failed
+      when :raise
+        raise exception
+      when :warn
+        warn(exception.message)
+      end
+    end
   end
 end
