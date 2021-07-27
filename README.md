@@ -108,6 +108,15 @@ opened where you can further experiment with the test.
 * `page.driver.scroll_to(left, top)` Scroll to a given position.
 * `element.send_keys(*keys)` Send keys to a given node.
 
+## Set user agent
+
+To change the user-agent of the driver for all following requests, use the `user-agent` browser option:
+
+```
+Capybara::Cuprite::Driver.new(app, { browser_options: { 'user-agent': 'Your own user agent string' } })
+```
+
+If you want to change the user-agent for one request, you can use the request headers.
 
 ## Request headers
 
@@ -115,9 +124,9 @@ Manipulate HTTP request headers like a boss:
 
 ``` ruby
 page.driver.headers # => {}
-page.driver.headers = { "User-Agent" => "Cuprite" }
+page.driver.headers = { "Host" => "github.com" }
 page.driver.add_headers("Referer" => "https://example.com")
-page.driver.headers # => { "User-Agent" => "Cuprite", "Referer" => "https://example.com" }
+page.driver.headers # => { "User-Agent" => "Cuprite", "Host" => "https://github.com" }
 ```
 
 Notice that `headers=` will overwrite already set headers. You should use
