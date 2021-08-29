@@ -4,4 +4,4 @@ source "https://rubygems.org"
 
 gem "websocket-driver", ">= 0.6", "< 0.7"
 
-gemspec path: "../"
+gemspec path: "../../"

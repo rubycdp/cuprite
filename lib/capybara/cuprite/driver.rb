@@ -243,7 +243,9 @@ module Capybara::Cuprite
       server = type ? "#{type}=#{ip}:#{port}" : "#{ip}:#{port}"
       @options[:browser_options].merge!("proxy-server" => server)
       @options[:browser_options].merge!("proxy-bypass-list" => bypass) if bypass
-      browser.network.authorize(type: :proxy, user: user, password: password)
+      browser.network.authorize(type: :proxy, user: user, password: password) do |request|
+        request.continue
+      end
     end
 
     def headers
@@ -296,7 +298,9 @@ module Capybara::Cuprite
     end
 
     def basic_authorize(user, password)
-      browser.network.authorize(user: user, password: password)
+      browser.network.authorize(user: user, password: password) do |request|
+        request.continue
+      end
     end
     alias_method :authorize, :basic_authorize
 
@@ -359,7 +363,9 @@ module Capybara::Cuprite
     def invalid_element_errors
       [Capybara::Cuprite::ObsoleteNode,
        Capybara::Cuprite::MouseEventFailed,
-       Ferrum::NoExecutionContextError]
+       Ferrum::CoordinatesNotFoundError,
+       Ferrum::NoExecutionContextError,
+       Ferrum::NodeNotFoundError]
     end
 
     def go_back

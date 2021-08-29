@@ -3,6 +3,7 @@
 CUPRITE_ROOT = File.expand_path("..", __dir__)
 $:.unshift(CUPRITE_ROOT + "/lib")
 
+require "fileutils"
 require "bundler/setup"
 require "rspec"
 
@@ -59,8 +60,10 @@ RSpec.configure do |config|
     node Element#drop can drop multiple files
     node Element#drop can drop strings
     node Element#drop can drop multiple strings
+    node Element#drop can drop a pathname
     node #visible? details non-summary descendants should be non-visible
     node #visible? works when details is toggled open and closed
+    node #path reports when element in shadow dom
     #all with obscured filter should only find nodes on top in the viewport when false
     #all with obscured filter should not find nodes on top outside the viewport when false
     #all with obscured filter should find top nodes outside the viewport when true
@@ -75,12 +78,15 @@ RSpec.configure do |config|
     #find with spatial filters should find an element "near" another element
     #has_css? with spatial requirements accepts spatial options
     #has_css? with spatial requirements supports spatial sugar
+    #fill_in should fill in a textarea in a reasonable time by default
     REGEXP
 
     metadata[:skip] = true if metadata[:full_description].match(/#{regexes}/)
   end
 
   config.around do |example|
+    remove_temporary_folders
+
     if ENV["CI"]
       session = @session || TestSessions::Cuprite
       session.driver.browser.logger.truncate(0)
@@ -103,12 +109,27 @@ RSpec.configure do |config|
     line_number = meta[:line_number]
     timestamp = "#{time_now.strftime('%Y-%m-%d-%H-%M-%S.')}#{'%03d' % (time_now.usec/1000).to_i}"
 
-    screenshot_name = "screenshot-#{filename}-#{line_number}-#{timestamp}.png"
-    screenshot_path = "#{ENV["CIRCLE_ARTIFACTS"]}/screenshots/#{screenshot_name}"
-    browser.screenshot(path: screenshot_path, full: true)
+    save_exception_log(browser, filename, line_number, timestamp)
+    save_exception_screenshot(browser, filename, line_number, timestamp)
+  end
 
-    log_name = "cuprite-#{filename}-#{line_number}-#{timestamp}.txt"
-    log_path = "#{ENV["CIRCLE_ARTIFACTS"]}/logs/#{log_name}"
-    File.open(log_path, 'wb') { |file| file.write(browser.logger.string) }
+  def save_exception_screenshot(browser, filename, line_number, timestamp)
+    screenshot_name = "screenshot-#{filename}-#{line_number}-#{timestamp}.png"
+    screenshot_path = "/tmp/cuprite/#{screenshot_name}"
+    browser.screenshot(path: screenshot_path, full: true)
+  rescue => e
+    puts "#{e.class}: #{e.message}"
+  end
+
+  def save_exception_log(browser, filename, line_number, timestamp)
+    log_name = "logfile-#{filename}-#{line_number}-#{timestamp}.txt"
+    File.open("/tmp/cuprite/#{log_name}", "wb") { |f| f.write(browser.logger.string) }
+  rescue => e
+    puts "#{e.class}: #{e.message}"
+  end
+
+  def remove_temporary_folders
+    FileUtils.rm_rf(CUPRITE_ROOT + "/screenshots")
+    FileUtils.rm_rf(CUPRITE_ROOT + "/save_path_tmp")
   end
 end
