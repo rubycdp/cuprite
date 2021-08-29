@@ -7,6 +7,7 @@ Capybara::SpecHelper.run_specs TestSessions::Cuprite, "Cuprite"
 describe Capybara::Session do
   context "with cuprite driver" do
     before { @session = TestSessions::Cuprite }
+    after { @session.reset! }
 
     describe Capybara::Cuprite::Node do
       it "raises an error if the element has been removed from the DOM" do
@@ -240,6 +241,12 @@ describe Capybara::Session do
           FileUtils.rm_f(filename)
         end
       end
+
+      it "sets a value for a color input" do
+        element = @session.find(:css, "#change_me_color")
+        element.set("#ddeeff")
+        expect(element.value).to eq("#ddeeff")
+      end
     end
 
     describe "Node#visible" do
@@ -351,7 +358,7 @@ describe Capybara::Session do
       expect(@session.evaluate_script("new Array")).to eq([])
       expect(@session.evaluate_script("new Function")).to eq({})
 
-      expect { @session.evaluate_script(%(throw "smth")) }.to raise_error(Capybara::Cuprite::JavaScriptError)
+      expect { @session.evaluate_script(%(throw "smth")) }.to raise_error(Ferrum::JavaScriptError)
     end
 
     it "ignores cyclic structure errors in evaluate_script" do
@@ -368,7 +375,7 @@ describe Capybara::Session do
         })()
       JS
 
-      expect(@session.evaluate_script(code)).to eq("(cyclic structure)")
+      expect(@session.evaluate_script(code)).to eq(Ferrum::CyclicObject.instance)
     end
 
     it "synchronises page loads properly" do
@@ -825,7 +832,7 @@ describe Capybara::Session do
         expect do
           @session.within_frame("omg") {}
         end.to(raise_error do |e|
-          expect(e).to be_a(Capybara::Cuprite::FrameNotFound).or be_a(Capybara::ElementNotFound)
+          expect(e).to be_a(Capybara::ElementNotFound)
         end)
       end
     end
@@ -925,6 +932,15 @@ describe Capybara::Session do
     end
 
     context "modals" do
+      it "accepts by default with warning" do
+        @session.visit "/cuprite/with_js"
+        expect(@session.driver.browser.page).to receive(:warn).with("Modal window with text `{T}ext \\w|th [reg.exp] (chara©+er$)?` has been opened, but you didn't wrap your code into (`accept_prompt` | `dismiss_prompt` | `accept_confirm` | `dismiss_confirm` | `accept_alert`), accepting by default")
+
+        expect { @session.click_link("Open for match") }.not_to raise_error
+
+        expect(@session).to have_xpath("//a[@id='open-match' and @confirmed='true']")
+      end
+
       it "matches on partial strings" do
         @session.visit "/cuprite/with_js"
         expect do
@@ -1000,11 +1016,28 @@ describe Capybara::Session do
     context "in threadsafe mode" do
       before do
         skip "No threadsafe mode in this version" unless Capybara.respond_to?(:threadsafe)
-        Capybara::SpecHelper.reset_threadsafe(true, @session) if Capybara.respond_to?(:threadsafe)
+
+        if Capybara.respond_to?(:threadsafe)
+          parameters = Capybara::SpecHelper.method(:reset_threadsafe).parameters
+
+          if parameters[0][0] == :opt
+            Capybara::SpecHelper.reset_threadsafe(true, @session)
+          else
+            Capybara::SpecHelper.reset_threadsafe(bool: true, session: @session)
+          end
+        end
       end
 
       after do
-        Capybara::SpecHelper.reset_threadsafe(false, @session) if Capybara.respond_to?(:threadsafe)
+        if Capybara.respond_to?(:threadsafe)
+          parameters = Capybara::SpecHelper.method(:reset_threadsafe).parameters
+
+          if parameters[0][0] == :opt
+            Capybara::SpecHelper.reset_threadsafe(false, @session)
+          else
+            Capybara::SpecHelper.reset_threadsafe(bool: false, session: @session)
+          end
+        end
       end
 
       it "uses per session wait setting" do
@@ -1014,7 +1047,7 @@ describe Capybara::Session do
       end
     end
 
-    if Capybara::Cuprite.mri? && !Capybara::Cuprite.windows?
+    if Ferrum.mri? && !Ferrum.windows?
       require "pty"
       require "timeout"
 
@@ -1038,7 +1071,7 @@ describe Capybara::Session do
         let(:script) do
           <<-RUBY
             require "capybara/cuprite"
-            browser = Capybara::Cuprite::Browser.start
+            browser = Capybara::Cuprite::Browser.new
             browser.visit("http://example.com")
             puts "Please type enter"
             sleep 1

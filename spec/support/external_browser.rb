@@ -4,7 +4,7 @@ module Spec
       def with_external_browser
         url = URI.parse("http://127.0.0.1:32001")
         opts = { host: url.host, port: url.port, window_size: [1400, 1400], headless: true }
-        process = Capybara::Cuprite::Browser::Process.new(opts)
+        process = Ferrum::Browser::Process.new(opts)
 
         begin
           process.start

@@ -58,6 +58,17 @@ class TestApp
     request.cookies["capybara"]
   end
 
+  get "/cuprite/show_cookies" do
+    render_view "show_cookies"
+  end
+
+  get "/cuprite/set_cookie_slow" do
+    sleep 1
+    cookie_value = "test_cookie"
+    response.set_cookie("stealth", cookie_value)
+    "Cookie set to #{cookie_value}"
+  end
+
   get "/cuprite/slow" do
     sleep 0.2
     "slow page"

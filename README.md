@@ -1,81 +1,115 @@
-# Cuprite - Headless Chrome driver for Capybara #
+# Cuprite - Headless Chrome driver for Capybara
 
-[![Build Status](https://travis-ci.org/machinio/cuprite.svg?branch=master)](https://travis-ci.org/machinio/cuprite)
+Cuprite is a pure Ruby driver (read as _no_ Selenium/WebDriver/ChromeDriver
+dependency) for [Capybara](https://github.com/teamcapybara/capybara). It allows
+you to run Capybara tests on a headless Chrome or Chromium. Under the hood it
+uses [Ferrum](https://github.com/rubycdp/ferrum#index) which is high-level API
+to the browser by CDP protocol. The design of the driver is as close to
+[Poltergeist](https://github.com/teampoltergeist/poltergeist) as possible though
+it's not a goal.
 
-Cuprite is a pure Ruby driver (read as _no_ Java/Selenium/WebDriver/ChromeDriver
-requirement) for [Capybara](https://github.com/teamcapybara/capybara). It allows
-you to run your Capybara tests on a headless [Chrome](https://www.google.com/chrome/)
-or [Chromium](https://www.chromium.org/) browser by [CDP protocol](https://chromedevtools.github.io/devtools-protocol/).
+[Cuprite](https://evrone.com/cuprite) website is designed & supported by [Evrone](https://evrone.com/)
+What else we build [with Ruby](https://evrone.com/ruby)
 
-The emphasis was made on raw CDP protocol because Headless Chrome allows you to
-do so many cool things that are barely supported by WebDriver because it should
-have consistent design with other browsers. The design of the driver will be as
-close to [Poltergeist](https://github.com/teampoltergeist/poltergeist) as
-possible but it's not a goal.
 
-## Installation ##
+## Install
+
+Add this to your `Gemfile` and run `bundle install`.
 
 ``` ruby
-gem "cuprite"
+group :test do
+  gem "cuprite"
+end
 ```
-
-and run `bundle install`.
 
 In your test setup add:
 
 ``` ruby
 require "capybara/cuprite"
 Capybara.javascript_driver = :cuprite
+Capybara.register_driver(:cuprite) do |app|
+  Capybara::Cuprite::Driver.new(app, window_size: [1200, 800])
+end
 ```
 
-## Installing Chromium ##
-
-As Chromium is stopped being built as a package for Linux don't even try to
-install it this way because it will either be outdated or unofficial package.
-Both are bad. Download it from official [source](https://www.chromium.org/getting-involved/download-chromium).
-
-## Supported features ##
-
-All the mandatory capybara features plus optional ones:
-
-* `page.evaluate_script` and `page.execute_script`
-* `page.within_frame`
-* `page.status_code`
-* `page.response_headers`
-* `page.save_screenshot`
-* `page.driver.render_base64(format, options)`
-* `page.driver.scroll_to(left, top)`
-* `page.driver.basic_authorize(user, password)`
-* `element.send_keys(*keys)`
-* `page.driver.set_proxy(ip, port, type, user, password)`
-* window API
-* cookie handling
-
-### Remote debugging ###
-
-If you use the `inspector: true` option, remote debugging will be enabled. When
-this option is enabled, you can insert `page.driver.debug` into your tests to
-pause the test and launch a browser which gives you the Chrome inspector to view
-all your open pages and inspect them.
-
-You can register this debugger driver with a different name and set it
-as the current javascript driver. By example, in your helper file:
+if you use `Docker` don't forget to pass `no-sandbox` option:
 
 ```ruby
-Capybara.register_driver :cuprite_debug do |app|
-  Capybara::Cuprite::Driver.new(app, inspector: true)
-end
-
-Capybara.javascript_driver = :cuprite_debug
+Capybara::Cuprite::Driver.new(app, browser_options: { 'no-sandbox': nil })
 ```
 
-### Clicking coordinates ###
+Since Cuprite uses [Ferrum](https://github.com/rubycdp/ferrum#examples) there
+are many useful methods you can call even using this driver:
 
-Sometimes its desirable to click a very specific area of the screen. You can
-accomplish this with `page.driver.click(x, y)`, where x and y are the screen
-coordinates.
+```ruby
+browser = page.driver.browser
+browser.mouse.move(x: 123, y: 456).down.up
+```
 
-### Manipulating request headers ###
+If you already have tests on Poltergeist then it should simply work, for
+Selenium you better check your code for `manage` calls because it works
+differently in Cuprite, see the documentation below.
+
+
+## Customization
+
+See the full list of options for
+[Ferrum](https://github.com/rubycdp/ferrum#customization).
+
+You can pass options with the following code in your test setup:
+
+``` ruby
+Capybara.register_driver(:cuprite) do |app|
+  Capybara::Cuprite::Driver.new(app, options)
+end
+```
+
+`Cuprite`-specific options are:
+
+* options `Hash`
+  * `:url_blacklist` (Array) - array of strings to match against requested URLs
+  * `:url_whitelist` (Array) - array of strings to match against requested URLs
+
+
+## Debugging
+
+If you pass `inspector` option, remote debugging will be enabled if you run
+tests with `INSPECTOR=true`. Then you can put `page.driver.debug` or
+`page.driver.debug(binding)` in your test to pause it. This will launch the
+browser where you can inspect the content.
+
+```ruby
+Capybara.register_driver :cuprite do |app|
+  Capybara::Cuprite::Driver.new(app, inspector: ENV['INSPECTOR'])
+end
+```
+
+then somewhere in the test:
+
+```ruby
+it "does something useful" do
+  visit root_path
+
+  fill_in "field", with: "value"
+  page.driver.debug(binding)
+
+  expect(page).to have_content("value")
+end
+```
+
+In the middle of the execution Chrome will open a new tab where you can inspect
+the content and also if you passed `binding` an `irb` or `pry` console will be
+opened where you can further experiment with the test.
+
+
+## Clicking/Scrolling
+
+* `page.driver.click(x, y)` Click a very specific area of the screen.
+* `page.driver.scroll_to(left, top)` Scroll to a given position.
+* `element.send_keys(*keys)` Send keys to a given node.
+
+
+## Request headers
 
 Manipulate HTTP request headers like a boss:
 
@@ -91,18 +125,42 @@ Notice that `headers=` will overwrite already set headers. You should use
 subsequent HTTP requests (including requests for assets, AJAX, etc). They will
 be automatically cleared at the end of the test.
 
-### Inspecting network traffic ###
 
-You can inspect the network traffic (i.e. what resources have been loaded) on
-the current page by calling `page.driver.network_traffic`. This returns an array
-of request objects. A request object has a `response` method containing data
-about the response.
+## Network traffic
+
+* `page.driver.network_traffic` Inspect network traffic (loaded resources) on
+the current page. This returns an array of request objects.
+
+```ruby
+page.driver.network_traffic # => [Request, ...]
+request = page.driver.network_traffic.first
+request.response
+```
+
+* `page.driver.wait_for_network_idle` Natively waits for network idle and if
+there are no active connections returns or raises `TimeoutError` error. Accepts
+the same options as
+[`wait_for_idle`](https://github.com/rubycdp/ferrum#wait_for_idleoptions)
+
+```ruby
+page.driver.wait_for_network_idle
+page.driver.refresh
+```
 
 Please note that network traffic is not cleared when you visit new page. You can
 manually clear the network traffic by calling `page.driver.clear_network_traffic`
 or `page.driver.reset`
 
-### Manipulating cookies ###
+* `page.driver.wait_for_reload` unlike `wait_for_network_idle` will wait until
+the whole page is reloaded or raise a timeout error. It's useful when you know
+that for example after clicking autocomplete suggestion you expect page to be
+reloaded, you have a few choices - put sleep or wait for network idle, but both
+are bad. Sleep makes you wait longer or less than needed, network idle can
+return earlier even before the whole page is started to reload. Here's the
+rescue.
+
+
+## Manipulating cookies
 
 The following methods are used to inspect and manipulate cookies:
 
@@ -117,45 +175,22 @@ The following methods are used to inspect and manipulate cookies:
 * `page.driver.remove_cookie(name)` - remove a cookie
 * `page.driver.clear_cookies` - clear all cookies
 
-## Customization ##
 
-You can customize the way that Capybara sets up Cuprite via the following code
-in your test setup:
+## Screenshot
 
-``` ruby
-Capybara.register_driver :cuprite do |app|
-  Capybara::Cuprite::Driver.new(app, options)
-end
-```
+Besides capybara screenshot method you can get image as Base64:
 
-`options` is a hash of options. The following options are supported:
+* `page.driver.render_base64(format, options)`
 
-* `:browser_path` (String) - Path to chrome binary, you can also set ENV
-    variable as `BROWSER_PATH=some/path/chrome bundle exec rspec`.
-* `:headless` (Boolean) - Set browser as headless or not, `true` by default.
-* `:slowmo` (Integer | Float) - Set a delay to wait before sending command.
-    Usefull companion of headless option, so that you have time to see changes.
-* `:logger` (Object responding to `puts`) - When present, debug output is
-    written to this object.
-* `:timeout` (Numeric) - The number of seconds we'll wait for a response when
-    communicating with browser. Default is 30.
-* `:js_errors` (Boolean) - When true, JavaScript errors get re-raised in Ruby.
-* `:window_size` (Array) - The dimensions of the browser window in which to
-    test, expressed as a 2-element array, e.g. [1024, 768]. Default: [1024, 768]
-* `:browser_options` (Hash) - Additional command line options,
-    [see them all](https://peter.sh/experiments/chromium-command-line-switches/)
-    e.g. `{ "ignore-certificate-errors" => nil }`
-* `:extensions` (Array) - An array of JS files to be preloaded into the browser
-* `:port` (Integer) - Remote debugging port for headless Chrome
-* `:host` (String) - Remote debugging address for headless Chrome
-* `:url` (String) - URL for a running instance of Chrome. If this is set, a
-    browser process will not be spawned.
-* `:url_blacklist` (Array) - array of strings to match against requested URLs
-* `:url_whitelist` (Array) - array of strings to match against requested URLs
-* `:process_timeout` (Integer) - How long to wait for the Chrome process to
-    respond on startup
 
-### URL Blacklisting & Whitelisting ###
+## Authorization
+
+* `page.driver.basic_authorize(user, password)`
+* `page.driver.set_proxy(ip, port, type, user, password)`
+
+
+## URL Blacklisting & Whitelisting
+
 Cuprite supports URL blacklisting, which allows you to prevent scripts from
 running on designated domains:
 
@@ -163,8 +198,8 @@ running on designated domains:
 page.driver.browser.url_blacklist = ["http://www.example.com"]
 ```
 
-and also URL whitelisting, which allows scripts to only run
-on designated domains:
+and also URL whitelisting, which allows scripts to only run on designated
+domains:
 
 ```ruby
 page.driver.browser.url_whitelist = ["http://www.example.com"]
@@ -174,25 +209,7 @@ If you are experiencing slower run times, consider creating a URL whitelist of
 domains that are essential or a blacklist of domains that are not essential,
 such as ad networks or analytics, to your testing environment.
 
-## License ##
+## License
 
-Copyright 2018-2019 Machinio
-
-Permission is hereby granted, free of charge, to any person obtaining
-a copy of this software and associated documentation files (the
-"Software"), to deal in the Software without restriction, including
-without limitation the rights to use, copy, modify, merge, publish,
-distribute, sublicense, and/or sell copies of the Software, and to
-permit persons to whom the Software is furnished to do so, subject to
-the following conditions:
-
-The above copyright notice and this permission notice shall be
-included in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
-LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
-OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
-WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+The gem is available as open source under the terms of the
+[MIT License](https://opensource.org/licenses/MIT).

@@ -1,24 +1,27 @@
 # frozen_string_literal: true
 
+require "forwardable"
+
 module Capybara::Cuprite
   class Node < Capybara::Driver::Node
-    attr_reader :target_id, :node
+    attr_reader :node
 
-    def initialize(driver, target_id, node)
+    extend Forwardable
+
+    delegate %i(description) => :node
+    delegate %i(browser) => :driver
+
+    def initialize(driver, node)
       super(driver, self)
-      @target_id, @node = target_id, node
-    end
-
-    def browser
-      driver.browser
+      @node = node
     end
 
     def command(name, *args)
-      browser.send(name, @node, *args)
-    rescue BrowserError => e
+      browser.send(name, node, *args)
+    rescue Ferrum::NodeNotFoundError => e
+      raise ObsoleteNode.new(self, e.response)
+    rescue Ferrum::BrowserError => e
       case e.message
-      when "No node with given id found"
-        raise ObsoleteNode.new(self, e.response)
       when "Cuprite.MouseEventFailed"
         raise MouseEventFailed.new(self, e.response)
       else
@@ -28,13 +31,7 @@ module Capybara::Cuprite
 
     def parents
       command(:parents).map do |parent|
-        self.class.new(driver, parent["target_id"], parent["node"])
-      end
-    end
-
-    def find(method, selector)
-      command(:find_within, method, selector).map do |node|
-        self.class.new(driver, @target_id, node)
+        self.class.new(driver, parent)
       end
     end
 
@@ -44,6 +41,12 @@ module Capybara::Cuprite
 
     def find_css(selector)
       find(:css, selector)
+    end
+
+    def find(method, selector)
+      command(:find_within, method, selector).map do |node|
+        self.class.new(driver, node)
+      end
     end
 
     def all_text
@@ -69,7 +72,8 @@ module Capybara::Cuprite
     def [](name)
       # Although the attribute matters, the property is consistent. Return that in
       # preference to the attribute for links and images.
-      if ((tag_name == "img") && (name == "src")) || ((tag_name == "a") && (name == "href"))
+      if (tag_name == "img" && name == "src") ||
+         (tag_name == "a" && name == "href")
         # if attribute exists get the property
         return command(:attribute, name) && command(:property, name)
       end
@@ -100,6 +104,8 @@ module Capybara::Cuprite
         when "file"
           files = value.respond_to?(:to_ary) ? value.to_ary.map(&:to_s) : value.to_s
           command(:select_file, files)
+        when "color"
+          node.evaluate("this.setAttribute('value', '#{value}')")
         else
           command(:set, value.to_s)
         end
@@ -121,7 +127,7 @@ module Capybara::Cuprite
     end
 
     def tag_name
-      @tag_name ||= @node["nodeName"].downcase
+      @tag_name ||= description["nodeName"].downcase
     end
 
     def visible?
@@ -140,16 +146,16 @@ module Capybara::Cuprite
       command(:disabled?)
     end
 
-    def click(keys = [], offset = {})
-      command(:click, keys, offset)
+    def click(keys = [], **options)
+      prepare_and_click(:left, __method__, keys, options)
     end
 
-    def right_click(keys = [], offset = {})
-      command(:right_click, keys, offset)
+    def right_click(keys = [], **options)
+      prepare_and_click(:right, __method__, keys, options)
     end
 
-    def double_click(keys = [], offset = {})
-      command(:double_click, keys, offset)
+    def double_click(keys = [], **options)
+      prepare_and_click(:double, __method__, keys, options)
     end
 
     def hover
@@ -157,7 +163,7 @@ module Capybara::Cuprite
     end
 
     def drag_to(other)
-      command(:drag, other.node)
+      command(:drag, other)
     end
 
     def drag_by(x, y)
@@ -192,10 +198,7 @@ module Capybara::Cuprite
     end
 
     def ==(other)
-      # We compare backendNodeId because once nodeId is sent to frontend backend
-      # never returns same nodeId sending 0. In other words frontend is
-      # responsible for keeping track of node ids.
-      @target_id == other.target_id && @node["backendNodeId"] == other.node["backendNodeId"]
+      node == other.native.node
     end
 
     def send_keys(*keys)
@@ -208,7 +211,7 @@ module Capybara::Cuprite
     end
 
     def inspect
-      %(#<#{self.class} @target_id=#{@target_id.inspect} @node=#{@node.inspect}>)
+      %(#<#{self.class} @node=#{@node.inspect}>)
     end
 
     # @api private
@@ -218,11 +221,19 @@ module Capybara::Cuprite
 
     # @api private
     def as_json(*)
-      # FIXME: Where this method is used and why attr is called id?
-      { ELEMENT: { target_id: @target_id, id: @node } }
+      # FIXME: Where is this method used and why attr is called id?
+      { ELEMENT: { node: node, id: node.node_id } }
     end
 
     private
+
+    def prepare_and_click(mode, name, keys, options)
+      delay = options[:delay].to_i
+      x, y = options.values_at(:x, :y)
+      offset = { x: x, y: y, position: options[:offset] || :top }
+      command(:before_click, name, keys, offset)
+      node.click(mode: mode, keys: keys, offset: offset, delay: delay)
+    end
 
     def filter_text(text)
       if Capybara::VERSION.to_f < 3
