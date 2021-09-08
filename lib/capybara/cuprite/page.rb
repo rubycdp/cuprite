@@ -180,7 +180,7 @@ module Capybara::Cuprite
     end
 
     def find_position(node, **options)
-      x, y = node.find_position(**options)
+      node.find_position(**options)
     rescue Ferrum::BrowserError => e
       if e.message == "Could not compute content quads."
         raise MouseEventFailed.new("MouseEventFailed: click, none, 0, 0")
