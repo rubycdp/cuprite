@@ -126,7 +126,7 @@ Manipulate HTTP request headers like a boss:
 page.driver.headers # => {}
 page.driver.headers = { "Host" => "github.com" }
 page.driver.add_headers("Referer" => "https://example.com")
-page.driver.headers # => { "User-Agent" => "Cuprite", "Host" => "https://github.com" }
+page.driver.headers # => { "User-Agent" => "Cuprite", "Host" => "https://github.com", "Referer" => "https://example.com" }
 ```
 
 Notice that `headers=` will overwrite already set headers. You should use
