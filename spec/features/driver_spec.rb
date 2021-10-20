@@ -777,20 +777,21 @@ module Capybara
         @driver.clear_memory_cache
 
         @session.visit("/cuprite/cacheable")
-        first_request = @driver.network_traffic.last
         expect(@driver.network_traffic.length).to eq(1)
-        expect(first_request.response.status).to eq(200)
+        expect(@driver.network_traffic.last.response.status).to eq(200)
+        expect(@driver.network_traffic.last.response.params.dig("response", "fromDiskCache")).to be_falsey
 
-        @session.refresh
+        @session.click_link "click me"
         expect(@driver.network_traffic.length).to eq(2)
-        expect(@driver.network_traffic.last.response.status).to eq(304)
+        expect(@driver.network_traffic.last.response.status).to eq(200)
+        expect(@driver.network_traffic.last.response.params.dig("response", "fromDiskCache")).to be_truthy
 
         @driver.clear_memory_cache
 
-        @session.refresh
-        another_request = @driver.network_traffic.last
+        @session.click_link "click me"
         expect(@driver.network_traffic.length).to eq(3)
-        expect(another_request.response.status).to eq(200)
+        expect(@driver.network_traffic.last.response.status).to eq(200)
+        expect(@driver.network_traffic.last.response.params.dig("response", "fromDiskCache")).to be_falsey
       end
 
       context "status code support" do
