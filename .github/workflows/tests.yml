@@ -4,17 +4,16 @@ on:
     branches:
       - master
   pull_request:
+    types: [opened, synchronize, reopened, labeled]
 
 jobs:
   tests:
     name: Tests
-
     strategy:
       fail-fast: false
       matrix:
         gemfile: [capybara-3.x, websocket-driver-6.x, ferrum-master]
         ruby: [2.6, 2.7, 3.0]
-
     runs-on: ubuntu-latest
     env:
       FERRUM_PROCESS_TIMEOUT: 20
@@ -39,6 +38,11 @@ jobs:
 
       - name: Run tests
         run: bundle exec rake
+        if: |
+          github.event.pull_request.draft == false ||
+            (github.event.pull_request.draft == true &&
+             contains(github.event.pull_request.labels.*.name, 'master') &&
+             matrix.gemfile == 'ferrum-master')
 
       - name: Archive artifacts
         uses: actions/upload-artifact@v2
