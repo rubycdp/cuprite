@@ -532,16 +532,9 @@ describe Capybara::Session do
       end
     end
 
-    if Capybara::VERSION.to_f < 3.0
-      it "returns BR as a space in #text" do
-        @session.visit "/cuprite/simple"
-        expect(@session.find(:css, "#break").text).to eq("Foo Bar")
-      end
-    else
-      it "returns BR as new line in #text" do
-        @session.visit "/cuprite/simple"
-        expect(@session.find(:css, "#break").text).to eq("Foo\nBar")
-      end
+    it "returns BR as new line in #text" do
+      @session.visit "/cuprite/simple"
+      expect(@session.find(:css, "#break").text).to eq("Foo\nBar")
     end
 
     it "handles hash changes" do
@@ -871,22 +864,12 @@ describe Capybara::Session do
         expect(@session.find(:css, "#bar").text).to eq "bar"
       end
 
-      if Capybara::VERSION.to_f < 3.0
-        it "gets text stripped whitespace and nbsp" do
-          expect(@session.find(:css, "#baz").text).to eq "baz"
-        end
+      it "gets text stripped whitespace and then converts nbsp to space" do
+        expect(@session.find(:css, "#baz").text).to eq " baz    "
+      end
 
-        it "gets text stripped whitespace, nbsp and unicode whitespace" do
-          expect(@session.find(:css, "#qux").text).to eq "qux"
-        end
-      else
-        it "gets text stripped whitespace and then converts nbsp to space" do
-          expect(@session.find(:css, "#baz").text).to eq " baz    "
-        end
-
-        it "gets text stripped whitespace" do
-          expect(@session.find(:css, "#qux").text).to eq "  \u3000 qux \u3000  "
-        end
+      it "gets text stripped whitespace" do
+        expect(@session.find(:css, "#qux").text).to eq "  \u3000 qux \u3000  "
       end
     end
 

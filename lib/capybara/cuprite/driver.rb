@@ -44,11 +44,7 @@ module Capybara::Cuprite
     end
 
     def current_url
-      if Capybara::VERSION.to_f < 3.0
-        frame_url
-      else
-        browser.current_url
-      end
+      browser.current_url
     end
 
     def frame_url
@@ -65,11 +61,7 @@ module Capybara::Cuprite
     end
 
     def title
-      if Capybara::VERSION.to_f < 3.0
-        frame_title
-      else
-        browser.title
-      end
+      browser.title
     end
 
     def frame_title

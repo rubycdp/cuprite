@@ -79,14 +79,6 @@ module Capybara::Cuprite
     def within_window(locator = nil, &block)
       original = window_handle
 
-      if Capybara::VERSION.to_f < 3.0
-        target_id = window_handles.find do |target_id|
-          page = attach_page(target_id)
-          locator == page.frame_name
-        end
-        locator = target_id if target_id
-      end
-
       if window_handles.include?(locator)
         switch_to_window(locator)
         yield
