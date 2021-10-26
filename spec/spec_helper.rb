@@ -13,20 +13,15 @@ require "capybara/cuprite"
 require "support/test_app"
 require "support/external_browser"
 
+puts ""
+puts `#{Ferrum::Browser::Command.build({ window_size: [], ignore_default_browser_options: true }, nil).to_a.first} --version`
+puts ""
+
 Capybara.register_driver(:cuprite) do |app|
   options = {}
   options.merge!(inspector: true) if ENV["INSPECTOR"]
   options.merge!(logger: StringIO.new) if ENV["CI"]
-  driver = Capybara::Cuprite::Driver.new(app, options)
-  process = driver.browser.process
-
-  puts ""
-  puts "Browser: #{process.browser_version}"
-  puts "Protocol: #{process.protocol_version}"
-  puts "V8: #{process.v8_version}"
-  puts "Webkit: #{process.webkit_version}"
-
-  driver
+  Capybara::Cuprite::Driver.new(app, options)
 end
 
 module TestSessions
