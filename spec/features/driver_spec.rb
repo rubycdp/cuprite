@@ -792,7 +792,7 @@ module Capybara::Cuprite
       end
     end
 
-    it "can clear memory cache" do
+    it "can clear memory cache", skip: "Fixed in ferrum master" do
       @driver.clear_memory_cache
 
       @session.visit("/cuprite/cacheable")
@@ -1561,12 +1561,7 @@ module Capybara::Cuprite
 
       @session.within_frame(0) do
         expect(@session.driver.frame_url).to end_with("/cuprite/slow")
-        if Capybara::VERSION.to_f < 3.0
-          expect(@session.driver.current_url).to end_with("/cuprite/slow")
-        else
-          # current_url is required to return the top level browsing context in Capybara 3
           expect(@session.driver.current_url).to end_with("/cuprite/frames")
-        end
       end
       expect(@session.driver.frame_url).to end_with("/cuprite/frames")
       expect(@session.driver.current_url).to end_with("/cuprite/frames")

@@ -3,5 +3,6 @@
 source "https://rubygems.org"
 
 gem "ferrum", github: "route/ferrum"
+gem "capybara", "~> 3.35.0"
 
 gemspec path: "../../"
