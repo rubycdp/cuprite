@@ -21,6 +21,7 @@ Capybara.register_driver(:cuprite) do |app|
   options = {}
   options.merge!(inspector: true) if ENV["INSPECTOR"]
   options.merge!(logger: StringIO.new) if ENV["CI"]
+  options.merge!(headless: false) if ENV["HEADLESS"] == "false"
   Capybara::Cuprite::Driver.new(app, options)
 end
 
