@@ -10,7 +10,13 @@ module Capybara::Cuprite
 
     extend Forwardable
 
-    delegate %i(restart quit status_code timeout timeout=) => :browser
+    delegate %i(restart quit status_code timeout timeout= current_url title body
+                window_handles close_window switch_to_window within_window window_handle
+                back forward refresh wait_for_reload) => :browser
+    alias_method :html, :body
+    alias_method :current_window_handle, :window_handle
+    alias_method :go_back, :back
+    alias_method :go_forward, :forward
 
     attr_reader :app, :options, :screen_size
 
@@ -43,25 +49,12 @@ module Capybara::Cuprite
       browser.visit(url)
     end
 
-    def current_url
-      browser.current_url
-    end
-
     def frame_url
       evaluate_script("window.location.href")
     end
 
-    def html
-      browser.body
-    end
-    alias_method :body, :html
-
     def source
       browser.source.to_s
-    end
-
-    def title
-      browser.title
     end
 
     def frame_title
@@ -110,31 +103,11 @@ module Capybara::Cuprite
       browser.switch_to_frame(handle)
     end
 
-    def current_window_handle
-      browser.window_handle
-    end
-
-    def window_handles
-      browser.window_handles
-    end
-
-    def close_window(handle)
-      browser.close_window(handle)
-    end
-
     def open_new_window
       target = browser.default_context.create_target
       target.maybe_sleep_if_new_window
       target.page = Page.new(target.id, browser)
       target.page
-    end
-
-    def switch_to_window(handle)
-      browser.switch_to_window(handle)
-    end
-
-    def within_window(name, &block)
-      browser.within_window(name, &block)
     end
 
     def no_such_window_error
@@ -358,22 +331,6 @@ module Capybara::Cuprite
        Ferrum::CoordinatesNotFoundError,
        Ferrum::NoExecutionContextError,
        Ferrum::NodeNotFoundError]
-    end
-
-    def go_back
-      browser.back
-    end
-
-    def go_forward
-      browser.forward
-    end
-
-    def refresh
-      browser.refresh
-    end
-
-    def wait_for_reload(*args)
-      browser.wait_for_reload(*args)
     end
 
     def accept_modal(type, options = {})
