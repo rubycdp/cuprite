@@ -13,7 +13,7 @@ jobs:
       fail-fast: false
       matrix:
         gemfile: [capybara-3.x, websocket-driver-6.x, ferrum-master]
-        ruby: [2.5, 2.6, 2.7]
+        ruby: [2.6, 2.7, 3.0]
 
     runs-on: ubuntu-latest
     env:

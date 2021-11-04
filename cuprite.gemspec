@@ -22,7 +22,7 @@ Gem::Specification.new do |s|
     "source_code_uri" => "https://github.com/rubycdp/cuprite",
   }
 
-  s.required_ruby_version = ">= 2.5.0"
+  s.required_ruby_version = ">= 2.6.0"
 
   s.add_runtime_dependency "capybara", "~> 3.0"
   s.add_runtime_dependency "ferrum",   "~> 0.11.0"
