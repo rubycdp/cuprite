@@ -94,17 +94,17 @@ RSpec.configure do |config|
 
     if ENV["CI"] && example.exception
       session = @session || TestSessions::Cuprite
-      save_exception_aftifacts(session.driver.browser, example.metadata)
+      save_exception_artifacts(session.driver.browser, example.metadata)
     end
   end
 
   Capybara::SpecHelper.configure(config)
 
-  def save_exception_aftifacts(browser, meta)
+  def save_exception_artifacts(browser, meta)
     time_now = Time.now
     filename = File.basename(meta[:file_path])
     line_number = meta[:line_number]
-    timestamp = "#{time_now.strftime('%Y-%m-%d-%H-%M-%S.')}#{'%03d' % (time_now.usec / 1000).to_i}"
+    timestamp = time_now.strftime("%Y-%m-%d-%H-%M-%S.") + format("%03d", (time_now.usec / 1000).to_i)
 
     save_exception_log(browser, filename, line_number, timestamp)
     save_exception_screenshot(browser, filename, line_number, timestamp)

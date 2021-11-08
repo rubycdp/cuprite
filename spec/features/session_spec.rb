@@ -821,7 +821,7 @@ describe Capybara::Session do
         @session.visit "/"
 
         expect do
-          @session.within_frame("omg") {}
+          @session.within_frame("omg", &:itself)
         end.to(raise_error do |e|
           expect(e).to be_a(Capybara::ElementNotFound)
         end)
@@ -917,7 +917,12 @@ describe Capybara::Session do
     context "modals" do
       it "accepts by default with warning" do
         @session.visit "/cuprite/with_js"
-        expect(@session.driver.browser.page).to receive(:warn).with("Modal window with text `{T}ext \\w|th [reg.exp] (chara©+er$)?` has been opened, but you didn't wrap your code into (`accept_prompt` | `dismiss_prompt` | `accept_confirm` | `dismiss_confirm` | `accept_alert`), accepting by default")
+        expect(@session.driver.browser.page)
+          .to receive(:warn).with(
+            "Modal window with text `{T}ext \\w|th [reg.exp] (chara©+er$)?` has been opened, "\
+            "but you didn't wrap your code into (`accept_prompt` | `dismiss_prompt` | `accept_confirm` "\
+            "| `dismiss_confirm` | `accept_alert`), accepting by default"
+          )
 
         expect { @session.click_link("Open for match") }.not_to raise_error
 

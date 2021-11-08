@@ -257,19 +257,15 @@ module Capybara
       end
 
       def scroll_to_location(location)
-        scroll_y = case location
-                   when :top
-                     "0"
-                   when :bottom
-                     "arguments[0].scrollHeight"
-                   when :center
-                     "(arguments[0].scrollHeight - arguments[0].clientHeight)/2"
-                   end
+        height = { top: "0",
+                   bottom: "arguments[0].scrollHeight",
+                   center: "(arguments[0].scrollHeight - arguments[0].clientHeight)/2" }
+
         driver.execute_script <<~JS, self
           if (arguments[0].scrollTo){
-            arguments[0].scrollTo(0, #{scroll_y});
+            arguments[0].scrollTo(0, #{height[location]});
           } else {
-            arguments[0].scrollTop = #{scroll_y};
+            arguments[0].scrollTop = #{height[location]};
           }
         JS
       end

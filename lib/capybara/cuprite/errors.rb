@@ -9,6 +9,7 @@ module Capybara
 
       def initialize(response)
         @response = response
+        super()
       end
     end
 

@@ -1507,7 +1507,12 @@ module Capybara
 
         it "can return structures with elements" do
           @session.visit("/cuprite/send_keys")
-          result = @session.driver.evaluate_script(%({ a: document.getElementById("empty_input"), b: { c: document.querySelectorAll("#empty_textarea, #filled_textarea") } }))
+          result = @session.driver.evaluate_script <<~JS
+            {
+              a: document.getElementById("empty_input"),
+              b: { c: document.querySelectorAll("#empty_textarea, #filled_textarea") }
+            }
+          JS
 
           expect(result).to eq(
             "a" => @session.driver.find_css("#empty_input").first,
@@ -1531,7 +1536,9 @@ module Capybara
         it "will timeout" do
           @session.using_wait_time(1) do
             expect do
-              @session.driver.evaluate_async_script("var callback=arguments[0]; setTimeout(function(){callback(true)}, 4000)")
+              @session.driver.evaluate_async_script <<~JS
+                var callback=arguments[0]; setTimeout(function(){callback(true)}, 4000)
+              JS
             end.to raise_error Ferrum::ScriptTimeoutError
           end
         end

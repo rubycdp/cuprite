@@ -81,13 +81,10 @@ module Capybara
 
       def within_window(locator = nil)
         original = window_handle
+        raise Ferrum::NoSuchPageError unless window_handles.include?(locator)
 
-        if window_handles.include?(locator)
-          switch_to_window(locator)
-          yield
-        else
-          raise Ferrum::NoSuchPageError
-        end
+        switch_to_window(locator)
+        yield
       ensure
         switch_to_window(original)
       end

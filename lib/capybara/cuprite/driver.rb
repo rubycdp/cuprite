@@ -35,6 +35,8 @@ module Capybara
         @options[:save_path] = Capybara.save_path.to_s if Capybara.save_path
 
         ENV["FERRUM_DEBUG"] = "true" if ENV["CUPRITE_DEBUG"]
+
+        super()
       end
 
       def needs_server?
@@ -202,10 +204,9 @@ module Capybara
         browser.network.clear(:traffic)
       end
 
-      def set_proxy(ip, port, type = nil, user = nil, password = nil, bypass = nil)
+      def set_proxy(host, port, user = nil, password = nil, bypass = nil)
         @options[:browser_options] ||= {}
-        server = type ? "#{type}=#{ip}:#{port}" : "#{ip}:#{port}"
-        @options[:browser_options].merge!("proxy-server" => server)
+        @options[:browser_options].merge!("proxy-server" => "#{host}:#{port}")
         @options[:browser_options].merge!("proxy-bypass-list" => bypass) if bypass
         browser.network.authorize(type: :proxy, user: user, password: password) do |request, _index, _total|
           request.continue

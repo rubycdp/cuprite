@@ -182,11 +182,9 @@ module Capybara
       def find_position(node, **options)
         node.find_position(**options)
       rescue Ferrum::BrowserError => e
-        if e.message == "Could not compute content quads."
-          raise MouseEventFailed, "MouseEventFailed: click, none, 0, 0"
-        else
-          raise
-        end
+        raise MouseEventFailed, "MouseEventFailed: click, none, 0, 0" if e.message == "Could not compute content quads."
+
+        raise
       end
 
       def active_frame
