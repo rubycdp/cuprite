@@ -41,13 +41,15 @@ module Capybara
 
       def url_whitelist=(patterns)
         @url_whitelist = prepare_wildcards(patterns)
-        page.network.intercept if @client && !@url_whitelist.empty?
+        page.network.whitelist = @url_whitelist if @client && @url_whitelist.any?
       end
+      alias url_allowlist= url_whitelist=
 
       def url_blacklist=(patterns)
         @url_blacklist = prepare_wildcards(patterns)
-        page.network.intercept if @client && !@url_blacklist.empty?
+        page.network.blacklist = @url_blacklist if @client && @url_blacklist.any?
       end
+      alias url_blocklist= url_blacklist=
 
       def visit(*args)
         goto(*args)
@@ -112,11 +114,11 @@ module Capybara
         raise NotImplementedError
       end
 
-      def drag(node, other)
+      def drag(_node, _other)
         raise NotImplementedError
       end
 
-      def drag_by(node, x, y)
+      def drag_by(_node, _x, _y)
         raise NotImplementedError
       end
 
@@ -181,14 +183,21 @@ module Capybara
         raise
       end
 
-      def prepare_wildcards(wc)
-        Array(wc).map do |wildcard|
-          if wildcard.is_a?(Regexp)
-            wildcard
+      def prepare_wildcards(patterns)
+        string_passed = false
+
+        Array(patterns).map do |pattern|
+          if pattern.is_a?(Regexp)
+            pattern
           else
-            wildcard = wildcard.gsub("*", ".*")
-            Regexp.new(wildcard, Regexp::IGNORECASE)
+            string_passed = true
+            pattern = pattern.gsub("*", ".*")
+            Regexp.new(pattern, Regexp::IGNORECASE)
           end
+        end
+      ensure
+        if string_passed
+          warn "Passing strings to blacklist/whitelist is deprecated, pass regexp at #{caller(4..4).first}"
         end
       end
 
