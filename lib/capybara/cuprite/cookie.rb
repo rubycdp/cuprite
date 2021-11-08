@@ -1,46 +1,46 @@
 # frozen_string_literal: true
 
-module Capybara::Cuprite
-  class Cookie
-    def initialize(attributes)
-      @attributes = attributes
-    end
+module Capybara
+  module Cuprite
+    class Cookie
+      def initialize(attributes)
+        @attributes = attributes
+      end
 
-    def name
-      @attributes["name"]
-    end
+      def name
+        @attributes["name"]
+      end
 
-    def value
-      @attributes["value"]
-    end
+      def value
+        @attributes["value"]
+      end
 
-    def domain
-      @attributes["domain"]
-    end
+      def domain
+        @attributes["domain"]
+      end
 
-    def path
-      @attributes["path"]
-    end
+      def path
+        @attributes["path"]
+      end
 
-    def size
-      @attributes["size"]
-    end
+      def size
+        @attributes["size"]
+      end
 
-    def secure?
-      @attributes["secure"]
-    end
+      def secure?
+        @attributes["secure"]
+      end
 
-    def httponly?
-      @attributes["httpOnly"]
-    end
+      def httponly?
+        @attributes["httpOnly"]
+      end
 
-    def session?
-      @attributes["session"]
-    end
+      def session?
+        @attributes["session"]
+      end
 
-    def expires
-      if @attributes["expires"] > 0
-        Time.at(@attributes["expires"])
+      def expires
+        Time.at(@attributes["expires"]) if (@attributes["expires"]).positive?
       end
     end
   end

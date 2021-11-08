@@ -4,7 +4,8 @@ require "bundler/setup"
 require "bundler/gem_tasks"
 require "rspec/core/rake_task"
 
-require "capybara/cuprite/version"
+RSpec::Core::RakeTask.new("test") do |t|
+  t.ruby_opts = "-w"
+end
 
-RSpec::Core::RakeTask.new("test")
 task default: :test

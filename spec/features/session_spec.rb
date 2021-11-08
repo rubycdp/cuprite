@@ -87,7 +87,7 @@ describe Capybara::Session do
 
         context "and is then brought in" do
           before do
-            @session.execute_script %Q($("#off-the-left").animate({left: "10"});)
+            @session.execute_script %($("#off-the-left").animate({left: "10"});)
           end
 
           it "clicks properly" do
@@ -230,16 +230,14 @@ describe Capybara::Session do
       end
 
       it "attaches a file when passed a Pathname" do
-        begin
-          filename = Pathname.new("spec/tmp/a_test_pathname").expand_path
-          File.open(filename, "w") { |f| f.write("text") }
+        filename = Pathname.new("spec/tmp/a_test_pathname").expand_path
+        File.open(filename, "w") { |f| f.write("text") }
 
-          element = @session.find(:css, "#change_me_file")
-          element.set(filename)
-          expect(element.value).to eq("C:\\fakepath\\a_test_pathname")
-        ensure
-          FileUtils.rm_f(filename)
-        end
+        element = @session.find(:css, "#change_me_file")
+        element.set(filename)
+        expect(element.value).to eq("C:\\fakepath\\a_test_pathname")
+      ensure
+        FileUtils.rm_f(filename)
       end
 
       it "sets a value for a color input" do
@@ -348,13 +346,13 @@ describe Capybara::Session do
       expect(@session.evaluate_script("undefined")).to eq(nil)
 
       expect(@session.evaluate_script("3;")).to eq(3)
-      expect(@session.evaluate_script("31337")).to eq(31337)
+      expect(@session.evaluate_script("31337")).to eq(31_337)
       expect(@session.evaluate_script(%("string"))).to eq("string")
       expect(@session.evaluate_script(%({foo: "bar"}))).to eq("foo" => "bar")
 
       expect(@session.evaluate_script("new Object")).to eq({})
       expect(@session.evaluate_script("new Date(2012, 0).toDateString()")).to eq("Sun Jan 01 2012")
-      expect(@session.evaluate_script("new Object({a: 1})")).to eq({"a" => 1})
+      expect(@session.evaluate_script("new Object({a: 1})")).to eq({ "a" => 1 })
       expect(@session.evaluate_script("new Array")).to eq([])
       expect(@session.evaluate_script("new Function")).to eq({})
 
@@ -879,11 +877,13 @@ describe Capybara::Session do
       end
 
       it "gets property innerHTML" do
-        expect(@session.find(:css, ".some_other_class").native.property("innerHTML")).to eq "<p>foobar</p>"
+        inner_html = @session.find(:css, ".some_other_class").native.property("innerHTML")
+        expect(inner_html).to eq "<p>foobar</p>"
       end
 
       it "gets property outerHTML" do
-        expect(@session.find(:css, ".some_other_class").native.property("outerHTML")).to eq %(<div class="some_other_class"><p>foobar</p></div>)
+        outer_html = @session.find(:css, ".some_other_class").native.property("outerHTML")
+        expect(outer_html).to eq %(<div class="some_other_class"><p>foobar</p></div>)
       end
 
       it "gets non existent property" do

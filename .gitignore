@@ -1,4 +1,6 @@
 .byebug_history
 Gemfile.*
+pkg
+.idea
 .ruby-version
 save_path_tmp

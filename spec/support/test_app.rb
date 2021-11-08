@@ -6,12 +6,13 @@ class TestApp
   configure do
     set :protection, except: :frame_options
   end
-  CUPRITE_VIEWS  = File.dirname(__FILE__) + "/views"
-  CUPRITE_PUBLIC = File.dirname(__FILE__) + "/public"
+  CUPRITE_VIEWS  = "#{File.dirname(__FILE__)}/views"
+  CUPRITE_PUBLIC = "#{File.dirname(__FILE__)}/public"
 
   helpers do
     def requires_credentials(login, password)
       return if authorized?(login, password)
+
       headers["WWW-Authenticate"] = %(Basic realm="Restricted Area")
       halt 401, "Not authorized\n"
     end
