@@ -3,6 +3,7 @@
 require "uri"
 require "forwardable"
 
+# rubocop:disable Metrics/ClassLength
 module Capybara
   module Cuprite
     # rubocop:disable Metrics/ClassLength
@@ -421,3 +422,4 @@ module Capybara
     # rubocop:enable Metrics/ClassLength
   end
 end
+# rubocop:enable Metrics/ClassLength
