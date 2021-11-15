@@ -130,6 +130,9 @@ module Capybara
 
       private
 
+      # rubocop:disable Metrics/CyclomaticComplexity
+      # rubocop:disable Metrics/PerceivedComplexity
+      # rubocop:disable Style/GuardClause
       def prepare_page
         super
 
@@ -178,6 +181,9 @@ module Capybara
           command("Page.handleJavaScriptDialog", **options)
         end
       end
+      # rubocop:enable Metrics/CyclomaticComplexity
+      # rubocop:enable Metrics/PerceivedComplexity
+      # rubocop:enable Style/GuardClause
 
       def find_position(node, **options)
         node.find_position(**options)

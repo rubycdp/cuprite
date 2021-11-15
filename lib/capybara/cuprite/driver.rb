@@ -5,6 +5,7 @@ require "forwardable"
 
 module Capybara
   module Cuprite
+    # rubocop:disable Metrics/ClassLength
     class Driver < Capybara::Driver::Base
       DEFAULT_MAXIMIZE_SCREEN_SIZE = [1366, 768].freeze
       EXTENSION = File.expand_path("javascripts/index.js", __dir__)
@@ -418,5 +419,6 @@ module Capybara
           options[:format].to_s == "pdf"
       end
     end
+    # rubocop:enable Metrics/ClassLength
   end
 end
