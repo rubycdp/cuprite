@@ -11,7 +11,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        gemfile: [capybara-3.x, websocket-driver-6.x]
+        gemfile: [ferrum-master]
         ruby: [2.6, 2.7, 3.0]
     runs-on: ubuntu-latest
     env:
@@ -37,7 +37,7 @@ jobs:
 
       - name: Run tests
         run: bundle exec rake
-        if: !contains(github.event.pull_request.labels.*.name, 'master')
+        if: contains(github.event.pull_request.labels.*.name, 'master')
 
       - name: Archive artifacts
         uses: actions/upload-artifact@v2
