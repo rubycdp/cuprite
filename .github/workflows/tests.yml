@@ -4,7 +4,6 @@ on:
     branches:
       - master
   pull_request:
-    types: [opened, synchronize, reopened, labeled]
 
 jobs:
   tests:
@@ -39,10 +38,9 @@ jobs:
       - name: Run tests
         run: bundle exec rake
         if: |
-          github.event.pull_request.draft == false ||
-            (github.event.pull_request.draft == true &&
-             contains(github.event.pull_request.labels.*.name, 'master') &&
-             matrix.gemfile == 'ferrum-master')
+          matrix.gemfile != 'ferrum-master' ||
+            (matrix.gemfile == 'ferrum-master' &&
+              contains(github.event.pull_request.labels.*.name, 'master'))
 
       - name: Archive artifacts
         uses: actions/upload-artifact@v2
