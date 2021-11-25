@@ -575,7 +575,7 @@ describe Capybara::Session do
       end
     end
 
-    context "dragging support", skip: true do
+    context "dragging support" do
       before do
         @session.visit "/cuprite/drag"
       end

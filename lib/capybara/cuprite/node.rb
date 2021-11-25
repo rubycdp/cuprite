@@ -160,7 +160,7 @@ module Capybara
       end
 
       def drag_to(other)
-        command(:drag, other)
+        command(:drag, other.node)
       end
 
       def drag_by(x, y)

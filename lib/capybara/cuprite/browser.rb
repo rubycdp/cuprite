@@ -113,11 +113,23 @@ module Capybara
       end
 
       def drag(node, other)
-        raise NotImplementedError
+        x1, y1 = node.find_position
+        x2, y2 = other.find_position
+
+        mouse.move(x: x1, y: y1)
+        mouse.down
+        mouse.move(x: x2, y: y2)
+        mouse.up
       end
 
       def drag_by(node, x, y)
-        raise NotImplementedError
+        x1, y1 = node.find_position
+        x2, y2 = x1 + x, y1 + y
+
+        mouse.move(x: x1, y: y1)
+        mouse.down
+        mouse.move(x: x2, y: y2)
+        mouse.up
       end
 
       def select_file(node, value)
