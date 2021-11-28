@@ -124,7 +124,8 @@ module Capybara
 
       def drag_by(node, x, y)
         x1, y1 = node.find_position
-        x2, y2 = x1 + x, y1 + y
+        x2 = x1 + x
+        y2 = y1 + y
 
         mouse.move(x: x1, y: y1)
         mouse.down
