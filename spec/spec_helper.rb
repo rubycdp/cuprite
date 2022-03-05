@@ -4,6 +4,7 @@ CUPRITE_ROOT = File.expand_path("..", __dir__)
 $LOAD_PATH.unshift("#{CUPRITE_ROOT}/lib")
 
 require "fileutils"
+require "shellwords"
 require "bundler/setup"
 require "rspec"
 
@@ -15,7 +16,7 @@ require "support/external_browser"
 
 puts ""
 command = Ferrum::Browser::Command.build({ window_size: [], ignore_default_browser_options: true }, nil)
-puts `#{command.to_a.first} --version`
+puts `#{Shellwords.escape(command.path)} --version`
 puts ""
 
 Capybara.register_driver(:cuprite) do |app|
