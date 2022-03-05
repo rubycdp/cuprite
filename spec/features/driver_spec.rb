@@ -694,9 +694,9 @@ module Capybara
         end
 
         it "keeps track of blocked network traffic" do
-          @driver.browser.url_blacklist = ["unwanted"]
+          @driver.browser.url_blocklist = ["unwanted"]
 
-          @session.visit "/cuprite/url_blacklist"
+          @session.visit "/cuprite/url_blocklist"
 
           blocked_urls = @driver.network_traffic(:blocked).map { |e| e.request.url }
 
@@ -746,9 +746,9 @@ module Capybara
         end
 
         it "blocked requests get cleared along with network traffic" do
-          @driver.browser.url_blacklist = ["unwanted"]
+          @driver.browser.url_blocklist = ["unwanted"]
 
-          @session.visit "/cuprite/url_blacklist"
+          @session.visit "/cuprite/url_blocklist"
 
           expect(@driver.network_traffic(:blocked).length).to eq(3)
 
@@ -985,12 +985,12 @@ module Capybara
           expect(new_tab.size).to eq [1200, 800]
         end
 
-        it "inherits url_blacklist" do
-          @driver.browser.url_blacklist = ["unwanted"]
+        it "inherits url_blocklist" do
+          @driver.browser.url_blocklist = ["unwanted"]
           @session.visit "/"
           new_tab = @session.open_new_window
           @session.within_window(new_tab) do
-            @session.visit "/cuprite/url_blacklist"
+            @session.visit "/cuprite/url_blocklist"
             expect(@session).to have_content("We are loading some unwanted action here")
             @session.within_frame "framename" do
               expect(@session.html).not_to include("We shouldn't see this.")
@@ -998,19 +998,19 @@ module Capybara
           end
         end
 
-        it "inherits url_whitelist" do
+        it "inherits url_allowlist" do
           @session.visit "/"
-          @driver.browser.url_whitelist = ["url_whitelist", "/cuprite/wanted"]
+          @driver.browser.url_allowlist = ["url_allowlist", "/cuprite/wanted"]
           new_tab = @session.open_new_window
           @session.within_window(new_tab) do
-            @session.visit "/cuprite/url_whitelist"
+            @session.visit "/cuprite/url_allowlist"
 
             expect(@session).to have_content("We are loading some wanted action here")
             @session.within_frame "framename" do
               expect(@session).to have_content("We should see this.")
             end
             @session.within_frame "unwantedframe" do
-              # make sure non whitelisted urls are blocked
+              # make sure non allowlisted urls are blocked
               expect(@session).not_to have_content("We shouldn't see this.")
             end
           end
@@ -1106,11 +1106,11 @@ module Capybara
         end
       end
 
-      context "blacklisting urls for resource requests" do
+      context "blocklisting urls for resource requests" do
         it "blocks unwanted urls" do
-          @driver.browser.url_blacklist = ["unwanted"]
+          @driver.browser.url_blocklist = ["unwanted"]
 
-          @session.visit "/cuprite/url_blacklist"
+          @session.visit "/cuprite/url_blocklist"
 
           expect(@session.status_code).to eq(200)
           expect(@session).to have_content("We are loading some unwanted action here")
@@ -1120,9 +1120,9 @@ module Capybara
         end
 
         it "supports wildcards" do
-          @driver.browser.url_blacklist = ["*wanted"]
+          @driver.browser.url_blocklist = ["*wanted"]
 
-          @session.visit "/cuprite/url_whitelist"
+          @session.visit "/cuprite/url_allowlist"
 
           expect(@session.status_code).to eq(200)
           expect(@session).to have_content("We are loading some wanted action here")
@@ -1135,13 +1135,13 @@ module Capybara
         end
 
         it "can be configured in the driver and survive reset" do
-          Capybara.register_driver :cuprite_blacklist do |app|
-            Capybara::Cuprite::Driver.new(app, @driver.options.merge(url_blacklist: ["unwanted"]))
+          Capybara.register_driver :cuprite_blocklist do |app|
+            Capybara::Cuprite::Driver.new(app, @driver.options.merge(url_blocklist: ["unwanted"]))
           end
 
-          session = Capybara::Session.new(:cuprite_blacklist, @session.app)
+          session = Capybara::Session.new(:cuprite_blocklist, @session.app)
 
-          session.visit "/cuprite/url_blacklist"
+          session.visit "/cuprite/url_blocklist"
           expect(session).to have_content("We are loading some unwanted action here")
           session.within_frame "framename" do
             expect(session.html).not_to include("We shouldn't see this.")
@@ -1149,7 +1149,7 @@ module Capybara
 
           session.reset!
 
-          session.visit "/cuprite/url_blacklist"
+          session.visit "/cuprite/url_blocklist"
           expect(session).to have_content("We are loading some unwanted action here")
           session.within_frame "framename" do
             expect(session.html).not_to include("We shouldn't see this.")
@@ -1157,11 +1157,11 @@ module Capybara
         end
       end
 
-      context "whitelisting urls for resource requests" do
-        it "allows whitelisted urls" do
-          @driver.browser.url_whitelist = ["url_whitelist", "/wanted"]
+      context "allowlisting urls for resource requests" do
+        it "permits allowlisted urls" do
+          @driver.browser.url_allowlist = ["url_allowlist", "/wanted"]
 
-          @session.visit "/cuprite/url_whitelist"
+          @session.visit "/cuprite/url_allowlist"
 
           expect(@session.status_code).to eq(200)
           expect(@session).to have_content("We are loading some wanted action here")
@@ -1174,9 +1174,9 @@ module Capybara
         end
 
         it "supports wildcards" do
-          @driver.browser.url_whitelist = ["url_whitelist", "/*wanted"]
+          @driver.browser.url_allowlist = ["url_allowlist", "/*wanted"]
 
-          @session.visit "/cuprite/url_whitelist"
+          @session.visit "/cuprite/url_allowlist"
 
           expect(@session.status_code).to eq(200)
           expect(@session).to have_content("We are loading some wanted action here")
@@ -1189,19 +1189,19 @@ module Capybara
         end
 
         it "blocks overruled urls" do
-          @driver.browser.url_whitelist = ["url_whitelist"]
-          @driver.browser.url_blacklist = ["url_whitelist"]
+          @driver.browser.url_allowlist = ["url_allowlist"]
+          @driver.browser.url_blocklist = ["url_allowlist"]
 
-          @session.visit "/cuprite/url_whitelist"
+          @session.visit "/cuprite/url_allowlist"
 
           expect(@session.status_code).to eq(nil)
           expect(@session).not_to have_content("We are loading some wanted action here")
         end
 
-        it "allows urls when the whitelist is empty" do
-          @driver.browser.url_whitelist = []
+        it "allows urls when the allowlist is empty" do
+          @driver.browser.url_allowlist = []
 
-          @session.visit "/cuprite/url_whitelist"
+          @session.visit "/cuprite/url_allowlist"
 
           expect(@session.status_code).to eq(200)
           expect(@session).to have_content("We are loading some wanted action here")
@@ -1211,33 +1211,33 @@ module Capybara
         end
 
         it "can be configured in the driver and survive reset" do
-          Capybara.register_driver :cuprite_whitelist do |app|
+          Capybara.register_driver :cuprite_allowlist do |app|
             Capybara::Cuprite::Driver.new(app,
-                                          @driver.options.merge(url_whitelist: ["url_whitelist", "/cuprite/wanted"]))
+                                          @driver.options.merge(url_allowlist: ["url_allowlist", "/cuprite/wanted"]))
           end
 
-          session = Capybara::Session.new(:cuprite_whitelist, @session.app)
+          session = Capybara::Session.new(:cuprite_allowlist, @session.app)
 
-          session.visit "/cuprite/url_whitelist"
+          session.visit "/cuprite/url_allowlist"
           expect(session).to have_content("We are loading some wanted action here")
           session.within_frame "framename" do
             expect(session).to have_content("We should see this.")
           end
 
           session.within_frame "unwantedframe" do
-            # make sure non whitelisted urls are blocked
+            # make sure non allowlisted urls are blocked
             expect(session).not_to have_content("We shouldn't see this.")
           end
 
           session.reset!
 
-          session.visit "/cuprite/url_whitelist"
+          session.visit "/cuprite/url_allowlist"
           expect(session).to have_content("We are loading some wanted action here")
           session.within_frame "framename" do
             expect(session).to have_content("We should see this.")
           end
           session.within_frame "unwantedframe" do
-            # make sure non whitelisted urls are blocked
+            # make sure non allowlisted urls are blocked
             expect(session).not_to have_content("We shouldn't see this.")
           end
         end

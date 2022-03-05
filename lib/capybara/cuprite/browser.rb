@@ -11,13 +11,15 @@ module Capybara
                   find_modal accept_confirm dismiss_confirm accept_prompt
                   dismiss_prompt reset_modals] => :page
 
-      attr_reader :url_blacklist, :url_whitelist
+      attr_reader :url_blocklist, :url_allowlist
+      alias url_blacklist url_blocklist
+      alias url_whitelist url_allowlist
 
       def initialize(options = nil)
         options ||= {}
         @client = nil
-        self.url_blacklist = options[:url_blacklist]
-        self.url_whitelist = options[:url_whitelist]
+        self.url_blocklist = options[:url_blocklist] || options[:url_blacklist]
+        self.url_allowlist = options[:url_allowlist] || options[:url_whitelist]
 
         super
         @page = false
@@ -39,15 +41,17 @@ module Capybara
         @page = false
       end
 
-      def url_whitelist=(patterns)
-        @url_whitelist = prepare_wildcards(patterns)
-        page.network.intercept if @client && !@url_whitelist.empty?
+      def url_allowlist=(patterns)
+        @url_allowlist = prepare_wildcards(patterns)
+        page.network.intercept if @client && !@url_allowlist.empty?
       end
+      alias url_whitelist= url_allowlist=
 
-      def url_blacklist=(patterns)
-        @url_blacklist = prepare_wildcards(patterns)
-        page.network.intercept if @client && !@url_blacklist.empty?
+      def url_blocklist=(patterns)
+        @url_blocklist = prepare_wildcards(patterns)
+        page.network.intercept if @client && !@url_blocklist.empty?
       end
+      alias url_blacklist= url_blocklist=
 
       def visit(*args)
         goto(*args)

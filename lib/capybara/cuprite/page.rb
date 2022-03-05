@@ -136,18 +136,18 @@ module Capybara
       def prepare_page
         super
 
-        network.intercept if !Array(@browser.url_whitelist).empty? ||
-                             !Array(@browser.url_blacklist).empty?
+        network.intercept if !Array(@browser.url_allowlist).empty? ||
+                             !Array(@browser.url_blocklist).empty?
 
         on(:request) do |request, index, total|
-          if @browser.url_blacklist && !@browser.url_blacklist.empty?
-            if @browser.url_blacklist.any? { |r| request.match?(r) }
+          if @browser.url_blocklist && !@browser.url_blocklist.empty?
+            if @browser.url_blocklist.any? { |r| request.match?(r) }
               request.abort and next
             else
               request.continue and next
             end
-          elsif @browser.url_whitelist && !@browser.url_whitelist.empty?
-            if @browser.url_whitelist.any? { |r| request.match?(r) }
+          elsif @browser.url_allowlist && !@browser.url_allowlist.empty?
+            if @browser.url_allowlist.any? { |r| request.match?(r) }
               request.continue and next
             else
               request.abort and next

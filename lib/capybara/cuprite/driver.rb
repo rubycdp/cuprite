@@ -121,8 +121,8 @@ module Capybara
       def reset!
         @zoom_factor = nil
         @paper_size = nil
-        browser.url_blacklist = @options[:url_blacklist]
-        browser.url_whitelist = @options[:url_whitelist]
+        browser.url_blocklist = @options[:url_blocklist] || @options[:url_blacklist]
+        browser.url_allowlist = @options[:url_allowlist] || @options[:url_whitelist]
         browser.reset
         @started = false
       end
