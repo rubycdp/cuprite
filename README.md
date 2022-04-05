@@ -8,8 +8,6 @@ to the browser by CDP protocol. The design of the driver is as close to
 [Poltergeist](https://github.com/teampoltergeist/poltergeist) as possible though
 it's not a goal.
 
-Web design by [Evrone](https://evrone.com/).
-
 
 ## Install
 
