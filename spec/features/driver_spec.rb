@@ -324,7 +324,7 @@ module Capybara
 
         def create_screenshot(file, *args)
           image = @driver.render_base64(format, *args)
-          File.open(file, "wb") { |f| f.write Base64.decode64(image) }
+          File.binwrite(file, Base64.decode64(image))
         end
 
         it "supports rendering the page in base64" do
