@@ -120,7 +120,7 @@ RSpec.configure do |config|
 
   def save_exception_log(browser, filename, line_number, timestamp)
     log_name = "logfile-#{filename}-#{line_number}-#{timestamp}.txt"
-    File.open("/tmp/cuprite/#{log_name}", "wb") { |f| f.write(browser.logger.string) }
+    File.binwrite("/tmp/cuprite/#{log_name}", browser.logger.string)
   rescue StandardError => e
     puts "#{e.class}: #{e.message}"
   end

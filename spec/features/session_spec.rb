@@ -231,7 +231,7 @@ describe Capybara::Session do
 
       it "attaches a file when passed a Pathname" do
         filename = Pathname.new("spec/tmp/a_test_pathname").expand_path
-        File.open(filename, "w") { |f| f.write("text") }
+        File.write(filename, "text")
 
         element = @session.find(:css, "#change_me_file")
         element.set(filename)
