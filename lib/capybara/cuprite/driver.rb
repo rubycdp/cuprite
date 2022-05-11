@@ -33,7 +33,7 @@ module Capybara
         @screen_size = @options.delete(:screen_size)
         @screen_size ||= DEFAULT_MAXIMIZE_SCREEN_SIZE
 
-        @options[:save_path] = Capybara.save_path.to_s if Capybara.save_path
+        @options[:save_path] ||= Capybara.save_path.to_s if Capybara.save_path
 
         ENV["FERRUM_DEBUG"] = "true" if ENV["CUPRITE_DEBUG"]
 
