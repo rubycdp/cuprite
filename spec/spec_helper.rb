@@ -14,9 +14,11 @@ require "support/test_app"
 require "support/external_browser"
 
 puts ""
-command = Ferrum::Browser::Command.build({ window_size: [], ignore_default_browser_options: true }, nil)
-puts `#{command.to_a.first} --version`
+command = Ferrum::Browser::Command.build({ window_size: [] }, nil)
+puts `'#{command.path}' --version`
 puts ""
+
+Capybara.save_path = File.join(CUPRITE_ROOT, "spec", "tmp", "save_path")
 
 Capybara.register_driver(:cuprite) do |app|
   options = {}
@@ -61,6 +63,7 @@ RSpec.configure do |config|
       node #visible? details non-summary descendants should be non-visible
       node #visible? works when details is toggled open and closed
       node #path reports when element in shadow dom
+      node #shadow_root
       #all with obscured filter should only find nodes on top in the viewport when false
       #all with obscured filter should not find nodes on top outside the viewport when false
       #all with obscured filter should find top nodes outside the viewport when true
@@ -79,12 +82,13 @@ RSpec.configure do |config|
     REGEXP
 
     metadata[:skip] = true if metadata[:full_description].match(/#{regexes}/)
+    metadata[:skip] = true if metadata[:requires]&.include?(:active_element)
   end
 
   config.around do |example|
     remove_temporary_folders
 
-    if ENV["CI"]
+    if ENV.fetch("CI", nil)
       session = @session || TestSessions::Cuprite
       session.driver.browser.logger.truncate(0)
       session.driver.browser.logger.rewind
@@ -92,7 +96,7 @@ RSpec.configure do |config|
 
     example.run
 
-    if ENV["CI"] && example.exception
+    if ENV.fetch("CI", nil) && example.exception
       session = @session || TestSessions::Cuprite
       save_exception_artifacts(session.driver.browser, example.metadata)
     end
@@ -126,7 +130,7 @@ RSpec.configure do |config|
   end
 
   def remove_temporary_folders
-    FileUtils.rm_rf("#{CUPRITE_ROOT}/screenshots")
-    FileUtils.rm_rf("#{CUPRITE_ROOT}/save_path_tmp")
+    FileUtils.rm_rf(File.join(CUPRITE_ROOT, "spec", "tmp", "screenshots"))
+    FileUtils.rm_rf(Capybara.save_path)
   end
 end

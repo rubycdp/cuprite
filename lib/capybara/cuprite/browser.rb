@@ -187,7 +187,7 @@ module Capybara
                   evaluate("_cuprite.find(arguments[0], arguments[1])", method, selector)
                 end
 
-        nodes.map { |n| n.node? ? n : next }.compact
+        nodes.select(&:node?)
       rescue Ferrum::JavaScriptError => e
         raise InvalidSelector.new(e.response, method, selector) if e.class_name == "InvalidSelector"
 

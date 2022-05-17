@@ -119,12 +119,12 @@ module Capybara
       end
 
       it "allows the page to be scrolled" do
-        @session.visit("/cuprite/long_page")
-        @driver.resize(10, 10)
-        @driver.scroll_to(200, 100)
+        @session.visit("/cuprite/scroll_long_page")
+        @driver.scroll_to(200, 500)
+
         expect(
           @driver.evaluate_script("[window.scrollX, window.scrollY]")
-        ).to eq([200, 100])
+        ).to eq([200, 500])
       end
 
       it "supports specifying viewport size with an option" do
@@ -154,7 +154,7 @@ module Capybara
           create_screenshot file, full: true
           File.open(file, "rb") do |f|
             expect(ImageSize.new(f.read).size).to eq(
-              @driver.evaluate_script("[document.documentElement.clientWidth, document.documentElement.clientHeight]")
+              @driver.evaluate_script("[document.documentElement.scrollWidth, document.documentElement.scrollHeight]")
             )
           end
         end
@@ -195,7 +195,7 @@ module Capybara
 
           File.open(file, "rb") do |f|
             expect(ImageSize.new(f.read).size).to eq(
-              @driver.evaluate_script("[document.documentElement.clientWidth, document.documentElement.clientHeight]")
+              @driver.evaluate_script("[document.documentElement.scrollWidth, document.documentElement.scrollHeight]")
             )
           end
         end
@@ -763,8 +763,7 @@ module Capybara
           resources_size = {
             %r{/cuprite/jquery.min.js$} => File.size("#{CUPRITE_ROOT}/spec/support/public/jquery-1.11.3.min.js"),
             %r{/cuprite/jquery-ui.min.js$} => File.size("#{CUPRITE_ROOT}/spec/support/public/jquery-ui-1.11.4.min.js"),
-            %r{/cuprite/test.js$} => File.size("#{CUPRITE_ROOT}/spec/support/public/test.js"),
-            %r{/cuprite/with_js$} => 2405
+            %r{/cuprite/test.js$} => File.size("#{CUPRITE_ROOT}/spec/support/public/test.js")
           }
 
           resources_size.each do |resource, size|
@@ -927,7 +926,7 @@ module Capybara
       it "allows the driver to have a custom host" do
         # Use custom host "pointing" to localhost, specified by BROWSER_TEST_HOST env var.
         # Use /etc/hosts or iptables for this: https://superuser.com/questions/516208/how-to-change-ip-address-to-point-to-localhost
-        host = ENV["BROWSER_TEST_HOST"]
+        host = ENV.fetch("BROWSER_TEST_HOST", nil)
 
         skip "BROWSER_TEST_HOST not set" if host.nil? # skip test if var is unspecified
 

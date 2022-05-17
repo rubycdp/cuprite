@@ -11,12 +11,12 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        gemfile: [capybara-3.x, websocket-driver-6.x, ferrum-master]
-        ruby: [2.6, 2.7, 3.0]
+        gemfile: [websocket-driver-0.6.x, websocket-driver-0.7.x]
+        ruby: [2.7, 3.0, 3.1]
     runs-on: ubuntu-latest
     env:
       FERRUM_PROCESS_TIMEOUT: 20
-      FERRUM_DEFAULT_TIMEOUT: 10
+      FERRUM_DEFAULT_TIMEOUT: 15
       BUNDLE_GEMFILE: .github/gemfiles/${{ matrix.gemfile }}.gemfile
     steps:
       - name: Checkout code
@@ -37,10 +37,6 @@ jobs:
 
       - name: Run tests
         run: bundle exec rake
-        if: |
-          matrix.gemfile != 'ferrum-master' ||
-            (matrix.gemfile == 'ferrum-master' &&
-              contains(github.event.pull_request.labels.*.name, 'master'))
 
       - name: Archive artifacts
         uses: actions/upload-artifact@v2
