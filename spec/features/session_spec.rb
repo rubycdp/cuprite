@@ -826,6 +826,18 @@ describe Capybara::Session do
           expect(e).to be_a(Capybara::ElementNotFound)
         end)
       end
+
+      it "generates no javascript errors when switching into a frame" do
+        @driver.browser.evaluate_on_new_document(
+          "window.errors ||= []; window.onerror = function(msg) { window.errors += msg; };"
+        )
+
+        @session.visit "/cuprite/frames"
+        @session.within_frame(0) do
+          expect(@session.evaluate_script("window.errors")).to be_empty
+        end
+        expect(@session.evaluate_script("window.errors")).to be_empty
+      end
     end
 
     it "handles obsolete node during an attach_file" do
