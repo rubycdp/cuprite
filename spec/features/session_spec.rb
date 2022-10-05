@@ -1035,7 +1035,7 @@ describe Capybara::Session do
       end
     end
 
-    if Ferrum.mri? && !Ferrum.windows?
+    if Ferrum::Utils::Platform.mri? && !Ferrum::Utils::Platform.windows?
       require "pty"
       require "timeout"
 

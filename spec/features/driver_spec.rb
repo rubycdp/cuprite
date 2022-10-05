@@ -518,7 +518,7 @@ module Capybara
         expect(@driver.evaluate_script("window.result")).to eq(3)
       end
 
-      it "supports stopping the session", skip: Ferrum.windows? do
+      it "supports stopping the session", skip: Ferrum::Utils::Platform.windows? do
         driver = Capybara::Cuprite::Driver.new(nil)
         pid = driver.browser.process.pid
 
@@ -1330,7 +1330,7 @@ module Capybara
         it "sends sequences with modifiers and symbols" do
           input = @session.find(:css, "#empty_input")
 
-          keys = Ferrum.mac? ? %i[Alt Left] : %i[Ctrl Left]
+          keys = Ferrum::Utils::Platform.mac? ? %i[Alt Left] : %i[Ctrl Left]
 
           input.native.send_keys("t", "r", "i", "n", "g", keys, "s")
 
@@ -1340,7 +1340,7 @@ module Capybara
         it "sends sequences with multiple modifiers and symbols" do
           input = @session.find(:css, "#empty_input")
 
-          keys = Ferrum.mac? ? %i[Alt Shift Left] : %i[Ctrl Shift Left]
+          keys = Ferrum::Utils::Platform.mac? ? %i[Alt Shift Left] : %i[Ctrl Shift Left]
 
           input.native.send_keys("t", "r", "i", "n", "g", keys, "s")
 

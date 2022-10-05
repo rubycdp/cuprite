@@ -68,7 +68,7 @@ module Capybara
       end
 
       def find_modal(options)
-        start = Ferrum.monotonic_time
+        start = Ferrum::Utils::ElapsedTime.monotonic_time
         timeout = options.fetch(:wait, browser.timeout)
         expect_text = options[:text]
         expect_regexp = expect_text.is_a?(Regexp) ? expect_text : Regexp.escape(expect_text.to_s)
@@ -79,7 +79,7 @@ module Capybara
           modal_text = @modal_messages.shift
           raise Capybara::ModalNotFound if modal_text.nil? || (expect_text && !modal_text.match(expect_regexp))
         rescue Capybara::ModalNotFound => e
-          raise e, not_found_msg if Ferrum.timeout?(start, timeout)
+          raise e, not_found_msg if Ferrum::Utils::ElapsedTime.timeout?(start, timeout)
 
           sleep(MODAL_WAIT)
           retry
