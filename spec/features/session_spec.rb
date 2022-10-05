@@ -919,8 +919,8 @@ describe Capybara::Session do
         @session.visit "/cuprite/with_js"
         expect(@session.driver.browser.page)
           .to receive(:warn).with(
-            "Modal window with text `{T}ext \\w|th [reg.exp] (chara©+er$)?` has been opened, "\
-            "but you didn't wrap your code into (`accept_prompt` | `dismiss_prompt` | `accept_confirm` "\
+            "Modal window with text `{T}ext \\w|th [reg.exp] (chara©+er$)?` has been opened, " \
+            "but you didn't wrap your code into (`accept_prompt` | `dismiss_prompt` | `accept_confirm` " \
             "| `dismiss_confirm` | `accept_alert`), accepting by default"
           )
 
