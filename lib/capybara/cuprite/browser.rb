@@ -23,6 +23,11 @@ module Capybara
         @page = false
       end
 
+      def timeout=(value)
+        super
+        @page.timeout = value unless @page.nil?
+      end
+
       def page
         raise Ferrum::NoSuchPageError if @page.nil?
 

@@ -14,7 +14,7 @@ require "support/test_app"
 require "support/external_browser"
 
 puts ""
-command = Ferrum::Browser::Command.build({ window_size: [] }, nil)
+command = Ferrum::Browser::Command.build(Ferrum::Browser::Options.new, nil)
 puts `'#{command.path}' --version`
 puts ""
 
@@ -69,6 +69,7 @@ RSpec.configure do |config|
       #all with obscured filter should find top nodes outside the viewport when true
       #all with obscured filter should only find non-top nodes when true
       #fill_in should fill in a color field
+      #fill_in should handle carriage returns with line feeds in a textarea correctly
       #has_field with valid should be false if field is invalid
       #find with spatial filters should find an element above another element
       #find with spatial filters should find an element below another element
