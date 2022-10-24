@@ -13,7 +13,7 @@ Gem::Specification.new do |s|
                     "run your tests on a headless Chrome browser"
   s.license       = "MIT"
   s.require_paths = ["lib"]
-  s.files         = Dir["{lib}/**/*", "LICENSE", "README.md"]
+  s.files         = Dir["lib/**/*", "LICENSE", "README.md"]
   s.metadata = {
     "homepage_uri" => "https://cuprite.rubycdp.com/",
     "bug_tracker_uri" => "https://github.com/rubycdp/cuprite/issues",
