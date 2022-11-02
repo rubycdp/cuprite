@@ -209,7 +209,10 @@ module Capybara
         @options[:browser_options] ||= {}
         @options[:browser_options].merge!("proxy-server" => "#{host}:#{port}")
         @options[:browser_options].merge!("proxy-bypass-list" => bypass) if bypass
-        browser.network.authorize(type: :proxy, user: user, password: password) do |request, _index, _total|
+
+        return unless user && password
+
+        browser.network.authorize(user: user, password: password, type: :proxy) do |request, _index, _total|
           request.continue
         end
       end
