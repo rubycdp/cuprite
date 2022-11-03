@@ -206,9 +206,10 @@ module Capybara
       end
 
       def set_proxy(host, port, user = nil, password = nil, bypass = nil)
-        @options[:browser_options] ||= {}
-        @options[:browser_options].merge!("proxy-server" => "#{host}:#{port}")
-        @options[:browser_options].merge!("proxy-bypass-list" => bypass) if bypass
+        browser_options = @options.fetch(:browser_options, {})
+        browser_options = browser_options.merge("proxy-server" => "#{host}:#{port}")
+        browser_options = browser_options.merge("proxy-bypass-list" => bypass) if bypass
+        @options[:browser_options] = browser_options
 
         return unless user && password
 
