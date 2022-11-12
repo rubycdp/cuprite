@@ -25,7 +25,7 @@ Gem::Specification.new do |s|
   s.required_ruby_version = ">= 2.6.0"
 
   s.add_runtime_dependency "capybara", "~> 3.0"
-  s.add_runtime_dependency "ferrum",   "~> 0.12.0"
+  s.add_runtime_dependency "ferrum",   "~> 0.13.0"
 
   s.add_development_dependency "byebug",     "~> 11.1"
   s.add_development_dependency "chunky_png", "~> 1.4"
