@@ -14,7 +14,7 @@ require "support/test_app"
 require "support/external_browser"
 
 puts ""
-command = Ferrum::Browser::Command.build({ window_size: [] }, nil)
+command = Ferrum::Browser::Command.build(Ferrum::Browser::Options.new, nil)
 puts `'#{command.path}' --version`
 puts ""
 
@@ -69,6 +69,7 @@ RSpec.configure do |config|
       #all with obscured filter should find top nodes outside the viewport when true
       #all with obscured filter should only find non-top nodes when true
       #fill_in should fill in a color field
+      #fill_in should handle carriage returns with line feeds in a textarea correctly
       #has_field with valid should be false if field is invalid
       #find with spatial filters should find an element above another element
       #find with spatial filters should find an element below another element
@@ -90,8 +91,8 @@ RSpec.configure do |config|
 
     if ENV.fetch("CI", nil)
       session = @session || TestSessions::Cuprite
-      session.driver.browser.logger.truncate(0)
-      session.driver.browser.logger.rewind
+      session.driver.browser.options.logger.truncate(0)
+      session.driver.browser.options.logger.rewind
     end
 
     example.run
@@ -124,7 +125,7 @@ RSpec.configure do |config|
 
   def save_exception_log(browser, filename, line_number, timestamp)
     log_name = "logfile-#{filename}-#{line_number}-#{timestamp}.txt"
-    File.binwrite("/tmp/cuprite/#{log_name}", browser.logger.string)
+    File.binwrite("/tmp/cuprite/#{log_name}", browser.options.logger.string)
   rescue StandardError => e
     puts "#{e.class}: #{e.message}"
   end
