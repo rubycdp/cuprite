@@ -10,7 +10,7 @@ module Capybara
 
       extend Forwardable
       delegate %i[at_css at_xpath css xpath
-                  current_url current_title body execution_id
+                  current_url current_title body execution_id execution_id!
                   evaluate evaluate_on evaluate_async execute] => :active_frame
 
       def initialize(*args)
