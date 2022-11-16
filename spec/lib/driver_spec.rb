@@ -7,7 +7,7 @@ describe Capybara::Cuprite::Driver do
         described_class.new(nil)
       end
 
-      expect(driver.browser.options).to include(save_path: "/tmp/capybara-save-path")
+      expect(driver.browser.options.to_h).to include(save_path: "/tmp/capybara-save-path")
     end
 
     it "allows a custom path to be specified" do
@@ -17,7 +17,7 @@ describe Capybara::Cuprite::Driver do
         described_class.new(nil, { save_path: custom_path })
       end
 
-      expect(driver.browser.options).to include(save_path: custom_path)
+      expect(driver.browser.options.to_h).to include(save_path: custom_path)
     end
   end
 
