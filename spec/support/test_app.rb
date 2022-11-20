@@ -93,7 +93,7 @@ class TestApp
   get "/cuprite/cacheable" do
     cache_control :public, max_age: 60
     etag "deadbeef"
-    "Cacheable request"
+    "Cacheable request <a href='/cuprite/cacheable'>click me</a>"
   end
 
   get "/cuprite/:view" do |view|

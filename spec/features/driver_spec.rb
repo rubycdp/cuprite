@@ -177,11 +177,11 @@ module Capybara
 
           File.open(file, "rb") do |f|
             size = @driver.evaluate_script <<-JS
-            function() {
-              var ele  = document.getElementById("penultimate");
-              var rect = ele.getBoundingClientRect();
-              return [rect.width, rect.height];
-            }();
+              function() {
+                var ele = document.getElementById("penultimate");
+                var rect = ele.getBoundingClientRect();
+                return [rect.width, rect.height];
+              }();
             JS
             expect(ImageSize.new(f.read).size).to eq(size)
           end
@@ -377,13 +377,13 @@ module Capybara
           @driver.headers = { "X-Omg" => "wat" }
           @session.visit "/"
           @driver.execute_script <<-JS
-          var request = new XMLHttpRequest();
-          request.open("GET", "/cuprite/headers", false);
-          request.send();
+            var request = new XMLHttpRequest();
+            request.open("GET", "/cuprite/headers", false);
+            request.send();
 
-          if (request.status === 200) {
-            document.body.innerHTML = request.responseText;
-          }
+            if (request.status === 200) {
+              document.body.innerHTML = request.responseText;
+            }
           JS
           expect(@driver.body).to include("X_OMG: wat")
         end
@@ -511,9 +511,9 @@ module Capybara
 
       it "supports executing multiple lines of javascript" do
         @driver.execute_script <<-JS
-        var a = 1
-        var b = 2
-        window.result = a + b
+          var a = 1
+          var b = 2
+          window.result = a + b
         JS
         expect(@driver.evaluate_script("window.result")).to eq(3)
       end
@@ -694,7 +694,7 @@ module Capybara
         end
 
         it "keeps track of blocked network traffic" do
-          @driver.browser.url_blacklist = ["unwanted"]
+          @driver.browser.url_blacklist = /unwanted/
 
           @session.visit "/cuprite/url_blacklist"
 
@@ -746,7 +746,7 @@ module Capybara
         end
 
         it "blocked requests get cleared along with network traffic" do
-          @driver.browser.url_blacklist = ["unwanted"]
+          @driver.browser.url_blacklist = /unwanted/
 
           @session.visit "/cuprite/url_blacklist"
 
@@ -772,24 +772,25 @@ module Capybara
         end
       end
 
-      it "can clear memory cache", skip: "Fixed in ferrum master" do
+      it "can clear memory cache" do
         @driver.clear_memory_cache
 
         @session.visit("/cuprite/cacheable")
-        first_request = @driver.network_traffic.last
         expect(@driver.network_traffic.length).to eq(1)
-        expect(first_request.response.status).to eq(200)
+        expect(@driver.network_traffic.last.response.status).to eq(200)
+        expect(@driver.network_traffic.last.response.params.dig("response", "fromDiskCache")).to be_falsey
 
-        @session.refresh
+        @session.click_link "click me"
         expect(@driver.network_traffic.length).to eq(2)
-        expect(@driver.network_traffic.last.response.status).to eq(304)
+        expect(@driver.network_traffic.last.response.status).to eq(200)
+        expect(@driver.network_traffic.last.response.params.dig("response", "fromDiskCache")).to be_truthy
 
         @driver.clear_memory_cache
 
-        @session.refresh
-        another_request = @driver.network_traffic.last
+        @session.click_link "click me"
         expect(@driver.network_traffic.length).to eq(3)
-        expect(another_request.response.status).to eq(200)
+        expect(@driver.network_traffic.last.response.status).to eq(200)
+        expect(@driver.network_traffic.last.response.params.dig("response", "fromDiskCache")).to be_falsey
       end
 
       context "status code support" do
@@ -942,7 +943,7 @@ module Capybara
         @session.visit "/"
 
         @session.execute_script <<-JS
-        window.open("/cuprite/simple", "popup")
+          window.open("/cuprite/simple", "popup")
         JS
 
         sleep 0.1
@@ -951,7 +952,7 @@ module Capybara
 
         popup2 = @session.window_opened_by do
           @session.execute_script <<-JS
-          window.open("/cuprite/simple", "popup2")
+            window.open("/cuprite/simple", "popup2")
           JS
         end
 
@@ -985,7 +986,7 @@ module Capybara
         end
 
         it "inherits url_blacklist" do
-          @driver.browser.url_blacklist = ["unwanted"]
+          @driver.browser.url_blacklist = /unwanted/
           @session.visit "/"
           new_tab = @session.open_new_window
           @session.within_window(new_tab) do
@@ -999,7 +1000,7 @@ module Capybara
 
         it "inherits url_whitelist" do
           @session.visit "/"
-          @driver.browser.url_whitelist = ["url_whitelist", "/cuprite/wanted"]
+          @driver.browser.url_whitelist = [/url_whitelist/, %r{/cuprite/wanted}]
           new_tab = @session.open_new_window
           @session.within_window(new_tab) do
             @session.visit "/cuprite/url_whitelist"
@@ -1021,13 +1022,13 @@ module Capybara
 
         popup1 = @session.window_opened_by do
           @session.execute_script <<-JS
-          window.open("/cuprite/simple", "popup1")
+            window.open("/cuprite/simple", "popup1")
           JS
         end
 
         popup2 = @session.window_opened_by do
           @session.execute_script <<-JS
-          window.open("/cuprite/simple", "popup2")
+            window.open("/cuprite/simple", "popup2")
           JS
         end
 
@@ -1041,10 +1042,10 @@ module Capybara
       it "clears local storage between tests" do
         @session.visit "/"
         @session.execute_script <<-JS
-        localStorage.setItem("key", "value");
+          localStorage.setItem("key", "value");
         JS
         value = @session.evaluate_script <<-JS
-        localStorage.getItem("key");
+          localStorage.getItem("key");
         JS
 
         expect(value).to eq("value")
@@ -1053,7 +1054,7 @@ module Capybara
 
         @session.visit "/"
         value = @session.evaluate_script <<-JS
-        localStorage.getItem("key");
+          localStorage.getItem("key");
         JS
         expect(value).to be_nil
       end
@@ -1107,7 +1108,7 @@ module Capybara
 
       context "blacklisting urls for resource requests" do
         it "blocks unwanted urls" do
-          @driver.browser.url_blacklist = ["unwanted"]
+          @driver.browser.url_blacklist = /unwanted/
 
           @session.visit "/cuprite/url_blacklist"
 
@@ -1119,7 +1120,7 @@ module Capybara
         end
 
         it "supports wildcards" do
-          @driver.browser.url_blacklist = ["*wanted"]
+          @driver.browser.url_blacklist = /.*wanted/
 
           @session.visit "/cuprite/url_whitelist"
 
@@ -1135,7 +1136,7 @@ module Capybara
 
         it "can be configured in the driver and survive reset" do
           Capybara.register_driver :cuprite_blacklist do |app|
-            Capybara::Cuprite::Driver.new(app, @driver.options.merge(url_blacklist: ["unwanted"]))
+            Capybara::Cuprite::Driver.new(app, @driver.options.merge(url_blacklist: /unwanted/))
           end
 
           session = Capybara::Session.new(:cuprite_blacklist, @session.app)
@@ -1158,7 +1159,7 @@ module Capybara
 
       context "whitelisting urls for resource requests" do
         it "allows whitelisted urls" do
-          @driver.browser.url_whitelist = ["url_whitelist", "/wanted"]
+          @driver.browser.url_whitelist = [/url_whitelist/, %r{/wanted}]
 
           @session.visit "/cuprite/url_whitelist"
 
@@ -1173,7 +1174,7 @@ module Capybara
         end
 
         it "supports wildcards" do
-          @driver.browser.url_whitelist = ["url_whitelist", "/*wanted"]
+          @driver.browser.url_whitelist = [/url_whitelist/, %r{/.*wanted}]
 
           @session.visit "/cuprite/url_whitelist"
 
@@ -1188,13 +1189,9 @@ module Capybara
         end
 
         it "blocks overruled urls" do
-          @driver.browser.url_whitelist = ["url_whitelist"]
-          @driver.browser.url_blacklist = ["url_whitelist"]
-
-          @session.visit "/cuprite/url_whitelist"
-
-          expect(@session.status_code).to eq(nil)
-          expect(@session).not_to have_content("We are loading some wanted action here")
+          @driver.browser.url_whitelist = /url_whitelist/
+          expect { @driver.browser.url_blacklist = /url_whitelist/ }
+            .to raise_error(ArgumentError, "You can't use blacklist along with whitelist")
         end
 
         it "allows urls when the whitelist is empty" do
@@ -1212,7 +1209,7 @@ module Capybara
         it "can be configured in the driver and survive reset" do
           Capybara.register_driver :cuprite_whitelist do |app|
             Capybara::Cuprite::Driver.new(app,
-                                          @driver.options.merge(url_whitelist: ["url_whitelist", "/cuprite/wanted"]))
+                                          @driver.options.merge(url_whitelist: [/url_whitelist/, %r{/cuprite/wanted}]))
           end
 
           session = Capybara::Session.new(:cuprite_whitelist, @session.app)
@@ -1555,6 +1552,7 @@ module Capybara
       end
 
       it "waits for network idle" do
+        @session.driver.set_proxy("123", "123")
         @session.visit "/cuprite/show_cookies"
         expect(@session).not_to have_content("test_cookie")
 
