@@ -159,12 +159,16 @@ module Capybara
         command(:hover)
       end
 
-      def drag_to(other)
-        command(:drag, other.node)
+      def drag_to(other, **options)
+        options[:steps] ||= 1
+
+        command(:drag, other.node, options[:steps])
       end
 
-      def drag_by(x, y)
-        command(:drag_by, x, y)
+      def drag_by(x, y, **options)
+        options[:steps] ||= 1
+
+        command(:drag_by, x, y, options[:steps])
       end
 
       def trigger(event)
