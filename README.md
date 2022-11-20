@@ -183,6 +183,9 @@ Besides capybara screenshot method you can get image as Base64:
 ## Authorization
 
 * `page.driver.basic_authorize(user, password)`
+
+## Proxy
+
 * `page.driver.set_proxy(ip, port, type, user, password)`
 
 
@@ -192,14 +195,14 @@ Cuprite supports URL blacklisting, which allows you to prevent scripts from
 running on designated domains:
 
 ```ruby
-page.driver.browser.url_blacklist = ["http://www.example.com"]
+page.driver.browser.url_blacklist = %r{http://www.example.com}
 ```
 
 and also URL whitelisting, which allows scripts to only run on designated
 domains:
 
 ```ruby
-page.driver.browser.url_whitelist = ["http://www.example.com"]
+page.driver.browser.url_whitelist = %r{http://www.example.com}
 ```
 
 If you are experiencing slower run times, consider creating a URL whitelist of

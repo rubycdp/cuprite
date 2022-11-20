@@ -3,9 +3,9 @@
 require "uri"
 require "forwardable"
 
+# rubocop:disable Metrics/ClassLength
 module Capybara
   module Cuprite
-    # rubocop:disable Metrics/ClassLength
     class Driver < Capybara::Driver::Base
       DEFAULT_MAXIMIZE_SCREEN_SIZE = [1366, 768].freeze
       EXTENSION = File.expand_path("javascripts/index.js", __dir__)
@@ -205,16 +205,7 @@ module Capybara
       end
 
       def set_proxy(host, port, user = nil, password = nil, bypass = nil)
-        browser_options = @options.fetch(:browser_options, {})
-        browser_options = browser_options.merge("proxy-server" => "#{host}:#{port}")
-        browser_options = browser_options.merge("proxy-bypass-list" => bypass) if bypass
-        @options[:browser_options] = browser_options
-
-        return unless user && password
-
-        browser.network.authorize(user: user, password: password, type: :proxy) do |request, _index, _total|
-          request.continue
-        end
+        @options.merge!(proxy: { host: host, port: port, user: user, password: password, bypass: bypass })
       end
 
       def headers
@@ -422,6 +413,6 @@ module Capybara
           options[:format].to_s == "pdf"
       end
     end
-    # rubocop:enable Metrics/ClassLength
   end
 end
+# rubocop:enable Metrics/ClassLength

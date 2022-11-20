@@ -17,6 +17,7 @@ module Capybara
         @frame_stack = []
         @accept_modal = []
         @modal_messages = []
+        @modal_response = nil
         super
       end
 
@@ -130,35 +131,13 @@ module Capybara
 
       private
 
-      # rubocop:disable Metrics/CyclomaticComplexity
-      # rubocop:disable Metrics/PerceivedComplexity
-      # rubocop:disable Style/GuardClause
       def prepare_page
         super
 
-        network.intercept if !Array(@browser.url_whitelist).empty? ||
-                             !Array(@browser.url_blacklist).empty?
-
-        on(:request) do |request, index, total|
-          if @browser.url_blacklist && !@browser.url_blacklist.empty?
-            if @browser.url_blacklist.any? { |r| request.match?(r) }
-              request.abort and next
-            else
-              request.continue and next
-            end
-          elsif @browser.url_whitelist && !@browser.url_whitelist.empty?
-            if @browser.url_whitelist.any? { |r| request.match?(r) }
-              request.continue and next
-            else
-              request.abort and next
-            end
-          elsif index + 1 < total
-            # There are other callbacks that may handle this request
-            next
-          else
-            # If there are no callbacks then just continue
-            request.continue
-          end
+        if @browser.url_blacklist.any?
+          network.blacklist = @browser.url_blacklist
+        elsif @browser.url_whitelist.any?
+          network.whitelist = @browser.url_whitelist
         end
 
         on("Page.javascriptDialogOpening") do |params|
@@ -181,9 +160,6 @@ module Capybara
           command("Page.handleJavaScriptDialog", **options)
         end
       end
-      # rubocop:enable Metrics/CyclomaticComplexity
-      # rubocop:enable Metrics/PerceivedComplexity
-      # rubocop:enable Style/GuardClause
 
       def find_position(node, **options)
         node.find_position(**options)
