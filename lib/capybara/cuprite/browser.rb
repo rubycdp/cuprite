@@ -12,6 +12,8 @@ module Capybara
                   dismiss_prompt reset_modals] => :page
 
       attr_reader :url_blacklist, :url_whitelist
+      alias url_blocklist url_blacklist
+      alias url_allowlist url_whitelist
 
       def initialize(options = nil)
         options ||= {}
