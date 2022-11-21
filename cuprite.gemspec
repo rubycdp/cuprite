@@ -17,7 +17,7 @@ Gem::Specification.new do |s|
   s.metadata = {
     "homepage_uri" => "https://cuprite.rubycdp.com/",
     "bug_tracker_uri" => "https://github.com/rubycdp/cuprite/issues",
-    "documentation_uri" => "https://github.com/rubycdp/cuprite/blob/master/README.md",
+    "documentation_uri" => "https://github.com/rubycdp/cuprite/blob/main/README.md",
     "source_code_uri" => "https://github.com/rubycdp/cuprite",
     "rubygems_mfa_required" => "true"
   }
