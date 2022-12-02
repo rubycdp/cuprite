@@ -514,6 +514,12 @@ module Capybara
         expect(@driver.body).to include("x: 100, y: 150")
       end
 
+      it "supports clicking overlayed elements" do
+        @session.visit("/cuprite/click_overlay")
+        @session.click_link "hidden link"
+        expect(@driver.body).to include("hidden-link")
+      end
+
       it "supports executing multiple lines of javascript" do
         @driver.execute_script <<-JS
           var a = 1
