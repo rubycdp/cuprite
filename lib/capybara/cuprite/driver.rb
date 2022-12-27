@@ -95,6 +95,11 @@ module Capybara
         nil
       end
 
+      def execute_async_script(script, *args)
+        browser.evaluate_async(script, session_wait_time, *native_args(args))
+        nil
+      end
+
       def switch_to_frame(locator)
         handle = case locator
                  when Capybara::Node::Element

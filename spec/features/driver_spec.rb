@@ -1540,6 +1540,24 @@ module Capybara
         end
       end
 
+      context "execute_async_script" do
+        it "handles execute_async_script value properly" do
+          @session.using_wait_time(5) do
+            expect(@session.driver.execute_async_script("arguments[0]('ignored')")).to be_nil
+          end
+        end
+
+        it "will timeout" do
+          @session.using_wait_time(1) do
+            expect do
+              @session.driver.execute_async_script <<~JS
+                var callback=arguments[0]; setTimeout(function(){callback()}, 4000)
+              JS
+            end.to raise_error Ferrum::ScriptTimeoutError
+          end
+        end
+      end
+
       it "can get the frames url" do
         @session.visit "/cuprite/frames"
 
