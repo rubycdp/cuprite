@@ -303,15 +303,17 @@ module Capybara
 
           it "changes pdf size" do
             @session.visit("/cuprite/long_page")
-            @driver.paper_size = { width: "1in", height: "1in" }
+            @driver.paper_size = { width: "6in", height: "12in" }
 
             @driver.save_screenshot(file)
 
             reader = PDF::Reader.new(file)
             reader.pages.each do |page|
-              bbox   = page.attributes[:MediaBox]
-              width  = (bbox[2] - bbox[0]) / 72
-              expect(width).to eq(1)
+              bbox = page.attributes[:MediaBox]
+              width = (bbox[2] - bbox[0]) / 72
+              height = (bbox[3] - bbox[1]) / 72
+              expect(width).to eq(6)
+              expect(height).to eq(12)
             end
           end
         end
