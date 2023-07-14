@@ -26,14 +26,4 @@ Gem::Specification.new do |s|
 
   s.add_runtime_dependency "capybara", "~> 3.0"
   s.add_runtime_dependency "ferrum",   "~> 0.13.0"
-
-  s.add_development_dependency "byebug",     "~> 11.1"
-  s.add_development_dependency "chunky_png", "~> 1.4"
-  s.add_development_dependency "image_size", "~> 3.0"
-  s.add_development_dependency "launchy",    "~> 2.5"
-  s.add_development_dependency "pdf-reader", "~> 2.5"
-  s.add_development_dependency "puma",       "~> 4.3"
-  s.add_development_dependency "rake",       "~> 13.0"
-  s.add_development_dependency "rspec",      "~> 3.10"
-  s.add_development_dependency "sinatra",    "~> 2.1"
 end

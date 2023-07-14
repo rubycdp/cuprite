@@ -6,4 +6,6 @@ gem "websocket-driver", ">= 0.6", "< 0.7"
 gem "capybara", "~> 3.37.1"
 gem "matrix"
 
+eval_gemfile "../../Gemfile"
+
 gemspec path: "../../"

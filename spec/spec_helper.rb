@@ -107,10 +107,9 @@ RSpec.configure do |config|
   Capybara::SpecHelper.configure(config)
 
   def save_exception_artifacts(browser, meta)
-    time_now = Time.now
     filename = File.basename(meta[:file_path])
     line_number = meta[:line_number]
-    timestamp = time_now.strftime("%Y-%m-%d-%H-%M-%S.") + format("%03d", (time_now.usec / 1000).to_i)
+    timestamp = Time.now.strftime("%Y-%m-%dT%H-%M-%S-%N")
 
     save_exception_log(browser, filename, line_number, timestamp)
     save_exception_screenshot(browser, filename, line_number, timestamp)
