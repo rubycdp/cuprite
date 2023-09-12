@@ -1470,6 +1470,11 @@ module Capybara
             expect(input.value).to eq("abc")
           end
 
+          it "uses the 'insertText' inputType for input event" do
+            input.set("a")
+            expect(output["data-input-type"]).to eq("insertText")
+          end
+
           it "doesn't call the change event if there is no change" do
             input.set("a")
             input.set("a")
