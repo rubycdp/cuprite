@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require "spec_helper"
-
 Capybara::SpecHelper.run_specs TestSessions::Cuprite, "Cuprite"
 
 describe Capybara::Session do

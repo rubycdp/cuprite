@@ -1,12 +1,13 @@
 # frozen_string_literal: true
 
-CUPRITE_ROOT = File.expand_path("..", __dir__)
-$LOAD_PATH.unshift("#{CUPRITE_ROOT}/lib")
+require "bundler/setup"
+require "rspec"
+
+PROJECT_ROOT = File.expand_path("..", __dir__)
+%w[/lib /spec].each { |p| $LOAD_PATH.unshift(p) }
 
 require "fileutils"
 require "shellwords"
-require "bundler/setup"
-require "rspec"
 
 require "capybara/spec/spec_helper"
 require "capybara/cuprite"
@@ -19,7 +20,7 @@ command = Ferrum::Browser::Command.build(Ferrum::Browser::Options.new, nil)
 puts `'#{Shellwords.escape(command.path)}' --version`
 puts ""
 
-Capybara.save_path = File.join(CUPRITE_ROOT, "spec", "tmp", "save_path")
+Capybara.save_path = File.join(PROJECT_ROOT, "spec", "tmp", "save_path")
 
 Capybara.register_driver(:cuprite) do |app|
   options = {}
@@ -131,7 +132,7 @@ RSpec.configure do |config|
   end
 
   def remove_temporary_folders
-    FileUtils.rm_rf(File.join(CUPRITE_ROOT, "spec", "tmp", "screenshots"))
+    FileUtils.rm_rf(File.join(PROJECT_ROOT, "spec", "tmp", "screenshots"))
     FileUtils.rm_rf(Capybara.save_path)
   end
 end
