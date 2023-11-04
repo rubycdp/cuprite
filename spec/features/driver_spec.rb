@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-require "spec_helper"
 require "image_size"
 require "pdf/reader"
 require "chunky_png"
@@ -8,6 +7,8 @@ require "chunky_png"
 module Capybara
   module Cuprite
     describe Driver do
+      let(:device_pixel_ratio) { @driver.device_pixel_ratio }
+
       include Spec::Support::ExternalBrowser
 
       around do |example|
@@ -24,11 +25,11 @@ module Capybara
       end
 
       it "supports a custom path" do
-        original_path = "#{CUPRITE_ROOT}/spec/support/chrome_path"
+        original_path = "#{PROJECT_ROOT}/spec/support/chrome_path"
         File.write(original_path, @driver.browser.process.path)
 
-        file = "#{CUPRITE_ROOT}/spec/support/custom_chrome_called"
-        path = "#{CUPRITE_ROOT}/spec/support/custom_chrome"
+        file = "#{PROJECT_ROOT}/spec/support/custom_chrome_called"
+        path = "#{PROJECT_ROOT}/spec/support/custom_chrome"
 
         driver = Driver.new(nil, browser_path: path)
         driver.browser
@@ -146,16 +147,15 @@ module Capybara
 
           create_screenshot file
           File.open(file, "rb") do |f|
-            expect(ImageSize.new(f.read).size).to eq(
-              @driver.evaluate_script("[window.innerWidth, window.innerHeight]")
-            )
+            expect(ImageSize.new(f.read).size).to eq(@driver.viewport_size.map { |s| s * @driver.device_pixel_ratio })
           end
 
           create_screenshot file, full: true
           File.open(file, "rb") do |f|
-            expect(ImageSize.new(f.read).size).to eq(
-              @driver.evaluate_script("[document.documentElement.scrollWidth, document.documentElement.scrollHeight]")
-            )
+            size = @driver.evaluate_script <<-JS
+              [document.documentElement.scrollWidth, document.documentElement.scrollHeight]
+            JS
+            expect(ImageSize.new(f.read).size).to eq(size.map { |s| s * device_pixel_ratio })
           end
         end
 
@@ -164,9 +164,7 @@ module Capybara
 
           create_screenshot file, full: true
           File.open(file, "rb") do |f|
-            expect(ImageSize.new(f.read).size).to eq(
-              @driver.evaluate_script("[window.innerWidth, window.innerHeight]")
-            )
+            expect(ImageSize.new(f.read).size).to eq(@driver.viewport_size.map { |s| s * @driver.device_pixel_ratio })
           end
         end
 
@@ -183,7 +181,7 @@ module Capybara
                 return [rect.width, rect.height];
               }();
             JS
-            expect(ImageSize.new(f.read).size).to eq(size)
+            expect(ImageSize.new(f.read).size).to eq(size.map { |s| s * @driver.device_pixel_ratio })
           end
         end
 
@@ -194,9 +192,10 @@ module Capybara
           create_screenshot file, full: true, selector: "#penultimate"
 
           File.open(file, "rb") do |f|
-            expect(ImageSize.new(f.read).size).to eq(
-              @driver.evaluate_script("[document.documentElement.scrollWidth, document.documentElement.scrollHeight]")
-            )
+            size = @driver.evaluate_script <<-JS
+              [document.documentElement.scrollWidth, document.documentElement.scrollHeight]
+            JS
+            expect(ImageSize.new(f.read).size).to eq(size.map { |s| s * device_pixel_ratio })
           end
         end
 
@@ -214,11 +213,11 @@ module Capybara
 
       describe "#save_screenshot" do
         let(:format) { :png }
-        let(:file) { "#{CUPRITE_ROOT}/spec/tmp/screenshot.#{format}" }
+        let(:file) { "#{PROJECT_ROOT}/spec/tmp/screenshot.#{format}" }
 
         after do
-          FileUtils.rm_f("#{CUPRITE_ROOT}/spec/tmp/screenshot.pdf")
-          FileUtils.rm_f("#{CUPRITE_ROOT}/spec/tmp/screenshot.png")
+          FileUtils.rm_f("#{PROJECT_ROOT}/spec/tmp/screenshot.pdf")
+          FileUtils.rm_f("#{PROJECT_ROOT}/spec/tmp/screenshot.png")
         end
 
         def create_screenshot(file, *args)
@@ -242,7 +241,7 @@ module Capybara
         end
 
         it "supports rendering the page to file without extension when format is specified" do
-          file = "#{CUPRITE_ROOT}/spec/tmp/screenshot"
+          file = "#{PROJECT_ROOT}/spec/tmp/screenshot"
           @session.visit("/")
 
           @driver.save_screenshot(file, format: "jpg")
@@ -253,19 +252,23 @@ module Capybara
         end
 
         it "supports rendering the page with different quality settings" do
-          file2 = "#{CUPRITE_ROOT}/spec/tmp/screenshot2.jpeg"
-          file3 = "#{CUPRITE_ROOT}/spec/tmp/screenshot3.jpeg"
-          FileUtils.rm_f([file2, file3])
+          file2 = "#{PROJECT_ROOT}/spec/tmp/screenshot2.jpeg"
+          file3 = "#{PROJECT_ROOT}/spec/tmp/screenshot3.jpeg"
+          file4 = "#{PROJECT_ROOT}/spec/tmp/screenshot4.#{format}"
+          FileUtils.rm_f([file2, file3, file4])
 
           begin
             @session.visit("/")
+
             @driver.save_screenshot(file, quality: 0) # ignored for png
             @driver.save_screenshot(file2) # defaults to a quality of 75
             @driver.save_screenshot(file3, quality: 100)
-            expect(File.size(file)).to be > File.size(file2) # png by defult is bigger
+            @driver.save_screenshot(file4, quality: 60) # ignored for png
+
+            expect(File.size(file)).to eq(File.size(file4))
             expect(File.size(file2)).to be < File.size(file3)
           ensure
-            FileUtils.rm_f([file2, file3])
+            FileUtils.rm_f([file2, file3, file4])
           end
         end
 
@@ -322,7 +325,7 @@ module Capybara
       end
 
       describe "#render_base64" do
-        let(:file) { "#{CUPRITE_ROOT}/spec/tmp/screenshot.#{format}" }
+        let(:file) { "#{PROJECT_ROOT}/spec/tmp/screenshot.#{format}" }
 
         def create_screenshot(file, *args)
           image = @driver.render_base64(format, *args)
@@ -644,7 +647,7 @@ module Capybara
           expect { @session.visit(url) }
             .to raise_error(
               Ferrum::StatusError,
-              %(Request to #{url} failed to reach server, check DNS and server status)
+              %r{Request to http://nope:\d+/ failed \(net::ERR_NAME_NOT_RESOLVED\)}
             )
         end
 
@@ -763,9 +766,9 @@ module Capybara
           @session.visit("/cuprite/with_js")
           responses = @driver.network_traffic.map(&:response)
           resources_size = {
-            %r{/cuprite/jquery.min.js$} => File.size("#{CUPRITE_ROOT}/spec/support/public/jquery-1.11.3.min.js"),
-            %r{/cuprite/jquery-ui.min.js$} => File.size("#{CUPRITE_ROOT}/spec/support/public/jquery-ui-1.11.4.min.js"),
-            %r{/cuprite/test.js$} => File.size("#{CUPRITE_ROOT}/spec/support/public/test.js")
+            %r{/cuprite/jquery.min.js$} => File.size("#{PROJECT_ROOT}/spec/support/public/jquery-1.11.3.min.js"),
+            %r{/cuprite/jquery-ui.min.js$} => File.size("#{PROJECT_ROOT}/spec/support/public/jquery-ui-1.11.4.min.js"),
+            %r{/cuprite/test.js$} => File.size("#{PROJECT_ROOT}/spec/support/public/test.js")
           }
 
           resources_size.each do |resource, size|
