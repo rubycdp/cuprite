@@ -1,12 +1,13 @@
 # frozen_string_literal: true
 
-CUPRITE_ROOT = File.expand_path("..", __dir__)
-$LOAD_PATH.unshift("#{CUPRITE_ROOT}/lib")
+require "bundler/setup"
+require "rspec"
+
+PROJECT_ROOT = File.expand_path("..", __dir__)
+%w[/lib /spec].each { |p| $LOAD_PATH.unshift(p) }
 
 require "fileutils"
 require "shellwords"
-require "bundler/setup"
-require "rspec"
 
 require "capybara/spec/spec_helper"
 require "capybara/cuprite"
@@ -19,7 +20,7 @@ command = Ferrum::Browser::Command.build(Ferrum::Browser::Options.new, nil)
 puts `'#{Shellwords.escape(command.path)}' --version`
 puts ""
 
-Capybara.save_path = File.join(CUPRITE_ROOT, "spec", "tmp", "save_path")
+Capybara.save_path = File.join(PROJECT_ROOT, "spec", "tmp", "save_path")
 
 Capybara.register_driver(:cuprite) do |app|
   options = {}
@@ -34,6 +35,54 @@ module TestSessions
 end
 
 RSpec.configure do |config|
+  config.around do |example|
+    remove_temporary_folders
+
+    if ENV.fetch("CI", nil)
+      session = @session || TestSessions::Cuprite
+      session.driver.browser.options.logger.truncate(0)
+      session.driver.browser.options.logger.rewind
+    end
+
+    example.run
+
+    if ENV.fetch("CI", nil) && example.exception
+      session = @session || TestSessions::Cuprite
+      save_exception_artifacts(session.driver.browser, example.metadata)
+    end
+  end
+
+  Capybara::SpecHelper.configure(config)
+
+  def save_exception_artifacts(browser, meta)
+    filename = File.basename(meta[:file_path])
+    line_number = meta[:line_number]
+    timestamp = Time.now.strftime("%Y-%m-%dT%H-%M-%S-%N")
+
+    save_exception_log(browser, filename, line_number, timestamp)
+    save_exception_screenshot(browser, filename, line_number, timestamp)
+  end
+
+  def save_exception_screenshot(browser, filename, line_number, timestamp)
+    screenshot_name = "screenshot-#{filename}-#{line_number}-#{timestamp}.png"
+    screenshot_path = "/tmp/cuprite/#{screenshot_name}"
+    browser.screenshot(path: screenshot_path, full: true)
+  rescue StandardError => e
+    puts "#{e.class}: #{e.message}"
+  end
+
+  def save_exception_log(browser, filename, line_number, timestamp)
+    log_name = "logfile-#{filename}-#{line_number}-#{timestamp}.txt"
+    File.binwrite("/tmp/cuprite/#{log_name}", browser.options.logger.string)
+  rescue StandardError => e
+    puts "#{e.class}: #{e.message}"
+  end
+
+  def remove_temporary_folders
+    FileUtils.rm_rf(File.join(PROJECT_ROOT, "spec", "tmp", "screenshots"))
+    FileUtils.rm_rf(Capybara.save_path)
+  end
+
   config.define_derived_metadata do |metadata|
     regexes = <<~REGEXP.split("\n").map { |s| Regexp.quote(s.strip) }.join("|")
       node #obscured?
@@ -85,53 +134,5 @@ RSpec.configure do |config|
 
     metadata[:skip] = true if metadata[:full_description].match(/#{regexes}/)
     metadata[:skip] = true if metadata[:requires]&.include?(:active_element)
-  end
-
-  config.around do |example|
-    remove_temporary_folders
-
-    if ENV.fetch("CI", nil)
-      session = @session || TestSessions::Cuprite
-      session.driver.browser.options.logger.truncate(0)
-      session.driver.browser.options.logger.rewind
-    end
-
-    example.run
-
-    if ENV.fetch("CI", nil) && example.exception
-      session = @session || TestSessions::Cuprite
-      save_exception_artifacts(session.driver.browser, example.metadata)
-    end
-  end
-
-  Capybara::SpecHelper.configure(config)
-
-  def save_exception_artifacts(browser, meta)
-    filename = File.basename(meta[:file_path])
-    line_number = meta[:line_number]
-    timestamp = Time.now.strftime("%Y-%m-%dT%H-%M-%S-%N")
-
-    save_exception_log(browser, filename, line_number, timestamp)
-    save_exception_screenshot(browser, filename, line_number, timestamp)
-  end
-
-  def save_exception_screenshot(browser, filename, line_number, timestamp)
-    screenshot_name = "screenshot-#{filename}-#{line_number}-#{timestamp}.png"
-    screenshot_path = "/tmp/cuprite/#{screenshot_name}"
-    browser.screenshot(path: screenshot_path, full: true)
-  rescue StandardError => e
-    puts "#{e.class}: #{e.message}"
-  end
-
-  def save_exception_log(browser, filename, line_number, timestamp)
-    log_name = "logfile-#{filename}-#{line_number}-#{timestamp}.txt"
-    File.binwrite("/tmp/cuprite/#{log_name}", browser.options.logger.string)
-  rescue StandardError => e
-    puts "#{e.class}: #{e.message}"
-  end
-
-  def remove_temporary_folders
-    FileUtils.rm_rf(File.join(CUPRITE_ROOT, "spec", "tmp", "screenshots"))
-    FileUtils.rm_rf(Capybara.save_path)
   end
 end
