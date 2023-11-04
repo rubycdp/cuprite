@@ -2,6 +2,6 @@
 
 module Capybara
   module Cuprite
-    VERSION = "0.14.3"
+    VERSION = "0.15"
   end
 end
