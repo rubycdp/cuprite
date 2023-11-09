@@ -17,7 +17,7 @@ require "support/external_browser"
 
 puts ""
 command = Ferrum::Browser::Command.build(Ferrum::Browser::Options.new, nil)
-puts `'#{Shellwords.escape(command.path)}' --version`
+puts `#{Shellwords.escape(command.path)} --version`
 puts ""
 
 Capybara.save_path = File.join(PROJECT_ROOT, "spec", "tmp", "save_path")
@@ -57,6 +57,7 @@ RSpec.configure do |config|
       node #drag_to HTML5 should simulate a single held down modifier key
       node #drag_to HTML5 should simulate multiple held down modifier keys
       node #drag_to HTML5 should support key aliases
+      node #drag_to HTML5 should trigger a dragenter event, before the first dragover event
       node Element#drop can drop a file
       node Element#drop can drop multiple files
       node Element#drop can drop strings
@@ -66,6 +67,7 @@ RSpec.configure do |config|
       node #visible? works when details is toggled open and closed
       node #path reports when element in shadow dom
       node #shadow_root
+      node #set should submit single text input forms if ended with
       #all with obscured filter should only find nodes on top in the viewport when false
       #all with obscured filter should not find nodes on top outside the viewport when false
       #all with obscured filter should find top nodes outside the viewport when true

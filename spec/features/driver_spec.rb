@@ -766,8 +766,8 @@ module Capybara
           @session.visit("/cuprite/with_js")
           responses = @driver.network_traffic.map(&:response)
           resources_size = {
-            %r{/cuprite/jquery.min.js$} => File.size("#{PROJECT_ROOT}/spec/support/public/jquery-1.11.3.min.js"),
-            %r{/cuprite/jquery-ui.min.js$} => File.size("#{PROJECT_ROOT}/spec/support/public/jquery-ui-1.11.4.min.js"),
+            %r{/cuprite/jquery.min.js$} => File.size("#{PROJECT_ROOT}/spec/support/public/jquery-3.7.1.min.js"),
+            %r{/cuprite/jquery-ui.min.js$} => File.size("#{PROJECT_ROOT}/spec/support/public/jquery-ui-1.13.2.min.js"),
             %r{/cuprite/test.js$} => File.size("#{PROJECT_ROOT}/spec/support/public/test.js")
           }
 

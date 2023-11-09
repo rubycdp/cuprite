@@ -30,12 +30,12 @@ class TestApp
 
   get "/cuprite/jquery.min.js" do
     content_type :js
-    File.read("#{CUPRITE_PUBLIC}/jquery-1.11.3.min.js")
+    File.read("#{CUPRITE_PUBLIC}/jquery-3.7.1.min.js")
   end
 
   get "/cuprite/jquery-ui.min.js" do
     content_type :js
-    File.read("#{CUPRITE_PUBLIC}/jquery-ui-1.11.4.min.js")
+    File.read("#{CUPRITE_PUBLIC}/jquery-ui-1.13.2.min.js")
   end
 
   get "/cuprite/unexist.png" do
