@@ -5,6 +5,8 @@
 ### Changed
 
 ### Fixed
+- Detect whether element is in the viewport and clickable before click [#251]
+- Remember parentNode in case onChange callback mutates DOM [#227]
 
 ### Removed
 
