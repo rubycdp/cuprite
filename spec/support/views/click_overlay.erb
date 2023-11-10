@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <style type="text/css">
+    body {
+      width: 800px;
+      margin: 0;
+    }
+    #hidden-link {
+      position: relative;
+      top: 740px;
+    }
+    #wrapper {
+      height: 1200px;
+    }
+    #footer {
+      position: fixed;
+      left: 0;
+      bottom: 0;
+      width: 100%;
+      background-color: red;
+      color: white;
+      text-align: center;
+      height: 100px;
+    }
+  </style>
+  <script type="text/javascript">
+  window.onload = function() {
+    var log = document.querySelector("#log")
+    var boxes = document.querySelectorAll("#hidden-link")
+    for (var i = 0; i < boxes.length; i++) {
+      var el = boxes[i]
+      el.onclick = function() {
+        log.textContent = this.id
+      }
+    }
+  }
+  </script>
+</head>
+<body>
+  <div id="log"></div>
+  <div id="wrapper">
+    <a id="hidden-link" href="#">hidden link</a>
+  </div>
+  <div id="footer"></div>
+</body>
+</html>
