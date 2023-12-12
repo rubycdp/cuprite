@@ -34,6 +34,8 @@ module Capybara
         @screen_size ||= DEFAULT_MAXIMIZE_SCREEN_SIZE
         @options[:save_path] ||= File.expand_path(Capybara.save_path) if Capybara.save_path
 
+        @options["remote-allow-origins"] = "*"
+
         ENV["FERRUM_DEBUG"] = "true" if ENV["CUPRITE_DEBUG"]
 
         super()
