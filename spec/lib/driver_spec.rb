@@ -1,6 +1,14 @@
 # frozen_string_literal: true
 
 describe Capybara::Cuprite::Driver do
+  describe "options" do
+    it "sets the remote-allow-origins option" do
+      driver = described_class.new nil
+
+      expect(driver.browser.options.to_h).to include("remote-allow-origins": "*")
+    end
+  end
+
   describe "save_path configuration" do
     it "defaults to the Capybara save path" do
       driver = with_capybara_save_path("/tmp/capybara-save-path") do
