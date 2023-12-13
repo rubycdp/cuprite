@@ -5,7 +5,7 @@ describe Capybara::Cuprite::Driver do
     it "sets the remote-allow-origins option" do
       driver = described_class.new(nil)
 
-      expect(driver.browser.options.to_h).to include("remote-allow-origins": "*")
+      expect(driver.browser.options.to_h[:browser_options]).to include("remote-allow-origins": "*")
     end
   end
 
