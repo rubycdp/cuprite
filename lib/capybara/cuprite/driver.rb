@@ -34,6 +34,8 @@ module Capybara
         @screen_size ||= DEFAULT_MAXIMIZE_SCREEN_SIZE
         @options[:save_path] ||= File.expand_path(Capybara.save_path) if Capybara.save_path
 
+        @options[:"remote-allow-origins"] = "*"
+
         ENV["FERRUM_DEBUG"] = "true" if ENV["CUPRITE_DEBUG"]
 
         super()
@@ -265,7 +267,12 @@ module Capybara
       alias authorize basic_authorize
 
       def debug_url
-        "http://#{browser.process.host}:#{browser.process.port}"
+        response = JSON.parse(Net::HTTP.get(URI(build_remote_debug_url(path: "/json"))))
+
+        devtools_frontend_path = response[0]&.[]("devtoolsFrontendUrl")
+        raise "Could not generate debug url for remote debugging session" unless devtools_frontend_path
+
+        build_remote_debug_url path: devtools_frontend_path
       end
 
       def debug(binding = nil)
@@ -362,6 +369,10 @@ module Capybara
       end
 
       private
+
+      def build_remote_debug_url(path:)
+        "http://#{browser.process.host}:#{browser.process.port}#{path}"
+      end
 
       def default_domain
         if @started
