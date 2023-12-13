@@ -272,7 +272,7 @@ module Capybara
         devtools_frontend_path = response[0]&.[]("devtoolsFrontendUrl")
         raise "Could not generate debug url for remote debugging session" unless devtools_frontend_path
 
-        build_remote_debug_url path: devtools_frontend_path
+        build_remote_debug_url(path: devtools_frontend_path)
       end
 
       def debug(binding = nil)
