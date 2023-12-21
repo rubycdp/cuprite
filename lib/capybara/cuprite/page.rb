@@ -134,6 +134,9 @@ module Capybara
       def prepare_page
         super
 
+        width, height = @browser.window_size
+        resize(width: width, height: height)
+
         if @browser.url_blacklist.any?
           network.blacklist = @browser.url_blacklist
         elsif @browser.url_whitelist.any?

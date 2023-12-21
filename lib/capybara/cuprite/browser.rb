@@ -11,7 +11,7 @@ module Capybara
                   find_modal accept_confirm dismiss_confirm accept_prompt
                   dismiss_prompt reset_modals] => :page
 
-      attr_reader :url_blacklist, :url_whitelist
+      attr_reader :url_blacklist, :url_whitelist, :window_size
       alias url_blocklist url_blacklist
       alias url_allowlist url_whitelist
 
@@ -22,6 +22,7 @@ module Capybara
         self.url_whitelist = options[:url_whitelist]
 
         super
+        @window_size = @options.window_size
         @page = false
       end
 
@@ -38,12 +39,18 @@ module Capybara
 
       def reset
         super
+        @window_size = options.window_size
         @page = attach_page
       end
 
       def quit
         super
         @page = false
+      end
+
+      def resize(**options)
+        @window_size = [options[:width], options[:height]]
+        super
       end
 
       def url_whitelist=(patterns)
