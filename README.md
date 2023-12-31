@@ -4,9 +4,7 @@ Cuprite is a pure Ruby driver (read as _no_ Selenium/WebDriver/ChromeDriver
 dependency) for [Capybara](https://github.com/teamcapybara/capybara). It allows
 you to run Capybara tests on a headless Chrome or Chromium. Under the hood it
 uses [Ferrum](https://github.com/rubycdp/ferrum#index) which is high-level API
-to the browser by CDP protocol. The design of the driver is as close to
-[Poltergeist](https://github.com/teampoltergeist/poltergeist) as possible though
-it's not a goal.
+to the browser by CDP protocol.
 
 
 ## Install
@@ -43,8 +41,7 @@ browser = page.driver.browser
 browser.mouse.move(x: 123, y: 456).down.up
 ```
 
-If you already have tests on Poltergeist then it should simply work, for
-Selenium you better check your code for `manage` calls because it works
+For Selenium you better check your code for `manage` calls because it works
 differently in Cuprite, see the documentation below.
 
 
