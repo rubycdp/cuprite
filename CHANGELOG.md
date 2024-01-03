@@ -3,7 +3,7 @@
 ### Added
 
 ### Changed
-- `@window_size` attribute is moved from Ferrum viewport size is still inherited [#253]
+- `@window_size` attribute is moved from Ferrum, viewport size is still inherited [#253]
 
 ### Fixed
 - Detect whether element is in the viewport and clickable before click [#251]

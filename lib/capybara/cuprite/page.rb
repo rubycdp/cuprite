@@ -13,7 +13,7 @@ module Capybara
                   current_url current_title body execution_id execution_id!
                   evaluate evaluate_on evaluate_async execute] => :active_frame
 
-      def initialize(*args)
+      def initialize(...)
         @frame_stack = []
         @accept_modal = []
         @modal_messages = []
@@ -70,17 +70,17 @@ module Capybara
 
       def find_modal(options)
         start = Ferrum::Utils::ElapsedTime.monotonic_time
-        timeout = options.fetch(:wait, browser.timeout)
         expect_text = options[:text]
         expect_regexp = expect_text.is_a?(Regexp) ? expect_text : Regexp.escape(expect_text.to_s)
         not_found_msg = "Unable to find modal dialog"
         not_found_msg += " with #{expect_text}" if expect_text
+        wait = options.fetch(:wait, timeout)
 
         begin
           modal_text = @modal_messages.shift
           raise Capybara::ModalNotFound if modal_text.nil? || (expect_text && !modal_text.match(expect_regexp))
         rescue Capybara::ModalNotFound => e
-          raise e, not_found_msg if Ferrum::Utils::ElapsedTime.timeout?(start, timeout)
+          raise e, not_found_msg if Ferrum::Utils::ElapsedTime.timeout?(start, wait)
 
           sleep(MODAL_WAIT)
           retry
@@ -134,13 +134,13 @@ module Capybara
       def prepare_page
         super
 
-        width, height = @browser.window_size
+        width, height = @options.window_size
         resize(width: width, height: height)
 
-        if @browser.url_blacklist.any?
-          network.blacklist = @browser.url_blacklist
-        elsif @browser.url_whitelist.any?
-          network.whitelist = @browser.url_whitelist
+        if @options.url_blacklist.any?
+          network.blacklist = @options.url_blacklist
+        elsif @options.url_whitelist.any?
+          network.whitelist = @options.url_whitelist
         end
 
         on("Page.javascriptDialogOpening") do |params|
