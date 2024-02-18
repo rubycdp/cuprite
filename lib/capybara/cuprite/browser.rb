@@ -124,6 +124,7 @@ module Capybara
 
         @page = nil if @page.target_id == target.id
         target.page.close
+        targets.delete(target_id) # page.close is async, delete target asap
       end
 
       def browser_error
@@ -237,10 +238,10 @@ module Capybara
       def attach_page(target_id = nil)
         target = targets[target_id] if target_id
         target ||= default_context.default_target
-        return target.page if target.attached?
+        return target.page if target.connected?
 
         target.maybe_sleep_if_new_window
-        target.page = Page.new(client, context_id: target.context_id, target_id: target.id)
+        target.page = Page.new(target.client, context_id: target.context_id, target_id: target.id)
         target.page
       end
     end
