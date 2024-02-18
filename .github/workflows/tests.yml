@@ -42,3 +42,4 @@ jobs:
         with:
           name: footprints
           path: /tmp/cuprite/
+          overwrite: true
