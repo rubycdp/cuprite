@@ -119,7 +119,7 @@ RSpec.configure do |config|
   end
 
   def save_exception_screenshot(browser, filename, line_number, timestamp)
-    screenshot_name = "screenshot-#{filename}-#{line_number}-#{timestamp}.png"
+    screenshot_name = "screenshot-#{filename}-#{line_number}-#{timestamp}-#{rand(1000)}.png"
     screenshot_path = "/tmp/cuprite/#{screenshot_name}"
     browser.screenshot(path: screenshot_path, full: true)
   rescue StandardError => e
@@ -127,7 +127,7 @@ RSpec.configure do |config|
   end
 
   def save_exception_log(browser, filename, line_number, timestamp)
-    log_name = "logfile-#{filename}-#{line_number}-#{timestamp}.txt"
+    log_name = "logfile-#{filename}-#{line_number}-#{timestamp}-#{rand(1000)}.txt"
     File.binwrite("/tmp/cuprite/#{log_name}", browser.options.logger.string)
   rescue StandardError => e
     puts "#{e.class}: #{e.message}"
