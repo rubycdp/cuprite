@@ -4,9 +4,16 @@
 
 ### Changed
 - `@window_size` attribute is moved from Ferrum, viewport size is still inherited [#253]
-- Compatibility with latest Ferrum. Browser instance is not passed everywhere now.
-`window_size`, `url_blacklist`, `url_whitelist`, `timeout` are moved to options. Page arguments are changed to
-`Page.new(client, context_id:, target_id:)`. These changes are changes to internal API. [#254]
+- Compatibility with latest Ferrum. Browser instance is not passed everywhere now [#254]
+  - `Cuprite::Browser` methods are located in `Options`.
+    - `#window_size`
+    - `#url_blacklist`
+    - `#url_whitelist`
+    - `#timeout`
+  - `Page#new` arguments are changed to `client, context_id:, target_id:`
+  - `Target#attached?` renamed to `Target#connected?`
+  - Ferrum doesn't restart browser automatically, Cuprite does
+  - `Browser#close_window` removes target id asap from the target list
 
 ### Fixed
 - Detect whether element is in the viewport and clickable before click [#251]
