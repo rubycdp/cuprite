@@ -4,6 +4,12 @@ require "forwardable"
 
 module Capybara
   module Cuprite
+    class ClosedPage
+      def closed?
+        true
+      end
+    end
+
     class Page < Ferrum::Page
       MODAL_WAIT = ENV.fetch("CUPRITE_MODAL_WAIT", 0.05).to_f
       TRIGGER_CLICK_WAIT = ENV.fetch("CUPRITE_TRIGGER_CLICK_WAIT", 0.1).to_f
@@ -127,6 +133,10 @@ module Capybara
 
       def title
         active_frame.current_title
+      end
+
+      def closed?
+        false
       end
 
       private
