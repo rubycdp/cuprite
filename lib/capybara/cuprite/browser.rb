@@ -17,7 +17,7 @@ module Capybara
         @options.url_blacklist = prepare_wildcards(options&.dig(:url_blacklist))
         @options.url_whitelist = prepare_wildcards(options&.dig(:url_whitelist))
 
-        @page = false
+        @page = nil
       end
 
       def command(...)
@@ -28,7 +28,7 @@ module Capybara
       end
 
       def page
-        raise Ferrum::NoSuchPageError if @page.nil?
+        raise Ferrum::NoSuchPageError if @page&.closed?
 
         @page ||= attach_page
       end
@@ -36,12 +36,12 @@ module Capybara
       def reset
         super
         @options.reset_window_size
-        @page = attach_page
+        @page = nil
       end
 
       def quit
         super
-        @page = false
+        @page = nil
       end
 
       def resize(**options)
@@ -122,7 +122,7 @@ module Capybara
         target = targets[target_id]
         raise Ferrum::NoSuchPageError unless target
 
-        @page = nil if @page.target_id == target.id
+        @page = ClosedPage.new if @page.target_id == target.id
         target.page.close
         targets.delete(target_id) # page.close is async, delete target asap
       end
