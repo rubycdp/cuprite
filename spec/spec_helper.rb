@@ -87,7 +87,6 @@ RSpec.configure do |config|
       #has_element? should be true if the given element is on the page
     REGEXP
 
-
     intentional_skip = <<~REGEXP.split("\n").map { |s| Regexp.quote(s.strip) }.join("|")
       Capybara::Session Cuprite #reset_session! closes extra windows
     REGEXP
