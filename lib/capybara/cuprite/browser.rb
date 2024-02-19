@@ -11,24 +11,20 @@ module Capybara
                   find_modal accept_confirm dismiss_confirm accept_prompt
                   dismiss_prompt reset_modals] => :page
 
-      attr_reader :url_blacklist, :url_whitelist, :window_size
-      alias url_blocklist url_blacklist
-      alias url_allowlist url_whitelist
-
       def initialize(options = nil)
-        options ||= {}
-        @client = nil
-        self.url_blacklist = options[:url_blacklist]
-        self.url_whitelist = options[:url_whitelist]
-
         super
-        @window_size = @options.window_size
+
+        @options.url_blacklist = prepare_wildcards(options&.dig(:url_blacklist))
+        @options.url_whitelist = prepare_wildcards(options&.dig(:url_whitelist))
+
         @page = false
       end
 
-      def timeout=(value)
+      def command(...)
         super
-        @page.timeout = value unless @page.nil?
+      rescue Ferrum::DeadBrowserError
+        restart
+        raise
       end
 
       def page
@@ -39,7 +35,7 @@ module Capybara
 
       def reset
         super
-        @window_size = options.window_size
+        @options.reset_window_size
         @page = attach_page
       end
 
@@ -49,19 +45,29 @@ module Capybara
       end
 
       def resize(**options)
-        @window_size = [options[:width], options[:height]]
+        @options.window_size = [options[:width], options[:height]]
         super
       end
 
+      def url_whitelist
+        @options.url_whitelist
+      end
+      alias url_allowlist url_whitelist
+
       def url_whitelist=(patterns)
-        @url_whitelist = prepare_wildcards(patterns)
-        page.network.whitelist = @url_whitelist if @client && @url_whitelist.any?
+        @options.url_whitelist = prepare_wildcards(patterns)
+        page.network.whitelist = @options.url_whitelist if @client && @options.url_whitelist.any?
       end
       alias url_allowlist= url_whitelist=
 
+      def url_blacklist
+        @options.url_blacklist
+      end
+      alias url_blocklist url_blacklist
+
       def url_blacklist=(patterns)
-        @url_blacklist = prepare_wildcards(patterns)
-        page.network.blacklist = @url_blacklist if @client && @url_blacklist.any?
+        @options.url_blacklist = prepare_wildcards(patterns)
+        page.network.blacklist = @options.url_blacklist if @client && @options.url_blacklist.any?
       end
       alias url_blocklist= url_blacklist=
 
@@ -118,6 +124,7 @@ module Capybara
 
         @page = nil if @page.target_id == target.id
         target.page.close
+        targets.delete(target_id) # page.close is async, delete target asap
       end
 
       def browser_error
@@ -231,10 +238,10 @@ module Capybara
       def attach_page(target_id = nil)
         target = targets[target_id] if target_id
         target ||= default_context.default_target
-        return target.page if target.attached?
+        return target.page if target.connected?
 
         target.maybe_sleep_if_new_window
-        target.page = Page.new(target.id, self)
+        target.page = Page.new(target.client, context_id: target.context_id, target_id: target.id)
         target.page
       end
     end

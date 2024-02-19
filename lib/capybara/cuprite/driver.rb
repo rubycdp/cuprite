@@ -115,7 +115,7 @@ module Capybara
       def open_new_window
         target = browser.default_context.create_target
         target.maybe_sleep_if_new_window
-        target.page = Page.new(target.id, browser)
+        target.page = Page.new(target.client, context_id: target.context_id, target_id: target.id)
         target.page
       end
 

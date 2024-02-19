@@ -84,6 +84,7 @@ RSpec.configure do |config|
       #has_css? with spatial requirements accepts spatial options
       #has_css? with spatial requirements supports spatial sugar
       #fill_in should fill in a textarea in a reasonable time by default
+      #has_element? should be true if the given element is on the page
     REGEXP
 
     metadata[:skip] = true if metadata[:full_description].match(/#{regexes}/)
