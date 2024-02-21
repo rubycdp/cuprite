@@ -41,8 +41,6 @@ module Capybara
           @options[:browser_options].merge!("remote-allow-origins": "*")
         end
 
-        ENV["FERRUM_DEBUG"] = "true" if ENV["CUPRITE_DEBUG"]
-
         super()
       end
 

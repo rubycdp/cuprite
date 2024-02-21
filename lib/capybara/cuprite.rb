@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+ENV["FERRUM_DEBUG"] = "true" if ENV["CUPRITE_DEBUG"]
+
 require "ferrum"
 require "capybara"
 require "capybara/cuprite/driver"
