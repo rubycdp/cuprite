@@ -1303,6 +1303,30 @@ module Capybara
           expect(input.text).to eq("hello")
         end
 
+        it "supports the :focused filter" do
+          @session.find_field("empty_input").execute_script("this.focus()")
+
+          expect(@session).to have_field("empty_input", focused: true)
+        end
+
+        it "accessed the document.activeElement" do
+          input = @session.find_field("empty_input")
+          input.execute_script("this.focus()")
+
+          expect(@session.active_element).to eq(input)
+        end
+
+        it "sends keys to the active_element" do
+          @session.find_field("empty_input").execute_script("this.focus()")
+
+          expect(@session).to have_field("empty_input", focused: true)
+
+          @session.send_keys(:tab)
+
+          expect(@session).to have_field("empty_input", focused: false)
+            .and(have_field("filled_input", focused: true))
+        end
+
         it "sends keys to filled contenteditable div" do
           input = @session.find(:css, "#filled_div")
 
