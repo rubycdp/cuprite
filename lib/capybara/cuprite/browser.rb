@@ -127,6 +127,10 @@ module Capybara
         targets.delete(target_id) # page.close is async, delete target asap
       end
 
+      def active_element
+        evaluate("document.activeElement")
+      end
+
       def browser_error
         evaluate("_cuprite.browserError()")
       end

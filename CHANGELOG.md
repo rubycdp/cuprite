@@ -2,6 +2,8 @@
 
 ### Added
 
+- Support for `Driver#send_keys`, the `:focused` filter, and `Driver#active_element` [#261]
+
 ### Changed
 - `@window_size` attribute is moved from Ferrum, viewport size is still inherited [#253]
 - Compatibility with latest Ferrum. Browser instance is not passed everywhere now [#254]
