@@ -103,6 +103,8 @@ module Capybara
             command(:select_file, files)
           when "color"
             node.evaluate("this.setAttribute('value', '#{value}')")
+            node.evaluate("this.dispatchEvent(new InputEvent('input'))")
+            node.evaluate("this.dispatchEvent(new Event('change', { bubbles: true }))")
           else
             command(:set, value.to_s)
           end
