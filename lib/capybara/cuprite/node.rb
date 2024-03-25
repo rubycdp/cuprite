@@ -162,13 +162,13 @@ module Capybara
       def drag_to(other, **options)
         options[:steps] ||= 1
 
-        command(:drag, other.node, options[:steps])
+        command(:drag, other.node, options[:steps], options[:delay])
       end
 
       def drag_by(x, y, **options)
         options[:steps] ||= 1
 
-        command(:drag_by, x, y, options[:steps])
+        command(:drag_by, x, y, options[:steps], options[:delay])
       end
 
       def trigger(event)
