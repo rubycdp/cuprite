@@ -61,8 +61,8 @@ end
 `Cuprite`-specific options are:
 
 * options `Hash`
-  * `:url_blacklist` (Array) - array of strings to match against requested URLs
-  * `:url_whitelist` (Array) - array of strings to match against requested URLs
+  * `:url_blacklist` (Array) - array of regexes to match against requested URLs
+  * `:url_whitelist` (Array) - array of regexes to match against requested URLs
 
 
 ## Debugging
