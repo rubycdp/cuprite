@@ -314,6 +314,24 @@ describe Capybara::Session do
       end
     end
 
+    describe "Node#shadow_root" do
+      it "produces error messages when failing" do
+        @session.visit("/with_shadow")
+        shadow_root = @session.find(:css, "#shadow_host").shadow_root
+        expect do
+          expect(shadow_root).to have_css("#shadow_content", text: "Not in the document")
+        end.to raise_error(/tag="#document-fragment"/)
+      end
+
+      it "extends visibility check across shadow host boundary" do
+        @session.visit("/with_shadow")
+        shadow_root = @session.find(:css, "#shadow_host").shadow_root
+        expect(shadow_root).to have_css("a")
+        @session.execute_script %(document.getElementById("shadow_host").style.display = "none")
+        expect(shadow_root).to_not have_css("a")
+      end
+    end
+
     it "has no trouble clicking elements when the size of a document changes" do
       @session.visit("/cuprite/long_page")
       @session.find(:css, "#penultimate").click
