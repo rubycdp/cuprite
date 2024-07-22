@@ -183,7 +183,7 @@ Besides capybara screenshot method you can get image as Base64:
 
 ## Proxy
 
-* `page.driver.set_proxy(ip, port, type, user, password)`
+* `page.driver.set_proxy(ip, port, user, password)`
 
 
 ## URL Blacklisting & Whitelisting
