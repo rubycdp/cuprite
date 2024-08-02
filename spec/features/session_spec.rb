@@ -243,6 +243,30 @@ describe Capybara::Session do
         element.set("#ddeeff")
         expect(element.value).to eq("#ddeeff")
       end
+
+      it "sets a value for a time input" do
+        element = @session.find(:css, "#change_me_time")
+        element.set("17:21")
+        expect(element.value).to eq("17:21")
+      end
+
+      it "sets a value for a time input with a time object" do
+        element = @session.find(:css, "#change_me_time")
+        element.set(Time.new(2023, 9, 26, 17, 21))
+        expect(element.value).to eq("17:21")
+      end
+
+      it "sets a value for a date input" do
+        element = @session.find(:css, "#change_me_date")
+        element.set("2023-09-26")
+        expect(element.value).to eq("2023-09-26")
+      end
+
+      it "sets a value for a date input with a date object" do
+        element = @session.find(:css, "#change_me_date")
+        element.set(Date.new(2023, 9, 26))
+        expect(element.value).to eq("2023-09-26")
+      end
     end
 
     describe "Node#visible" do
