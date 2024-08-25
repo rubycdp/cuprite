@@ -24,6 +24,10 @@ module Capybara
         "http://#{server.host}:#{server.port}#{path}"
       end
 
+      def non_favicon_exchanges(network_exchanges)
+        network_exchanges.reject { _1.url == session_url('/favicon.ico') }
+      end
+
       it "supports a custom path" do
         original_path = "#{PROJECT_ROOT}/spec/support/chrome_path"
         File.write(original_path, @driver.browser.process.path)
@@ -716,7 +720,7 @@ module Capybara
 
         it "captures responses" do
           @session.visit("/cuprite/with_js")
-          request = @driver.network_traffic.last
+          request = non_favicon_exchanges(@driver.network_traffic).last
 
           expect(request.response.status).to eq(200)
         end
@@ -724,32 +728,32 @@ module Capybara
         it "captures errors" do
           @session.visit("/cuprite/with_ajax_fail")
           expect(@session).to have_css("h1", text: "Done")
-          error = @driver.network_traffic.last.error
+          error = non_favicon_exchanges(@driver.network_traffic).last.error
 
           expect(error).to be
         end
 
         it "keeps a running list between multiple web page views" do
           @session.visit("/cuprite/with_js")
-          expect(@driver.network_traffic.length).to eq(4)
+          expect(non_favicon_exchanges(@driver.network_traffic).length).to eq(4)
 
           @session.visit("/cuprite/with_js")
-          expect(@driver.network_traffic.length).to eq(8)
+          expect(non_favicon_exchanges(@driver.network_traffic).length).to eq(8)
         end
 
         it "gets cleared on restart" do
           @session.visit("/cuprite/with_js")
-          expect(@driver.network_traffic.length).to eq(4)
+          expect(non_favicon_exchanges(@driver.network_traffic).length).to eq(4)
 
           @driver.restart
 
           @session.visit("/cuprite/with_js")
-          expect(@driver.network_traffic.length).to eq(4)
+          expect(non_favicon_exchanges(@driver.network_traffic).length).to eq(4)
         end
 
         it "gets cleared when being cleared" do
           @session.visit("/cuprite/with_js")
-          expect(@driver.network_traffic.length).to eq(4)
+          expect(non_favicon_exchanges(@driver.network_traffic).length).to eq(4)
 
           @driver.clear_network_traffic
 
@@ -787,21 +791,24 @@ module Capybara
         @driver.clear_memory_cache
 
         @session.visit("/cuprite/cacheable")
-        expect(@driver.network_traffic.length).to eq(1)
-        expect(@driver.network_traffic.last.response.status).to eq(200)
-        expect(@driver.network_traffic.last.response.params.dig("response", "fromDiskCache")).to be_falsey
+        network_exchanges = non_favicon_exchanges(@driver.network_traffic)
+        expect(network_exchanges.length).to eq(1)
+        expect(network_exchanges.last.response.status).to eq(200)
+        expect(network_exchanges.last.response.params.dig("response", "fromDiskCache")).to be_falsey
 
         @session.click_link "click me"
-        expect(@driver.network_traffic.length).to eq(2)
-        expect(@driver.network_traffic.last.response.status).to eq(200)
-        expect(@driver.network_traffic.last.response.params.dig("response", "fromDiskCache")).to be_truthy
+        network_exchanges = non_favicon_exchanges(@driver.network_traffic)
+        expect(network_exchanges.length).to eq(2)
+        expect(network_exchanges.last.response.status).to eq(200)
+        expect(network_exchanges.last.response.params.dig("response", "fromDiskCache")).to be_truthy
 
         @driver.clear_memory_cache
 
         @session.click_link "click me"
-        expect(@driver.network_traffic.length).to eq(3)
-        expect(@driver.network_traffic.last.response.status).to eq(200)
-        expect(@driver.network_traffic.last.response.params.dig("response", "fromDiskCache")).to be_falsey
+        network_exchanges = non_favicon_exchanges(@driver.network_traffic)
+        expect(network_exchanges.length).to eq(3)
+        expect(network_exchanges.last.response.status).to eq(200)
+        expect(network_exchanges.last.response.params.dig("response", "fromDiskCache")).to be_falsey
       end
 
       context "status code support" do
@@ -1071,8 +1078,11 @@ module Capybara
       end
 
       context "basic http authentication" do
-        it "denies without credentials" do
-          @session.visit "/cuprite/basic_auth"
+        it "raises an error and denies without credentials" do
+          expect { @session.visit "/cuprite/basic_auth" }.to raise_error(
+            Ferrum::StatusError,
+            %r{Request to .*/basic_auth failed \(net::ERR_INVALID_AUTH_CREDENTIALS\)}
+          )
 
           expect(@session.status_code).to eq(401)
           expect(@session).not_to have_content("Welcome, authenticated client")
