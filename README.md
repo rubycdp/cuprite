@@ -122,13 +122,17 @@ be automatically cleared at the end of the test.
 
 ## Network traffic
 
-* `page.driver.network_traffic` Inspect network traffic (loaded resources) on
-the current page. This returns an array of request objects.
+* `page.driver.network_traffic` allows you to inspect network traffic (i.e., loaded resources) on the current page. It returns an array of `Ferrum::Network::Exchange` objects, each representing a network request/response exchange. You can query both the request and response details of each exchange.
 
 ```ruby
-page.driver.network_traffic # => [Request, ...]
-request = page.driver.network_traffic.first
-request.response
+# Retrieve all network exchanges
+network_traffic = page.driver.network_traffic
+
+# Access the first exchange
+first_exchange = network_traffic.first
+
+# Inspect the response of the first request
+response = first_exchange.response
 ```
 
 * `page.driver.wait_for_network_idle` Natively waits for network idle and if
