@@ -1534,6 +1534,19 @@ module Capybara
         end
       end
 
+      context "input_fields" do
+        before { @session.visit("/cuprite/input_fields") }
+
+        it "focuses the element when filling in the value" do
+          input = @session.find(:css, "#text_field")
+          @session.fill_in "text_field", with: "2016-02-14"
+
+          expect(@session.find(:css, "#text_field").value).to eq("2016-02-14")
+          node = @session.driver.evaluate_script("document.activeElement")
+          expect(node).to eq input
+        end
+      end
+
       context "evaluate_script" do
         it "can return an element" do
           @session.visit("/cuprite/send_keys")
