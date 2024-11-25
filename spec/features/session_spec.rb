@@ -200,11 +200,11 @@ describe Capybara::Session do
       end
 
       it "fires the focus event" do
-        expect(@session.find(:css, "#changes_on_focus").text).to eq("Focus")
+        expect(@session.find(:css, "#changes_on_focus").text).to eq("Focus (FocusEvent)")
       end
 
       it "fires the blur event" do
-        expect(@session.find(:css, "#changes_on_blur").text).to eq("Blur")
+        expect(@session.find(:css, "#changes_on_blur").text).to eq("Blur (FocusEvent)")
       end
 
       it "fires the keydown event before the value is updated" do
