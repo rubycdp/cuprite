@@ -110,7 +110,7 @@ module Capybara
           command(:set, value.to_s)
         elsif self[:isContentEditable]
           command(:delete_text)
-          send_keys(value.to_s)
+          click.type(value.to_s)
         end
       end
 
