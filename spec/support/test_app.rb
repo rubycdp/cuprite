@@ -9,6 +9,8 @@ class TestApp
   CUPRITE_VIEWS  = "#{File.dirname(__FILE__)}/views"
   CUPRITE_PUBLIC = "#{File.dirname(__FILE__)}/public"
 
+  set :erb, layout: File.read("#{CUPRITE_VIEWS}/layout.erb")
+
   helpers do
     def requires_credentials(login, password)
       return if authorized?(login, password)
@@ -67,17 +69,17 @@ class TestApp
     sleep 1
     cookie_value = "test_cookie"
     response.set_cookie("stealth", cookie_value)
-    "Cookie set to #{cookie_value}"
+    render_string("Cookie set to #{cookie_value}")
   end
 
   get "/cuprite/slow" do
     sleep 0.2
-    "slow page"
+    render_string("slow page")
   end
 
   get "/cuprite/really_slow" do
     sleep 3
-    "really slow page"
+    render_string("really slow page")
   end
 
   get "/cuprite/basic_auth" do
@@ -87,13 +89,13 @@ class TestApp
 
   post "/cuprite/post_basic_auth" do
     requires_credentials("login", "pass")
-    "Authorized POST request"
+    render_string("Authorized POST request")
   end
 
   get "/cuprite/cacheable" do
     cache_control :public, max_age: 60
     etag "deadbeef"
-    "Cacheable request <a href='/cuprite/cacheable'>click me</a>"
+    render_string("Cacheable request <a href='/cuprite/cacheable'>click me</a>")
   end
 
   get "/cuprite/:view" do |view|
@@ -109,5 +111,9 @@ class TestApp
 
   def render_view(view)
     erb File.read("#{CUPRITE_VIEWS}/#{view}.erb")
+  end
+
+  def render_string(str)
+    erb str
   end
 end

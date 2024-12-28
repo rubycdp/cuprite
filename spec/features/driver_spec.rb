@@ -1072,7 +1072,10 @@ module Capybara
 
       context "basic http authentication" do
         it "denies without credentials" do
-          @session.visit "/cuprite/basic_auth"
+          expect { @session.visit "/cuprite/basic_auth" }.to raise_error(
+            Ferrum::StatusError,
+            %r{Request to http://.*/cuprite/basic_auth failed \(net::ERR_INVALID_AUTH_CREDENTIALS\)}
+          )
 
           expect(@session.status_code).to eq(401)
           expect(@session).not_to have_content("Welcome, authenticated client")
