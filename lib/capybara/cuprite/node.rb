@@ -211,6 +211,13 @@ module Capybara
         command(:path)
       end
 
+      def shadow_root
+        root = driver.evaluate_script <<~JS, self
+          arguments[0].shadowRoot
+        JS
+        root && self.class.new(driver, root.node)
+      end
+
       def inspect
         %(#<#{self.class} @node=#{@node.inspect}>)
       end
