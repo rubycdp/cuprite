@@ -592,13 +592,13 @@ describe Capybara::Session do
         top_before = @session.evaluate_script(%($("#drag_by .draggable").position().top))
         left_before = @session.evaluate_script(%($("#drag_by .draggable").position().left))
 
-        draggable.native.drag_by(15, 15)
+        draggable.native.drag_by(8000, 8000)
 
         top_after = @session.evaluate_script(%($("#drag_by .draggable").position().top))
         left_after = @session.evaluate_script(%($("#drag_by .draggable").position().left))
 
-        expect(top_after).to eq(top_before + 15)
-        expect(left_after).to eq(left_before + 15)
+        expect(top_after).to eq(top_before + 8000)
+        expect(left_after).to eq(left_before + 8000)
       end
     end
 

@@ -161,14 +161,16 @@ module Capybara
 
       def drag_to(other, **options)
         options[:steps] ||= 1
+        options[:scroll] = true unless options.key?(:scroll)
 
-        command(:drag, other.node, options[:steps], options[:delay])
+        command(:drag, other.node, options[:steps], options[:delay], options[:scroll])
       end
 
       def drag_by(x, y, **options)
         options[:steps] ||= 1
+        options[:scroll] = true unless options.key?(:scroll)
 
-        command(:drag_by, x, y, options[:steps], options[:delay])
+        command(:drag_by, x, y, options[:steps], options[:delay], options[:scroll])
       end
 
       def trigger(event)
