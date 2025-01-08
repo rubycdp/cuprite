@@ -85,6 +85,8 @@ RSpec.configure do |config|
       #has_css? with spatial requirements supports spatial sugar
       #fill_in should fill in a textarea in a reasonable time by default
       #has_element? should be true if the given element is on the page
+      #assert_matches_style should raise error if the elements style doesn't contain the given properties
+      #has_css? :style option should support Hash
     REGEXP
 
     intentional_skip = <<~REGEXP.split("\n").map { |s| Regexp.quote(s.strip) }.join("|")

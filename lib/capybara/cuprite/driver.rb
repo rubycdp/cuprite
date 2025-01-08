@@ -251,7 +251,8 @@ module Capybara
 
       def remove_cookie(name, **options)
         options[:domain] = default_domain if options.empty?
-        browser.cookies.remove(**options.merge(name: name))
+        options = options.merge(name: name)
+        browser.cookies.remove(**options)
       end
 
       def clear_cookies
