@@ -190,24 +190,26 @@ Besides capybara screenshot method you can get image as Base64:
 * `page.driver.set_proxy(ip, port, user, password)`
 
 
-## URL Blacklisting & Whitelisting
+## URL Block/Allowlisting
 
-Cuprite supports URL blacklisting, which allows you to prevent scripts from
+Cuprite supports URL blocklisting, which allows you to prevent scripts from
 running on designated domains:
 
 ```ruby
-page.driver.browser.url_blacklist = %r{http://www.example.com}
+page.driver.browser.url_blocklist = %r{http://www.example.com}
 ```
 
-and also URL whitelisting, which allows scripts to only run on designated
+and also URL allowlisting, which allows scripts to only run on designated
 domains:
 
 ```ruby
-page.driver.browser.url_whitelist = %r{http://www.example.com}
+page.driver.browser.url_allowlist = %r{http://www.example.com}
 ```
 
-If you are experiencing slower run times, consider creating a URL whitelist of
-domains that are essential or a blacklist of domains that are not essential,
+For legacy support, `url_blacklist=` and `url_whitelist=` continue to work respextively
+
+If you are experiencing slower run times, consider creating a URL allowlist of
+domains that are essential or a blocklist of domains that are not essential,
 such as ad networks or analytics, to your testing environment.
 
 ## License
