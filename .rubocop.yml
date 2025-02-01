@@ -16,6 +16,9 @@ Naming/FileName:
   Exclude:
     - 'gemfiles/*.gemfile'
 
+Style/OptionalBooleanParameter:
+  Enabled: false
+
 Style/StringLiterals:
   EnforcedStyle: double_quotes
 

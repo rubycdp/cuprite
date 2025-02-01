@@ -190,7 +190,7 @@ Besides capybara screenshot method you can get image as Base64:
 * `page.driver.set_proxy(ip, port, user, password)`
 
 
-## URL Block/Allowlisting
+## URL Blocklisting & Allowlisting
 
 Cuprite supports URL blocklisting, which allows you to prevent scripts from
 running on designated domains:
@@ -206,7 +206,7 @@ domains:
 page.driver.browser.url_allowlist = %r{http://www.example.com}
 ```
 
-For legacy support, `url_blacklist=` and `url_whitelist=` continue to work respextively
+For legacy support, `url_blacklist=` and `url_whitelist=` continue to work respectively.
 
 If you are experiencing slower run times, consider creating a URL allowlist of
 domains that are essential or a blocklist of domains that are not essential,
