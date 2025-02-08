@@ -66,8 +66,8 @@ RSpec.configure do |config|
       node #visible? details non-summary descendants should be non-visible
       node #visible? works when details is toggled open and closed
       node #path reports when element in shadow dom
-      node #shadow_root
       node #set should submit single text input forms if ended with
+      node #shadow_root should produce error messages when failing
       #all with obscured filter should only find nodes on top in the viewport when false
       #all with obscured filter should not find nodes on top outside the viewport when false
       #all with obscured filter should find top nodes outside the viewport when true
