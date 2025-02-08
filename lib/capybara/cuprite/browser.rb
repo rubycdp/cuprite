@@ -25,6 +25,8 @@ module Capybara
       rescue Ferrum::DeadBrowserError
         restart
         raise
+      rescue Ferrum::NodeNotFoundError => e
+        raise ObsoleteNode.new(self, e.response)
       end
 
       def page
