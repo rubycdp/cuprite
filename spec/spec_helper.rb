@@ -37,7 +37,6 @@ end
 RSpec.configure do |config|
   config.define_derived_metadata do |metadata|
     regexes = <<~REGEXP.split("\n").map { |s| Regexp.quote(s.strip) }.join("|")
-      node #obscured? should work in nested iframes
       node #drag_to should work with jsTree
       node #drag_to should drag and drop an object
       node #drag_to should drag and drop if scrolling is needed
