@@ -213,6 +213,10 @@ module Capybara
         command(:path)
       end
 
+      def obscured?(x: nil, y: nil)
+        command(:obscured?, x, y)
+      end
+
       def inspect
         %(#<#{self.class} @node=#{@node.inspect}>)
       end

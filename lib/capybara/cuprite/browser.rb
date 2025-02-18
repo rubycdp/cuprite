@@ -210,6 +210,17 @@ module Capybara
         evaluate_on(node: node, expression: "_cuprite.path(this)")
       end
 
+      def obscured?(node, x = nil, y = nil)
+        value = if x && y
+                  evaluate_on(node: node, expression: "_cuprite.isObscured(this, #{x}, #{y})")
+                else
+                  evaluate_on(node: node, expression: "_cuprite.isObscured(this)")
+                end
+        return true if value == true
+
+        false
+      end
+
       def all_text(node)
         node.text
       end
