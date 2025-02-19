@@ -828,7 +828,7 @@ describe Capybara::Session do
       end
 
       it "generates no javascript errors when switching into a frame" do
-        @driver.browser.evaluate_on_new_document(
+        @session.driver.browser.evaluate_on_new_document(
           "window.errors ||= []; window.onerror = function(msg) { window.errors += msg; };"
         )
 
