@@ -321,8 +321,8 @@ describe Capybara::Session do
         end
 
         it "is is a boolean" do
-          expect(@session.find_link("Link outside viewport").obscured?).to be true
-          expect(@session.find_link("Below the fold").obscured?).to be true
+          expect(@session.find_link("Link outside viewport")).to be_obscured
+          expect(@session.find_link("Below the fold")).to be_obscured
         end
       end
 
