@@ -211,14 +211,11 @@ module Capybara
       end
 
       def obscured?(node, x = nil, y = nil)
-        value = if x && y
-                  evaluate_on(node: node, expression: "_cuprite.isObscured(this, #{x}, #{y})")
-                else
-                  evaluate_on(node: node, expression: "_cuprite.isObscured(this)")
-                end
-        return true if value == true
-
-        frame_obscured_at?(*value.values_at("x", "y"))
+        if x && y
+          evaluate_on(node: node, expression: "_cuprite.isObscured(this, #{x}, #{y})")
+        else
+          evaluate_on(node: node, expression: "_cuprite.isObscured(this)")
+        end
       end
 
       def all_text(node)
@@ -267,21 +264,6 @@ module Capybara
         target.maybe_sleep_if_new_window
         target.page = Page.new(target.client, context_id: target.context_id, target_id: target.id)
         target.page
-      end
-
-      def frame_obscured_at?(x, y)
-        frame = page.active_frame
-        return false if frame.main?
-
-        frame_node = frame.evaluate("window.frameElement")
-        return false unless frame_node
-
-        switch_to_frame(:parent)
-        begin
-          obscured?(frame_node, x, y)
-        ensure
-          switch_to_frame(frame)
-        end
       end
     end
   end

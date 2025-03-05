@@ -138,14 +138,6 @@ module Capybara
         false
       end
 
-      def active_frame
-        if @frame_stack.empty?
-          main_frame
-        else
-          @frames[@frame_stack.last]
-        end
-      end
-
       private
 
       def prepare_page
@@ -187,6 +179,14 @@ module Capybara
         raise MouseEventFailed, "MouseEventFailed: click, none, 0, 0" if e.message == "Could not compute content quads."
 
         raise
+      end
+
+      def active_frame
+        if @frame_stack.empty?
+          main_frame
+        else
+          @frames[@frame_stack.last]
+        end
       end
     end
   end
