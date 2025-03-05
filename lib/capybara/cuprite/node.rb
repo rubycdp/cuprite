@@ -213,8 +213,8 @@ module Capybara
         command(:path)
       end
 
-      def obscured?(x: nil, y: nil)
-        command(:obscured?, x, y)
+      def obscured?
+        command(:obscured?)
       end
 
       def inspect
