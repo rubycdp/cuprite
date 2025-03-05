@@ -123,7 +123,6 @@ module Capybara
           @frame_stack = []
         else
           @frame_stack << handle
-          inject_extensions
         end
       end
 
