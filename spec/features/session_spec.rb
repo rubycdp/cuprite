@@ -314,6 +314,31 @@ describe Capybara::Session do
       end
     end
 
+    describe "Node#obscured?" do
+      context "when the element is not in the viewport of parent element" do
+        before do
+          @session.visit("/cuprite/scroll")
+        end
+
+        it "is is a boolean" do
+          expect(@session.find_link("Link outside viewport")).to be_obscured
+          expect(@session.find_link("Below the fold")).to be_obscured
+        end
+      end
+
+      context "when the element is only overlapped by descendants" do
+        before do
+          @session.visit("/with_html")
+        end
+
+        # copied from https://github.com/teamcapybara/capybara/blob/master/lib/capybara/spec/session/node_spec.rb#L328
+        # as this example is currently disabled on CI in the upstream suite
+        it "is not obscured" do
+          expect(@session.first(:css, "p:not(.para)")).not_to be_obscured
+        end
+      end
+    end
+
     it "has no trouble clicking elements when the size of a document changes" do
       @session.visit("/cuprite/long_page")
       @session.find(:css, "#penultimate").click

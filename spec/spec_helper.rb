@@ -37,7 +37,6 @@ end
 RSpec.configure do |config|
   config.define_derived_metadata do |metadata|
     regexes = <<~REGEXP.split("\n").map { |s| Regexp.quote(s.strip) }.join("|")
-      node #obscured?
       node #drag_to should work with jsTree
       node #drag_to should drag and drop an object
       node #drag_to should drag and drop if scrolling is needed
@@ -68,10 +67,6 @@ RSpec.configure do |config|
       node #path reports when element in shadow dom
       node #shadow_root
       node #set should submit single text input forms if ended with
-      #all with obscured filter should only find nodes on top in the viewport when false
-      #all with obscured filter should not find nodes on top outside the viewport when false
-      #all with obscured filter should find top nodes outside the viewport when true
-      #all with obscured filter should only find non-top nodes when true
       #fill_in should fill in a color field
       #fill_in should handle carriage returns with line feeds in a textarea correctly
       #has_field with valid should be false if field is invalid
