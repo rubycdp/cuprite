@@ -12,6 +12,7 @@ gem "rake", "~> 13.0"
 gem "rspec", "~> 3.10"
 gem "rubocop", "~> 1.22"
 gem "rubocop-rake", require: false
+gem "ruby-lsp", require: false
 gem "sinatra", "~> 3.2"
 
 gemspec
