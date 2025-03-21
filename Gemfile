@@ -4,6 +4,7 @@ source "https://rubygems.org"
 
 gem "byebug", "~> 11.1", platforms: %i[mri mingw x64_mingw]
 gem "chunky_png", "~> 1.4"
+gem "debug", "~> 1.10", require: false, platform: :mri
 gem "ferrum", github: "radiopaedia/ferrum", branch: "94-expose-mobile"
 gem "image_size", "~> 3.0"
 gem "launchy", "~> 2.5"

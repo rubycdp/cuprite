@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "bundler/setup"
+require "debug"
 require "rspec"
 
 PROJECT_ROOT = File.expand_path("..", __dir__)
@@ -32,6 +33,7 @@ end
 
 module TestSessions
   Cuprite = Capybara::Session.new(:cuprite, TestApp)
+  CupriteMobile = Capybara::Session.new(:cuprite_mobile, TestApp)
 end
 
 RSpec.configure do |config|
