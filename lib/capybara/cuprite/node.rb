@@ -101,8 +101,28 @@ module Capybara
           when "file"
             files = value.respond_to?(:to_ary) ? value.to_ary.map(&:to_s) : value.to_s
             command(:select_file, files)
-          when "color"
-            node.evaluate("this.setAttribute('value', '#{value}')")
+          when 'date'
+            if value.respond_to?(:to_time)
+              set_value_js(value.to_date.iso8601)
+            else
+              command(:set, value.to_s)
+            end
+          when 'time'
+            if value.respond_to?(:to_time) && !value.is_a?(String)
+              set_value_js(value.to_time.strftime('%H:%M'))
+            else
+              command(:set, value.to_s)
+            end
+          when 'datetime-local'
+            if value.respond_to?(:to_time) && !value.is_a?(String)
+              set_value_js(value.to_time.strftime('%Y-%m-%dT%H:%M'))
+            else
+              command(:set, value.to_s)
+            end
+          when 'range'
+            set_value_js(value)
+          when 'color'
+            set_value_js(value)
           else
             command(:set, value.to_s)
           end
@@ -112,6 +132,23 @@ module Capybara
           command(:delete_text)
           click.type(value.to_s)
         end
+      end
+
+      # Copied from MIT licensed capybara project
+      # revision 0be79d6
+      # path lib/capybara/selenium/node.rb
+      def set_value_js(value)
+        driver.execute_script(<<-JS, self, value)
+          if (arguments[0].readOnly) { return };
+          if (document.activeElement !== arguments[0]){
+            arguments[0].focus();
+          }
+          if (arguments[0].value != arguments[1]) {
+            arguments[0].value = arguments[1]
+            arguments[0].dispatchEvent(new InputEvent('input'));
+            arguments[0].dispatchEvent(new Event('change', { bubbles: true }));
+          }
+        JS
       end
 
       def select_option
