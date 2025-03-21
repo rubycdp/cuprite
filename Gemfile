@@ -4,6 +4,8 @@ source "https://rubygems.org"
 
 gem "byebug", "~> 11.1", platforms: %i[mri mingw x64_mingw]
 gem "chunky_png", "~> 1.4"
+gem "debug", "~> 1.10", require: false, platform: :mri
+gem "ferrum", github: "radiopaedia/ferrum", branch: "94-expose-mobile"
 gem "image_size", "~> 3.0"
 gem "launchy", "~> 2.5"
 gem "pdf-reader", "~> 2.12"
@@ -12,6 +14,7 @@ gem "rake", "~> 13.0"
 gem "rspec", "~> 3.10"
 gem "rubocop", "~> 1.22"
 gem "rubocop-rake", require: false
+gem "ruby-lsp", require: false
 gem "sinatra", "~> 3.2"
 
 gemspec
