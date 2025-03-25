@@ -144,7 +144,11 @@ module Capybara
         super
 
         width, height = @options.window_size
-        resize(width: width, height: height, mobile: @options.mobile)
+        if @options.mobile
+          resize(width: 0, height: 0, mobile: @options.mobile)
+        else
+          resize(width: width, height: height, mobile: @options.mobile)
+        end
 
         if @options.url_blacklist.any?
           network.blacklist = @options.url_blacklist

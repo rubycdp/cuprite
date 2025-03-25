@@ -39,6 +39,7 @@ end
 
 module TestSessions
   Cuprite = Capybara::Session.new(:cuprite, TestApp)
+  CupriteMobile = Capybara::Session.new(:cuprite_mobile, TestApp)
 end
 
 RSpec.configure do |config|
