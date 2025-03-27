@@ -27,7 +27,7 @@ Capybara.register_driver(:cuprite) do |app|
 end
 ```
 
-if you use `Docker` don't forget to pass `no-sandbox` option:
+If you use `Docker` don't forget to pass `no-sandbox` option:
 
 ```ruby
 Capybara::Cuprite::Driver.new(app, browser_options: { 'no-sandbox': nil })
