@@ -379,7 +379,11 @@ module Capybara
       private
 
       def build_remote_debug_url(path:)
-        "http://#{browser.process.host}:#{browser.process.port}#{path}"
+        uri = URI.parse(path)
+        uri.scheme ||= "http"
+        uri.host ||= browser.process.host
+        uri.port ||= browser.process.port
+        uri.to_s
       end
 
       def default_domain
