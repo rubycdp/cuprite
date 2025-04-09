@@ -30,6 +30,10 @@ Capybara.register_driver(:cuprite) do |app|
   Capybara::Cuprite::Driver.new(app, options)
 end
 
+Capybara.register_driver(:cuprite_with_inspector) do |app|
+  Capybara::Cuprite::Driver.new(app, { inspector: true })
+end
+
 module TestSessions
   Cuprite = Capybara::Session.new(:cuprite, TestApp)
 end

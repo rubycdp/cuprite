@@ -1605,6 +1605,15 @@ module Capybara
 
         expect(@session).to have_content("test_cookie")
       end
+
+      it "has a working debug_url" do
+        session = Capybara::Session.new(:cuprite_with_inspector, TestApp)
+        session.visit "/cuprite/arbitrary_path/200"
+
+        expect do
+          URI.parse(session.driver.debug_url)
+        end.not_to raise_error
+      end
     end
   end
 end
