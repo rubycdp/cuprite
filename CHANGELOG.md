@@ -1,10 +1,25 @@
-## [Unreleased](https://github.com/rubycdp/ferrum/compare/v0.15.1...main) ##
+## [Unreleased](https://github.com/rubycdp/ferrum/compare/v0.16...main) ##
 
 ### Added
 
 ### Changed
 
 ### Fixed
+
+### Removed
+
+
+## [0.16](https://github.com/rubycdp/ferrum/compare/0.16) - (May 10, 2025) ##
+
+### Added
+
+### Changed
+
+- `wait_for_network_idle` doesn't raise error, instead simply returns `nil`
+
+### Fixed
+
+- Assigning broken unicode to a node directly from JS can lead to `JSON::ParserError: incomplete surrogate pair at ...` error
 
 ### Removed
 
