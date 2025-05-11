@@ -3,8 +3,10 @@
 ### Added
 
 ### Changed
+- `:inspector` option is retired
 
 ### Fixed
+- Correctly open devtools page when calling `debug` [#296, #297]
 
 ### Removed
 
@@ -14,11 +16,9 @@
 ### Added
 
 ### Changed
-
 - `wait_for_network_idle` doesn't raise error, instead simply returns `nil`
 
 ### Fixed
-
 - Assigning broken unicode to a node directly from JS can lead to `JSON::ParserError: incomplete surrogate pair at ...` error
 
 ### Removed
@@ -27,7 +27,6 @@
 ## [0.15.1](https://github.com/rubycdp/ferrum/compare/v0.15...0.15.1) - (Jun 15, 2024) ##
 
 ### Added
-
 - Support for `Driver#send_keys`, the `:focused` filter, and `Driver#active_element` [#261]
 
 ### Changed

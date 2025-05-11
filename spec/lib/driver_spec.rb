@@ -29,32 +29,6 @@ describe Capybara::Cuprite::Driver do
     end
   end
 
-  describe "debug_url" do
-    it "parses the devtools frontend url correctly when devtoolsFrontendUrl is relative" do
-      driver = described_class.new(nil, { port: 12_345 })
-      driver.browser # initialize browser before stubbing Net::HTTP as it also calls it
-      uri = instance_double(URI)
-
-      allow(driver).to receive(:URI).with("http://127.0.0.1:12345/json").and_return(uri)
-      allow(Net::HTTP).to receive(:get).with(uri).and_return(%([{"devtoolsFrontendUrl":"/works"}]))
-
-      expect(driver.debug_url).to eq("http://127.0.0.1:12345/works")
-    end
-
-    it "parses the devtools frontend url correctly when devtoolsFrontendUrl is fully qualified" do
-      driver = described_class.new(nil, { port: 12_346 })
-      driver.browser # initialize browser before stubbing Net::HTTP as it also calls it
-      uri = instance_double(URI)
-
-      allow(driver).to receive(:URI).with("http://127.0.0.1:12346/json").and_return(uri)
-      allow(Net::HTTP).to receive(:get).with(uri).and_return(
-        %([{"devtoolsFrontendUrl":"https://chrome-devtools-frontend.appspot.com/serve_rev?ws=123"}])
-      )
-
-      expect(driver.debug_url).to eq("https://chrome-devtools-frontend.appspot.com/serve_rev?ws=123")
-    end
-  end
-
   private
 
   def with_capybara_save_path(path)

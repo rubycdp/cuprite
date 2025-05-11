@@ -67,18 +67,8 @@ end
 
 ## Debugging
 
-If you pass `inspector` option, remote debugging will be enabled if you run
-tests with `INSPECTOR=true`. Then you can put `page.driver.debug` or
-`page.driver.debug(binding)` in your test to pause it. This will launch the
-browser where you can inspect the content.
-
-```ruby
-Capybara.register_driver :cuprite do |app|
-  Capybara::Cuprite::Driver.new(app, inspector: ENV['INSPECTOR'])
-end
-```
-
-then somewhere in the test:
+You can put `page.driver.debug` or `page.driver.debug(binding)` in your test to pause it.
+This will launch the browser where you can inspect the content.
 
 ```ruby
 it "does something useful" do

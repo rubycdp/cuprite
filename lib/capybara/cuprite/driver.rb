@@ -274,32 +274,8 @@ module Capybara
       end
       alias authorize basic_authorize
 
-      def debug_url
-        response = JSON.parse(Net::HTTP.get(URI(build_remote_debug_url(path: "/json"))))
-
-        devtools_frontend_path = response[0]&.[]("devtoolsFrontendUrl")
-        raise "Could not generate debug url for remote debugging session" unless devtools_frontend_path
-
-        build_remote_debug_url(path: devtools_frontend_path)
-      end
-
-      def debug(binding = nil)
-        if @options[:inspector]
-          Process.spawn(browser.process.path, debug_url)
-
-          if binding.respond_to?(:pry)
-            Pry.start(binding)
-          elsif binding.respond_to?(:irb)
-            binding.irb
-          else
-            pause
-          end
-        else
-          raise Error, "To use the remote debugging, you have to launch " \
-                       "the driver with `inspector: ENV['INSPECTOR']` " \
-                       "configuration option and run your test suite passing " \
-                       "env variable"
-        end
+      def debug(...)
+        browser.debug(...)
       end
 
       def pause
@@ -377,14 +353,6 @@ module Capybara
       end
 
       private
-
-      def build_remote_debug_url(path:)
-        uri = URI.parse(path)
-        uri.scheme ||= "http"
-        uri.host ||= browser.process.host
-        uri.port ||= browser.process.port
-        uri.to_s
-      end
 
       def default_domain
         if @started

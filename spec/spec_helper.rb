@@ -24,14 +24,9 @@ Capybara.save_path = File.join(PROJECT_ROOT, "spec", "tmp", "save_path")
 
 Capybara.register_driver(:cuprite) do |app|
   options = {}
-  options.merge!(inspector: true) if ENV["INSPECTOR"]
   options.merge!(logger: StringIO.new) if ENV["CI"]
   options.merge!(headless: false) if ENV["HEADLESS"] == "false"
   Capybara::Cuprite::Driver.new(app, options)
-end
-
-Capybara.register_driver(:cuprite_with_inspector) do |app|
-  Capybara::Cuprite::Driver.new(app, { inspector: true })
 end
 
 module TestSessions
