@@ -1468,6 +1468,30 @@ module Capybara
           expect(input.text).to eq("replacement text")
         end
 
+        it "sets a date field" do
+          input = @session.find(:css, "#date-field")
+          input.set(Time.new(2000, 12, 31))
+          expect(input.value).to eq("2000-12-31")
+        end
+
+        it "sets a datetime-local field" do
+          input = @session.find(:css, "#datetime-local-field")
+          input.set(Time.new(2000, 12, 31, 17, 15))
+          expect(input.value).to eq(Time.new(2000, 12, 31, 17, 15).strftime("%Y-%m-%dT%H:%M"))
+        end
+
+        it "sets a range field" do
+          input = @session.find(:css, "#range-field")
+          input.set(42)
+          expect(input.value).to eq("42")
+        end
+
+        it "sets a color field" do
+          input = @session.find(:css, "#color-field")
+          input.set("#1270a4")
+          expect(input.value).to eq("#1270a4")
+        end
+
         it "sets a content editable childs content" do
           @session.visit("/with_js")
           @session.find(:css, "#existing_content_editable_child").set("WYSIWYG")
