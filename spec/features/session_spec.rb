@@ -243,6 +243,18 @@ describe Capybara::Session do
         element.set("#ddeeff")
         expect(element.value).to eq("#ddeeff")
       end
+
+      it "fires the change event for a color input" do
+        element = @session.find(:css, "#change_me_color")
+        element.set("#ddeeff")
+        expect(@session.find(:css, "#changes").text).to eq("#ddeeff")
+      end
+
+      it "fires the input event for a color input" do
+        element = @session.find(:css, "#change_me_color")
+        element.set("#ddeeff")
+        expect(@session.find(:css, "#changes_on_input").text).to eq("#ddeeff")
+      end
     end
 
     describe "Node#visible" do
