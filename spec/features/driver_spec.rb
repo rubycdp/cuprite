@@ -1533,7 +1533,7 @@ module Capybara
         it "fills a date" do
           @session.fill_in "date_field", with: "2016-02-14"
 
-          expect(@session.find(:css, "#date_field").value).to eq("2016-02-14")
+          expect(@session.find(:css, "#date_field", focused: true).value).to eq("2016-02-14")
         end
       end
 
