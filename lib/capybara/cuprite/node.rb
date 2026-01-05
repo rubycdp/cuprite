@@ -103,6 +103,8 @@ module Capybara
             command(:select_file, files)
           when "color"
             node.evaluate("this.setAttribute('value', '#{value}')")
+          when "time"
+            command(:set, value.is_a?(String) ? Time.parse(value).to_s : value.to_s)
           else
             command(:set, value.to_s)
           end

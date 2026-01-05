@@ -1537,6 +1537,34 @@ module Capybara
         end
       end
 
+      context "time_fields" do
+        before { @session.visit("/cuprite/time_fields") }
+
+        it "sets a time with HH:MM format" do
+          input = @session.find(:css, "#time_field")
+          input.set("10:00")
+          expect(input.value).to eq("10:00:00")
+        end
+
+        it "sets a time with HH:MM:SS format" do
+          input = @session.find(:css, "#time_field")
+          input.set("14:30:45")
+          expect(input.value).to eq("14:30:45")
+        end
+
+        it "sets a time from a Time object" do
+          input = @session.find(:css, "#time_field")
+          time = Time.parse("10:30:00")
+          input.set(time)
+          expect(input.value).to match(/10:30:0?0/)
+        end
+
+        it "fills in a time field with a time string" do
+          @session.fill_in "time_field", with: "09:15"
+          expect(@session.find(:css, "#time_field").value).to eq("09:15:00")
+        end
+      end
+
       context "evaluate_script" do
         it "can return an element" do
           @session.visit("/cuprite/send_keys")
