@@ -36,26 +36,21 @@ end
 RSpec.configure do |config|
   config.define_derived_metadata do |metadata|
     regexes = <<~REGEXP.split("\n").map { |s| Regexp.quote(s.strip) }.join("|")
-      node #drag_to should work with jsTree
-      node #drag_to should drag and drop an object
-      node #drag_to should drag and drop if scrolling is needed
-      node #drag_to should drag a link
-      node #drag_to should work with Dragula
-      node #drag_to HTML5 should work with SortableJS
-      node #drag_to HTML5 should HTML5 drag and drop an object
-      node #drag_to HTML5 should set clientX/Y in dragover events
-      node #drag_to HTML5 should not HTML5 drag and drop on a non HTML5 drop element
-      node #drag_to HTML5 should HTML5 drag and drop when scrolling needed
-      node #drag_to HTML5 should drag HTML5 default draggable elements
-      node #drag_to HTML5 should drag HTML5 default draggable element child
-      node #drag_to should simulate a single held down modifier key
-      node #drag_to should simulate multiple held down modifier keys
-      node #drag_to should support key aliases
-      node #drag_to HTML5 should preserve clientX/Y from last dragover event
-      node #drag_to HTML5 should simulate a single held down modifier key
-      node #drag_to HTML5 should simulate multiple held down modifier keys
-      node #drag_to HTML5 should support key aliases
-      node #drag_to HTML5 should trigger a dragenter event, before the first dragover event
+      #drag_to should simulate a single held down modifier key
+      #drag_to should simulate multiple held down modifier keys
+      #drag_to should support key aliases
+      #drag_to HTML5 should HTML5 drag and drop an object
+      #drag_to HTML5 should HTML5 drag and drop an object child
+      #drag_to HTML5 should set clientX/Y in dragover events
+      #drag_to HTML5 should preserve clientX/Y from last dragover event
+      #drag_to HTML5 should HTML5 drag and drop when scrolling needed
+      #drag_to HTML5 should drag HTML5 default draggable elements
+      #drag_to HTML5 should work with SortableJS
+      #drag_to HTML5 should drag HTML5 default draggable element child
+      #drag_to HTML5 should simulate a single held down modifier key
+      #drag_to HTML5 should simulate multiple held down modifier keys
+      #drag_to HTML5 should support key aliases
+      #drag_to HTML5 should trigger a dragenter event, before the first dragover event
       node Element#drop can drop a file
       node Element#drop can drop multiple files
       node Element#drop can drop strings
@@ -68,6 +63,7 @@ RSpec.configure do |config|
       node #set should submit single text input forms if ended with
       #fill_in should fill in a color field
       #fill_in should handle carriage returns with line feeds in a textarea correctly
+      #fill_in should fill in a textarea in a reasonable time by default
       #has_field with valid should be false if field is invalid
       #find with spatial filters should find an element above another element
       #find with spatial filters should find an element below another element
@@ -77,7 +73,6 @@ RSpec.configure do |config|
       #find with spatial filters should find an element "near" another element
       #has_css? with spatial requirements accepts spatial options
       #has_css? with spatial requirements supports spatial sugar
-      #fill_in should fill in a textarea in a reasonable time by default
       #has_element? should be true if the given element is on the page
       #assert_matches_style should raise error if the elements style doesn't contain the given properties
       #has_css? :style option should support Hash

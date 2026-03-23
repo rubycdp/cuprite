@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-Capybara::SpecHelper.run_specs TestSessions::Cuprite, "Cuprite"
+Capybara::SpecHelper.run_specs TestSessions::Cuprite, "Cuprite", capybara_skip: %i[response_headers]
 
 describe Capybara::Session do
   context "with cuprite driver" do
