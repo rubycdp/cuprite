@@ -6,8 +6,8 @@ class TestApp
   configure do
     set :protection, except: :frame_options
   end
-  CUPRITE_VIEWS  = "#{File.dirname(__FILE__)}/views"
-  CUPRITE_PUBLIC = "#{File.dirname(__FILE__)}/public"
+  CUPRITE_VIEWS  = "#{File.dirname(__FILE__)}/views".freeze
+  CUPRITE_PUBLIC = "#{File.dirname(__FILE__)}/public".freeze
 
   set :erb, layout: File.read("#{CUPRITE_VIEWS}/layout.erb")
 
