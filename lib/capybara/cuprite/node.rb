@@ -103,6 +103,18 @@ module Capybara
             command(:select_file, files)
           when "color"
             node.evaluate("this.setAttribute('value', '#{value}')")
+          when "date"
+            value = value.to_date.iso8601 if !value.is_a?(String) && value.respond_to?(:to_date)
+            command(:set, value.to_s)
+          when "time"
+            value = value.to_time.strftime("%H:%M") if !value.is_a?(String) && value.respond_to?(:to_time)
+            command(:set, value.to_s)
+          when "month"
+            value = value.to_date.strftime("%Y-%m") if !value.is_a?(String) && value.respond_to?(:to_date)
+            command(:set, value.to_s)
+          when "week"
+            value = value.to_date.strftime("%G-W%V") if !value.is_a?(String) && value.respond_to?(:to_date)
+            command(:set, value.to_s)
           else
             command(:set, value.to_s)
           end
