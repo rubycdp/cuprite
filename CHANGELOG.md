@@ -1,6 +1,7 @@
 ## [Unreleased](https://github.com/rubycdp/ferrum/compare/v0.17...main) ##
 
 ### Added
+- Support time inputs [#245]
 
 ### Changed
 
