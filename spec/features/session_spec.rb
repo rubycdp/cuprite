@@ -326,7 +326,6 @@ describe Capybara::Session do
           expect(element.value).to eq("2023-09")
         end
 
-
         it "sets a value for a week input" do
           element = @session.find(:css, "#change_me_week")
           element.set("2023-W39")
