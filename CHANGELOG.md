@@ -2,6 +2,7 @@
 
 ### Added
 - Support time inputs [#245]
+- Add initial support for shadow_root [#234]
 
 ### Changed
 
