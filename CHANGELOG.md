@@ -10,7 +10,7 @@
 ### Removed
 
 
-## [0,17](https://github.com/rubycdp/ferrum/compare/v0.16...v0.17) ##
+## [0.17](https://github.com/rubycdp/ferrum/compare/v0.16...v0.17) ##
 
 ### Added
 
