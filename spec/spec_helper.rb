@@ -59,8 +59,8 @@ RSpec.configure do |config|
       node #visible? details non-summary descendants should be non-visible
       node #visible? works when details is toggled open and closed
       node #path reports when element in shadow dom
-      node #shadow_root
       node #set should submit single text input forms if ended with
+      node #shadow_root should produce error messages when failing
       #fill_in should fill in a color field
       #fill_in should handle carriage returns with line feeds in a textarea correctly
       #fill_in should fill in a textarea in a reasonable time by default
