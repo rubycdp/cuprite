@@ -139,26 +139,34 @@ module Capybara
         raise NotImplementedError
       end
 
-      def drag(node, other, steps, delay = nil)
+      def drag(node, other, steps, delay = nil, scroll = true)
+        node.scroll_into_view if scroll
         x1, y1 = node.find_position
-        x2, y2 = other.find_position
 
         mouse.move(x: x1, y: y1)
         mouse.down
         sleep delay if delay
+
+        other.scroll_into_view if scroll
+
+        x2, y2 = other.find_position
         mouse.move(x: x2, y: y2, steps: steps)
+
         mouse.up
       end
 
-      def drag_by(node, x, y, steps, delay = nil)
+      def drag_by(node, dx, dy, steps, delay = nil, scroll = true)
         x1, y1 = node.find_position
-        x2 = x1 + x
-        y2 = y1 + y
 
         mouse.move(x: x1, y: y1)
         mouse.down
+
         sleep delay if delay
-        mouse.move(x: x2, y: y2, steps: steps)
+
+        evaluate("window.scrollBy(#{dx}, #{dy})") if scroll # should be extracted to Mouse#scroll_by in ferrum
+
+        x2, y2 = node.find_position
+        mouse.move(x: x2 + dx, y: y2 + dy, steps: steps)
         mouse.up
       end
 
@@ -201,6 +209,10 @@ module Capybara
 
       def path(node)
         evaluate_on(node: node, expression: "_cuprite.path(this)")
+      end
+
+      def obscured?(node)
+        evaluate_on(node: node, expression: "_cuprite.isObscured(this)")
       end
 
       def all_text(node)

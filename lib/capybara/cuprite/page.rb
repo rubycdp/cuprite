@@ -15,6 +15,7 @@ module Capybara
       TRIGGER_CLICK_WAIT = ENV.fetch("CUPRITE_TRIGGER_CLICK_WAIT", 0.1).to_f
 
       extend Forwardable
+
       delegate %i[at_css at_xpath css xpath
                   current_url current_title body execution_id execution_id!
                   evaluate evaluate_on evaluate_async execute] => :active_frame
@@ -123,7 +124,6 @@ module Capybara
           @frame_stack = []
         else
           @frame_stack << handle
-          inject_extensions
         end
       end
 

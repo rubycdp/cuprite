@@ -1072,7 +1072,10 @@ module Capybara
 
       context "basic http authentication" do
         it "denies without credentials" do
-          @session.visit "/cuprite/basic_auth"
+          expect { @session.visit "/cuprite/basic_auth" }.to raise_error(
+            Ferrum::StatusError,
+            %r{Request to http://.*/cuprite/basic_auth failed \(net::ERR_INVALID_AUTH_CREDENTIALS\)}
+          )
 
           expect(@session.status_code).to eq(401)
           expect(@session).not_to have_content("Welcome, authenticated client")
@@ -1531,6 +1534,19 @@ module Capybara
           @session.fill_in "date_field", with: "2016-02-14"
 
           expect(@session.find(:css, "#date_field").value).to eq("2016-02-14")
+        end
+      end
+
+      context "input_fields" do
+        before { @session.visit("/cuprite/input_fields") }
+
+        it "focuses the element when filling in the value" do
+          input = @session.find(:css, "#text_field")
+          @session.fill_in "text_field", with: "2016-02-14"
+
+          expect(@session.find(:css, "#text_field").value).to eq("2016-02-14")
+          node = @session.driver.evaluate_script("document.activeElement")
+          expect(node).to eq input
         end
       end
 

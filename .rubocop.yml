@@ -1,5 +1,5 @@
 AllCops:
-  TargetRubyVersion: 2.7
+  TargetRubyVersion: 3.1
   NewCops: enable
   SuggestExtensions: false
 
@@ -15,6 +15,9 @@ Naming/MethodParameterName:
 Naming/FileName:
   Exclude:
     - 'gemfiles/*.gemfile'
+
+Style/OptionalBooleanParameter:
+  Enabled: false
 
 Style/StringLiterals:
   EnforcedStyle: double_quotes
@@ -54,5 +57,5 @@ Metrics/ModuleLength:
 Metrics/PerceivedComplexity:
   Max: 14
 
-require:
+plugins:
   - rubocop-rake

@@ -89,7 +89,7 @@ module Capybara
         command(:value)
       end
 
-      def set(value, options = {})
+      def set(value, options = {}) # rubocop:disable Metrics/CyclomaticComplexity, Metrics/PerceivedComplexity
         warn "Options passed to Node#set but Cuprite doesn't currently support any - ignoring" unless options.empty?
 
         if tag_name == "input"
@@ -103,6 +103,18 @@ module Capybara
             command(:select_file, files)
           when "color"
             node.evaluate("this.setAttribute('value', '#{value}')")
+          when "date"
+            value = value.to_date.iso8601 if !value.is_a?(String) && value.respond_to?(:to_date)
+            command(:set, value.to_s)
+          when "time"
+            value = value.to_time.strftime("%H:%M") if !value.is_a?(String) && value.respond_to?(:to_time)
+            command(:set, value.to_s)
+          when "month"
+            value = value.to_date.strftime("%Y-%m") if !value.is_a?(String) && value.respond_to?(:to_date)
+            command(:set, value.to_s)
+          when "week"
+            value = value.to_date.strftime("%G-W%V") if !value.is_a?(String) && value.respond_to?(:to_date)
+            command(:set, value.to_s)
           else
             command(:set, value.to_s)
           end
@@ -110,7 +122,7 @@ module Capybara
           command(:set, value.to_s)
         elsif self[:isContentEditable]
           command(:delete_text)
-          send_keys(value.to_s)
+          click.type(value.to_s)
         end
       end
 
@@ -161,14 +173,16 @@ module Capybara
 
       def drag_to(other, **options)
         options[:steps] ||= 1
+        options[:scroll] = true unless options.key?(:scroll)
 
-        command(:drag, other.node, options[:steps], options[:delay])
+        command(:drag, other.node, options[:steps], options[:delay], options[:scroll])
       end
 
       def drag_by(x, y, **options)
         options[:steps] ||= 1
+        options[:scroll] = true unless options.key?(:scroll)
 
-        command(:drag_by, x, y, options[:steps], options[:delay])
+        command(:drag_by, x, y, options[:steps], options[:delay], options[:scroll])
       end
 
       def trigger(event)
@@ -209,6 +223,17 @@ module Capybara
 
       def path
         command(:path)
+      end
+
+      def obscured?
+        command(:obscured?)
+      end
+
+      def shadow_root
+        root = driver.evaluate_script <<~JS, self
+          arguments[0].shadowRoot
+        JS
+        root && self.class.new(driver, root.node)
       end
 
       def inspect

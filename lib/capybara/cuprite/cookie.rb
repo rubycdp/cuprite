@@ -40,7 +40,7 @@ module Capybara
       end
 
       def expires
-        Time.at(@attributes["expires"]) if (@attributes["expires"]).positive?
+        Time.at(@attributes["expires"]) if @attributes["expires"].positive?
       end
     end
   end

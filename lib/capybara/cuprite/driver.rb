@@ -35,6 +35,8 @@ module Capybara
         @screen_size ||= DEFAULT_MAXIMIZE_SCREEN_SIZE
         @options[:save_path] ||= File.expand_path(Capybara.save_path) if Capybara.save_path
 
+        @options[:pending_connection_errors] = true unless @options.key?(:pending_connection_errors)
+
         # It's set for debug() to make devtools tab open correctly.
         @options[:browser_options] ||= {}
         unless @options[:browser_options][:"remote-allow-origins"]
@@ -251,7 +253,8 @@ module Capybara
 
       def remove_cookie(name, **options)
         options[:domain] = default_domain if options.empty?
-        browser.cookies.remove(**options.merge(name: name))
+        options = options.merge(name: name)
+        browser.cookies.remove(**options)
       end
 
       def clear_cookies
@@ -273,32 +276,8 @@ module Capybara
       end
       alias authorize basic_authorize
 
-      def debug_url
-        response = JSON.parse(Net::HTTP.get(URI(build_remote_debug_url(path: "/json"))))
-
-        devtools_frontend_path = response[0]&.[]("devtoolsFrontendUrl")
-        raise "Could not generate debug url for remote debugging session" unless devtools_frontend_path
-
-        build_remote_debug_url(path: devtools_frontend_path)
-      end
-
-      def debug(binding = nil)
-        if @options[:inspector]
-          Process.spawn(browser.process.path, debug_url)
-
-          if binding.respond_to?(:pry)
-            Pry.start(binding)
-          elsif binding.respond_to?(:irb)
-            binding.irb
-          else
-            pause
-          end
-        else
-          raise Error, "To use the remote debugging, you have to launch " \
-                       "the driver with `inspector: ENV['INSPECTOR']` " \
-                       "configuration option and run your test suite passing " \
-                       "env variable"
-        end
+      def debug(...)
+        browser.debug(...)
       end
 
       def pause
@@ -376,10 +355,6 @@ module Capybara
       end
 
       private
-
-      def build_remote_debug_url(path:)
-        "http://#{browser.process.host}:#{browser.process.port}#{path}"
-      end
 
       def default_domain
         if @started

@@ -1,10 +1,39 @@
-## [Unreleased](https://github.com/rubycdp/ferrum/compare/v0.15.1...main) ##
+## [Unreleased](https://github.com/rubycdp/ferrum/compare/v0.17...main) ##
 
 ### Added
+- Support time inputs [#245]
+- Add initial support for shadow_root [#234]
 
 ### Changed
 
 ### Fixed
+- Ensure node has focus before setting value [#280]
+
+### Removed
+
+
+## [0.17](https://github.com/rubycdp/ferrum/compare/v0.16...v0.17) ##
+
+### Added
+
+### Changed
+- `:inspector` option is retired
+
+### Fixed
+- Correctly open devtools page when calling `debug` [#296, #297]
+
+### Removed
+
+
+## [0.16](https://github.com/rubycdp/ferrum/compare/0.16) - (May 10, 2025) ##
+
+### Added
+
+### Changed
+- `wait_for_network_idle` doesn't raise error, instead simply returns `nil`
+
+### Fixed
+- Assigning broken unicode to a node directly from JS can lead to `JSON::ParserError: incomplete surrogate pair at ...` error
 
 ### Removed
 
@@ -12,7 +41,6 @@
 ## [0.15.1](https://github.com/rubycdp/ferrum/compare/v0.15...0.15.1) - (Jun 15, 2024) ##
 
 ### Added
-
 - Support for `Driver#send_keys`, the `:focused` filter, and `Driver#active_element` [#261]
 
 ### Changed

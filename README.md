@@ -67,18 +67,8 @@ end
 
 ## Debugging
 
-If you pass `inspector` option, remote debugging will be enabled if you run
-tests with `INSPECTOR=true`. Then you can put `page.driver.debug` or
-`page.driver.debug(binding)` in your test to pause it. This will launch the
-browser where you can inspect the content.
-
-```ruby
-Capybara.register_driver :cuprite do |app|
-  Capybara::Cuprite::Driver.new(app, inspector: ENV['INSPECTOR'])
-end
-```
-
-then somewhere in the test:
+You can put `page.driver.debug` or `page.driver.debug(binding)` in your test to pause it.
+This will launch the browser where you can inspect the content.
 
 ```ruby
 it "does something useful" do
@@ -122,13 +112,17 @@ be automatically cleared at the end of the test.
 
 ## Network traffic
 
-* `page.driver.network_traffic` Inspect network traffic (loaded resources) on
-the current page. This returns an array of request objects.
+* `page.driver.network_traffic` allows you to inspect network traffic (i.e., loaded resources) on the current page. It returns an array of `Ferrum::Network::Exchange` objects, each representing a network request/response exchange. You can query both the request and response details of each exchange.
 
 ```ruby
-page.driver.network_traffic # => [Request, ...]
-request = page.driver.network_traffic.first
-request.response
+# Retrieve all network exchanges
+network_traffic = page.driver.network_traffic
+
+# Access the first exchange
+first_exchange = network_traffic.first
+
+# Inspect the response of the first request
+response = first_exchange.response
 ```
 
 * `page.driver.wait_for_network_idle` Natively waits for network idle and if
@@ -186,24 +180,26 @@ Besides capybara screenshot method you can get image as Base64:
 * `page.driver.set_proxy(ip, port, user, password)`
 
 
-## URL Blacklisting & Whitelisting
+## URL Blocklisting & Allowlisting
 
-Cuprite supports URL blacklisting, which allows you to prevent scripts from
+Cuprite supports URL blocklisting, which allows you to prevent scripts from
 running on designated domains:
 
 ```ruby
-page.driver.browser.url_blacklist = %r{http://www.example.com}
+page.driver.browser.url_blocklist = %r{http://www.example.com}
 ```
 
-and also URL whitelisting, which allows scripts to only run on designated
+and also URL allowlisting, which allows scripts to only run on designated
 domains:
 
 ```ruby
-page.driver.browser.url_whitelist = %r{http://www.example.com}
+page.driver.browser.url_allowlist = %r{http://www.example.com}
 ```
 
-If you are experiencing slower run times, consider creating a URL whitelist of
-domains that are essential or a blacklist of domains that are not essential,
+For legacy support, `url_blacklist=` and `url_whitelist=` continue to work respectively.
+
+If you are experiencing slower run times, consider creating a URL allowlist of
+domains that are essential or a blocklist of domains that are not essential,
 such as ad networks or analytics, to your testing environment.
 
 ## License
