@@ -7,6 +7,7 @@
 ### Changed
 
 ### Fixed
+- Ensure node has focus before setting value [#280]
 
 ### Removed
 
