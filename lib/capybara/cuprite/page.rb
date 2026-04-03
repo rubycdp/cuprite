@@ -4,16 +4,23 @@ require "forwardable"
 
 module Capybara
   module Cuprite
+    class ClosedPage
+      def closed?
+        true
+      end
+    end
+
     class Page < Ferrum::Page
       MODAL_WAIT = ENV.fetch("CUPRITE_MODAL_WAIT", 0.05).to_f
       TRIGGER_CLICK_WAIT = ENV.fetch("CUPRITE_TRIGGER_CLICK_WAIT", 0.1).to_f
 
       extend Forwardable
+
       delegate %i[at_css at_xpath css xpath
                   current_url current_title body execution_id execution_id!
                   evaluate evaluate_on evaluate_async execute] => :active_frame
 
-      def initialize(*args)
+      def initialize(...)
         @frame_stack = []
         @accept_modal = []
         @modal_messages = []
@@ -70,17 +77,17 @@ module Capybara
 
       def find_modal(options)
         start = Ferrum::Utils::ElapsedTime.monotonic_time
-        timeout = options.fetch(:wait, browser.timeout)
         expect_text = options[:text]
         expect_regexp = expect_text.is_a?(Regexp) ? expect_text : Regexp.escape(expect_text.to_s)
         not_found_msg = "Unable to find modal dialog"
         not_found_msg += " with #{expect_text}" if expect_text
+        wait = options.fetch(:wait, timeout)
 
         begin
           modal_text = @modal_messages.shift
           raise Capybara::ModalNotFound if modal_text.nil? || (expect_text && !modal_text.match(expect_regexp))
         rescue Capybara::ModalNotFound => e
-          raise e, not_found_msg if Ferrum::Utils::ElapsedTime.timeout?(start, timeout)
+          raise e, not_found_msg if Ferrum::Utils::ElapsedTime.timeout?(start, wait)
 
           sleep(MODAL_WAIT)
           retry
@@ -117,7 +124,6 @@ module Capybara
           @frame_stack = []
         else
           @frame_stack << handle
-          inject_extensions
         end
       end
 
@@ -129,15 +135,22 @@ module Capybara
         active_frame.current_title
       end
 
+      def closed?
+        false
+      end
+
       private
 
       def prepare_page
         super
 
-        if @browser.url_blacklist.any?
-          network.blacklist = @browser.url_blacklist
-        elsif @browser.url_whitelist.any?
-          network.whitelist = @browser.url_whitelist
+        width, height = @options.window_size
+        resize(width: width, height: height)
+
+        if @options.url_blacklist.any?
+          network.blacklist = @options.url_blacklist
+        elsif @options.url_whitelist.any?
+          network.whitelist = @options.url_whitelist
         end
 
         on("Page.javascriptDialogOpening") do |params|

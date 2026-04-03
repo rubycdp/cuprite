@@ -4,9 +4,7 @@ Cuprite is a pure Ruby driver (read as _no_ Selenium/WebDriver/ChromeDriver
 dependency) for [Capybara](https://github.com/teamcapybara/capybara). It allows
 you to run Capybara tests on a headless Chrome or Chromium. Under the hood it
 uses [Ferrum](https://github.com/rubycdp/ferrum#index) which is high-level API
-to the browser by CDP protocol. The design of the driver is as close to
-[Poltergeist](https://github.com/teampoltergeist/poltergeist) as possible though
-it's not a goal.
+to the browser by CDP protocol.
 
 
 ## Install
@@ -43,8 +41,7 @@ browser = page.driver.browser
 browser.mouse.move(x: 123, y: 456).down.up
 ```
 
-If you already have tests on Poltergeist then it should simply work, for
-Selenium you better check your code for `manage` calls because it works
+For Selenium you better check your code for `manage` calls because it works
 differently in Cuprite, see the documentation below.
 
 
@@ -64,24 +61,14 @@ end
 `Cuprite`-specific options are:
 
 * options `Hash`
-  * `:url_blacklist` (Array) - array of strings to match against requested URLs
-  * `:url_whitelist` (Array) - array of strings to match against requested URLs
+  * `:url_blacklist` (Array) - array of regexes to match against requested URLs
+  * `:url_whitelist` (Array) - array of regexes to match against requested URLs
 
 
 ## Debugging
 
-If you pass `inspector` option, remote debugging will be enabled if you run
-tests with `INSPECTOR=true`. Then you can put `page.driver.debug` or
-`page.driver.debug(binding)` in your test to pause it. This will launch the
-browser where you can inspect the content.
-
-```ruby
-Capybara.register_driver :cuprite do |app|
-  Capybara::Cuprite::Driver.new(app, inspector: ENV['INSPECTOR'])
-end
-```
-
-then somewhere in the test:
+You can put `page.driver.debug` or `page.driver.debug(binding)` in your test to pause it.
+This will launch the browser where you can inspect the content.
 
 ```ruby
 it "does something useful" do
@@ -125,13 +112,17 @@ be automatically cleared at the end of the test.
 
 ## Network traffic
 
-* `page.driver.network_traffic` Inspect network traffic (loaded resources) on
-the current page. This returns an array of request objects.
+* `page.driver.network_traffic` allows you to inspect network traffic (i.e., loaded resources) on the current page. It returns an array of `Ferrum::Network::Exchange` objects, each representing a network request/response exchange. You can query both the request and response details of each exchange.
 
 ```ruby
-page.driver.network_traffic # => [Request, ...]
-request = page.driver.network_traffic.first
-request.response
+# Retrieve all network exchanges
+network_traffic = page.driver.network_traffic
+
+# Access the first exchange
+first_exchange = network_traffic.first
+
+# Inspect the response of the first request
+response = first_exchange.response
 ```
 
 * `page.driver.wait_for_network_idle` Natively waits for network idle and if
@@ -186,27 +177,29 @@ Besides capybara screenshot method you can get image as Base64:
 
 ## Proxy
 
-* `page.driver.set_proxy(ip, port, type, user, password)`
+* `page.driver.set_proxy(ip, port, user, password)`
 
 
-## URL Blacklisting & Whitelisting
+## URL Blocklisting & Allowlisting
 
-Cuprite supports URL blacklisting, which allows you to prevent scripts from
+Cuprite supports URL blocklisting, which allows you to prevent scripts from
 running on designated domains:
 
 ```ruby
-page.driver.browser.url_blacklist = %r{http://www.example.com}
+page.driver.browser.url_blocklist = %r{http://www.example.com}
 ```
 
-and also URL whitelisting, which allows scripts to only run on designated
+and also URL allowlisting, which allows scripts to only run on designated
 domains:
 
 ```ruby
-page.driver.browser.url_whitelist = %r{http://www.example.com}
+page.driver.browser.url_allowlist = %r{http://www.example.com}
 ```
 
-If you are experiencing slower run times, consider creating a URL whitelist of
-domains that are essential or a blacklist of domains that are not essential,
+For legacy support, `url_blacklist=` and `url_whitelist=` continue to work respectively.
+
+If you are experiencing slower run times, consider creating a URL allowlist of
+domains that are essential or a blocklist of domains that are not essential,
 such as ad networks or analytics, to your testing environment.
 
 ## License

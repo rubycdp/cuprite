@@ -9,7 +9,10 @@
       const log = (s) => output.textContent = `${output.textContent} ${s}`
       input.addEventListener('keydown', () => log('keydown'))
       input.addEventListener('keypress', () => log('keypress'))
-      input.addEventListener('input', () => log('input'))
+      input.addEventListener('input', (event) => {
+        log('input');
+        output.dataset.inputType = event.inputType;
+      })
       input.addEventListener('keyup', () => log('keyup'))
       input.addEventListener('change', () => log('change'))
     </script>

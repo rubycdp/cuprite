@@ -14,7 +14,8 @@ module Capybara
 
       delegate %i[restart quit status_code timeout timeout= current_url title body
                   window_handles close_window switch_to_window within_window window_handle
-                  back forward refresh wait_for_reload] => :browser
+                  back forward refresh wait_for_reload viewport_size device_pixel_ratio] => :browser
+      delegate %i[send_keys] => :active_element
       alias html body
       alias current_window_handle window_handle
       alias go_back back
@@ -34,7 +35,13 @@ module Capybara
         @screen_size ||= DEFAULT_MAXIMIZE_SCREEN_SIZE
         @options[:save_path] ||= File.expand_path(Capybara.save_path) if Capybara.save_path
 
-        ENV["FERRUM_DEBUG"] = "true" if ENV["CUPRITE_DEBUG"]
+        @options[:pending_connection_errors] = true unless @options.key?(:pending_connection_errors)
+
+        # It's set for debug() to make devtools tab open correctly.
+        @options[:browser_options] ||= {}
+        unless @options[:browser_options][:"remote-allow-origins"]
+          @options[:browser_options].merge!("remote-allow-origins": "*")
+        end
 
         super()
       end
@@ -62,6 +69,10 @@ module Capybara
 
       def frame_title
         evaluate_script("document.title")
+      end
+
+      def active_element
+        Node.new(self, browser.active_element)
       end
 
       def find_xpath(selector)
@@ -109,7 +120,7 @@ module Capybara
       def open_new_window
         target = browser.default_context.create_target
         target.maybe_sleep_if_new_window
-        target.page = Page.new(target.id, browser)
+        target.page = Page.new(target.client, context_id: target.context_id, target_id: target.id)
         target.page
       end
 
@@ -242,7 +253,8 @@ module Capybara
 
       def remove_cookie(name, **options)
         options[:domain] = default_domain if options.empty?
-        browser.cookies.remove(**options.merge(name: name))
+        options = options.merge(name: name)
+        browser.cookies.remove(**options)
       end
 
       def clear_cookies
@@ -264,27 +276,8 @@ module Capybara
       end
       alias authorize basic_authorize
 
-      def debug_url
-        "http://#{browser.process.host}:#{browser.process.port}"
-      end
-
-      def debug(binding = nil)
-        if @options[:inspector]
-          Process.spawn(browser.process.path, debug_url)
-
-          if binding.respond_to?(:pry)
-            Pry.start(binding)
-          elsif binding.respond_to?(:irb)
-            binding.irb
-          else
-            pause
-          end
-        else
-          raise Error, "To use the remote debugging, you have to launch " \
-                       "the driver with `inspector: ENV['INSPECTOR']` " \
-                       "configuration option and run your test suite passing " \
-                       "env variable"
-        end
+      def debug(...)
+        browser.debug(...)
       end
 
       def pause

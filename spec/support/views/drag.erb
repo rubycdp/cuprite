@@ -18,7 +18,7 @@
        }
       #drag_by div{ position: absolute; left: 0; }
       #draggable { width: 60px; height: 60px; padding: 0.2em; }
-      #droppable { width: 100px; height: 100px; padding: 0.2em; }
+      #droppable { width: 100px; height: 100px; padding: 0.2em; margin: 9000px; }
     </style>
 
     <script>
@@ -39,6 +39,12 @@
 
   <body>
 
+    <div id="drag_by">
+      <div class="draggable">
+        <p>Drag me by</p>
+      </div>
+    </div>
+
     <div id="drag_to">
       <div id="draggable" class="draggable">
         <p>Drag me</p>
@@ -46,12 +52,6 @@
 
       <div id="droppable">
         <p>Drop here</p>
-      </div>
-    </div>
-
-    <div id="drag_by">
-      <div class="draggable">
-        <p>Drag me by</p>
       </div>
     </div>
 

@@ -1,8 +1,6 @@
 # frozen_string_literal: true
 
-require "spec_helper"
-
-Capybara::SpecHelper.run_specs TestSessions::Cuprite, "Cuprite"
+Capybara::SpecHelper.run_specs TestSessions::Cuprite, "Cuprite", capybara_skip: %i[response_headers]
 
 describe Capybara::Session do
   context "with cuprite driver" do
@@ -164,86 +162,193 @@ describe Capybara::Session do
     end
 
     describe "Node#set" do
-      before do
-        @session.visit("/cuprite/with_js")
-        @session.find(:css, "#change_me").set("Hello!")
+      context "with_js" do
+        before do
+          @session.visit("/cuprite/with_js")
+          @session.find(:css, "#change_me").set("Hello!")
+        end
+
+        it "fires the change event" do
+          expect(@session.find(:css, "#changes").text).to eq("Hello!")
+        end
+
+        it "fires the input event" do
+          expect(@session.find(:css, "#changes_on_input").text).to eq("Hello!")
+        end
+
+        it "accepts numbers in a maxlength field" do
+          element = @session.find(:css, "#change_me_maxlength")
+          element.set 100
+          expect(element.value).to eq("100")
+        end
+
+        it "accepts negatives in a number field" do
+          element = @session.find(:css, "#change_me_number")
+          element.set(-100)
+          expect(element.value).to eq("-100")
+        end
+
+        it "fires the keydown event" do
+          expect(@session.find(:css, "#changes_on_keydown").text).to eq("6")
+        end
+
+        it "fires the keyup event" do
+          expect(@session.find(:css, "#changes_on_keyup").text).to eq("6")
+        end
+
+        it "fires the keypress event" do
+          expect(@session.find(:css, "#changes_on_keypress").text).to eq("6")
+        end
+
+        it "fires the focus event" do
+          expect(@session.find(:css, "#changes_on_focus").text).to eq("Focus")
+        end
+
+        it "fires the blur event" do
+          expect(@session.find(:css, "#changes_on_blur").text).to eq("Blur")
+        end
+
+        it "fires the keydown event before the value is updated" do
+          expect(@session.find(:css, "#value_on_keydown").text).to eq("Hello")
+        end
+
+        it "fires the keyup event after the value is updated" do
+          expect(@session.find(:css, "#value_on_keyup").text).to eq("Hello!")
+        end
+
+        it "clears the input before setting the new value" do
+          element = @session.find(:css, "#change_me")
+          element.set ""
+          expect(element.value).to eq("")
+        end
+
+        it "supports special characters" do
+          element = @session.find(:css, "#change_me")
+          element.set "$52.00"
+          expect(element.value).to eq("$52.00")
+        end
+
+        it "attaches a file when passed a Pathname" do
+          filename = Pathname.new("spec/tmp/a_test_pathname").expand_path
+          File.write(filename, "text")
+
+          element = @session.find(:css, "#change_me_file")
+          element.set(filename)
+          expect(element.value).to eq("C:\\fakepath\\a_test_pathname")
+        ensure
+          FileUtils.rm_f(filename)
+        end
+
+        it "sets a value for a color input" do
+          element = @session.find(:css, "#change_me_color")
+          element.set("#ddeeff")
+          expect(element.value).to eq("#ddeeff")
+        end
       end
 
-      it "fires the change event" do
-        expect(@session.find(:css, "#changes").text).to eq("Hello!")
-      end
+      # The time inputs are loading SVG icons as data: urls.
+      # This is causing other unrelated tests to break.
+      # Keep the time inputs (And others with SVG icons) in their own file
+      context "time_inputs" do
+        before(:each) do
+          @session.visit("/cuprite/time_inputs")
+        end
 
-      it "fires the input event" do
-        expect(@session.find(:css, "#changes_on_input").text).to eq("Hello!")
-      end
+        it "sets a value for a time input" do
+          element = @session.find(:css, "#change_me_time")
+          element.set("17:21")
+          expect(element.value).to eq("17:21")
+        end
 
-      it "accepts numbers in a maxlength field" do
-        element = @session.find(:css, "#change_me_maxlength")
-        element.set 100
-        expect(element.value).to eq("100")
-      end
+        it "sets a value for a time input with a time object" do
+          element = @session.find(:css, "#change_me_time")
+          element.set(Time.new(2023, 9, 26, 17, 21))
+          expect(element.value).to eq("17:21")
+        end
 
-      it "accepts negatives in a number field" do
-        element = @session.find(:css, "#change_me_number")
-        element.set(-100)
-        expect(element.value).to eq("-100")
-      end
+        it "sets a value for a time input with a date object" do
+          element = @session.find(:css, "#change_me_time")
+          element.set(Date.new(2023, 9, 26))
+          expect(element.value).to eq("00:00")
+        end
 
-      it "fires the keydown event" do
-        expect(@session.find(:css, "#changes_on_keydown").text).to eq("6")
-      end
+        it "sets a value for a time input with a datetime object" do
+          element = @session.find(:css, "#change_me_time")
+          element.set(DateTime.new(2023, 9, 26, 17, 21))
+          expect(element.value).to eq("17:21")
+        end
 
-      it "fires the keyup event" do
-        expect(@session.find(:css, "#changes_on_keyup").text).to eq("6")
-      end
+        it "sets a value for a date input" do
+          element = @session.find(:css, "#change_me_date")
+          element.set("2023-09-26")
+          expect(element.value).to eq("2023-09-26")
+        end
 
-      it "fires the keypress event" do
-        expect(@session.find(:css, "#changes_on_keypress").text).to eq("6")
-      end
+        it "sets a value for a date input with a date object" do
+          element = @session.find(:css, "#change_me_date")
+          element.set(Date.new(2023, 9, 26))
+          expect(element.value).to eq("2023-09-26")
+        end
 
-      it "fires the focus event" do
-        expect(@session.find(:css, "#changes_on_focus").text).to eq("Focus")
-      end
+        it "sets a value for a date input with a time object" do
+          element = @session.find(:css, "#change_me_date")
+          element.set(Time.new(2023, 9, 26, 17, 21))
+          expect(element.value).to eq("2023-09-26")
+        end
 
-      it "fires the blur event" do
-        expect(@session.find(:css, "#changes_on_blur").text).to eq("Blur")
-      end
+        it "sets a value for a date input with a datetime object" do
+          element = @session.find(:css, "#change_me_date")
+          element.set(DateTime.new(2023, 9, 26, 17, 21))
+          expect(element.value).to eq("2023-09-26")
+        end
 
-      it "fires the keydown event before the value is updated" do
-        expect(@session.find(:css, "#value_on_keydown").text).to eq("Hello")
-      end
+        it "sets a value for a month input" do
+          element = @session.find(:css, "#change_me_month")
+          element.set("2023-09")
+          expect(element.value).to eq("2023-09")
+        end
 
-      it "fires the keyup event after the value is updated" do
-        expect(@session.find(:css, "#value_on_keyup").text).to eq("Hello!")
-      end
+        it "sets a value for a month input with a date object" do
+          element = @session.find(:css, "#change_me_month")
+          element.set(Date.new(2023, 9, 26))
+          expect(element.value).to eq("2023-09")
+        end
 
-      it "clears the input before setting the new value" do
-        element = @session.find(:css, "#change_me")
-        element.set ""
-        expect(element.value).to eq("")
-      end
+        it "sets a value for a month input with a time object" do
+          element = @session.find(:css, "#change_me_month")
+          element.set(Time.new(2023, 9, 26, 17, 21))
+          expect(element.value).to eq("2023-09")
+        end
 
-      it "supports special characters" do
-        element = @session.find(:css, "#change_me")
-        element.set "$52.00"
-        expect(element.value).to eq("$52.00")
-      end
+        it "sets a value for a month input with a datetime object" do
+          element = @session.find(:css, "#change_me_month")
+          element.set(DateTime.new(2023, 9, 26, 17, 21))
+          expect(element.value).to eq("2023-09")
+        end
 
-      it "attaches a file when passed a Pathname" do
-        filename = Pathname.new("spec/tmp/a_test_pathname").expand_path
-        File.write(filename, "text")
+        it "sets a value for a week input" do
+          element = @session.find(:css, "#change_me_week")
+          element.set("2023-W39")
+          expect(element.value).to eq("2023-W39")
+        end
 
-        element = @session.find(:css, "#change_me_file")
-        element.set(filename)
-        expect(element.value).to eq("C:\\fakepath\\a_test_pathname")
-      ensure
-        FileUtils.rm_f(filename)
-      end
+        it "sets a value for a week input with a date object" do
+          element = @session.find(:css, "#change_me_week")
+          element.set(Date.new(2023, 9, 26))
+          expect(element.value).to eq("2023-W39")
+        end
 
-      it "sets a value for a color input" do
-        element = @session.find(:css, "#change_me_color")
-        element.set("#ddeeff")
-        expect(element.value).to eq("#ddeeff")
+        it "sets a value for a week input with a time object" do
+          element = @session.find(:css, "#change_me_week")
+          element.set(Time.new(2023, 9, 26, 17, 21))
+          expect(element.value).to eq("2023-W39")
+        end
+
+        it "sets a value for a week input with a datetime object" do
+          element = @session.find(:css, "#change_me_week")
+          element.set(DateTime.new(2023, 9, 26, 17, 21))
+          expect(element.value).to eq("2023-W39")
+        end
       end
 
       it "fires the change event for a color input" do
@@ -325,6 +430,49 @@ describe Capybara::Session do
         @elem2 = @session.find(:css, "#filled_div")
         expect(@elem2 == @elem1).to be false
         expect(@elem1 == @elem2).to be false
+      end
+    end
+
+    describe "Node#obscured?" do
+      context "when the element is not in the viewport of parent element" do
+        before do
+          @session.visit("/cuprite/scroll")
+        end
+
+        it "is is a boolean" do
+          expect(@session.find_link("Link outside viewport")).to be_obscured
+          expect(@session.find_link("Below the fold")).to be_obscured
+        end
+      end
+
+      context "when the element is only overlapped by descendants" do
+        before do
+          @session.visit("/with_html")
+        end
+
+        # copied from https://github.com/teamcapybara/capybara/blob/master/lib/capybara/spec/session/node_spec.rb#L328
+        # as this example is currently disabled on CI in the upstream suite
+        it "is not obscured" do
+          expect(@session.first(:css, "p:not(.para)")).not_to be_obscured
+        end
+      end
+    end
+
+    describe "Node#shadow_root" do
+      it "produces error messages when failing" do
+        @session.visit("/with_shadow")
+        shadow_root = @session.find(:css, "#shadow_host").shadow_root
+        expect do
+          expect(shadow_root).to have_css("#shadow_content", text: "Not in the document")
+        end.to raise_error(/tag="#document-fragment"/)
+      end
+
+      it "extends visibility check across shadow host boundary" do
+        @session.visit("/with_shadow")
+        shadow_root = @session.find(:css, "#shadow_host").shadow_root
+        expect(shadow_root).to have_css("a")
+        @session.execute_script %(document.getElementById("shadow_host").style.display = "none")
+        expect(shadow_root).to_not have_css("a")
       end
     end
 
@@ -606,13 +754,13 @@ describe Capybara::Session do
         top_before = @session.evaluate_script(%($("#drag_by .draggable").position().top))
         left_before = @session.evaluate_script(%($("#drag_by .draggable").position().left))
 
-        draggable.native.drag_by(15, 15)
+        draggable.native.drag_by(8000, 8000)
 
         top_after = @session.evaluate_script(%($("#drag_by .draggable").position().top))
         left_after = @session.evaluate_script(%($("#drag_by .draggable").position().left))
 
-        expect(top_after).to eq(top_before + 15)
-        expect(left_after).to eq(left_before + 15)
+        expect(top_after).to eq(top_before + 8000)
+        expect(left_after).to eq(left_before + 8000)
       end
     end
 
@@ -837,6 +985,18 @@ describe Capybara::Session do
         end.to(raise_error do |e|
           expect(e).to be_a(Capybara::ElementNotFound)
         end)
+      end
+
+      it "generates no javascript errors when switching into a frame" do
+        @session.driver.browser.evaluate_on_new_document(
+          "window.errors ||= []; window.onerror = function(msg) { window.errors += msg; };"
+        )
+
+        @session.visit "/cuprite/frames"
+        @session.within_frame(0) do
+          expect(@session.evaluate_script("window.errors")).to be_empty
+        end
+        expect(@session.evaluate_script("window.errors")).to be_empty
       end
     end
 

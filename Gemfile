@@ -2,8 +2,18 @@
 
 source "https://rubygems.org"
 
-gem "byebug", "~> 11.0", platforms: %i[mri mingw x64_mingw]
+gem "byebug", "~> 11.1", platforms: %i[mri windows]
+gem "chunky_png", "~> 1.4"
+gem "image_size", "~> 3.0"
+gem "launchy", "~> 2.5"
+gem "logger"
+gem "ostruct"
+gem "pdf-reader", "~> 2.12"
+gem "puma", ">= 5.6.7"
+gem "rake", "~> 13.0"
+gem "rspec", "~> 3.10"
 gem "rubocop", "~> 1.22"
 gem "rubocop-rake", require: false
+gem "sinatra", "~> 3.2"
 
 gemspec

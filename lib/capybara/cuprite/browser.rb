@@ -11,50 +11,63 @@ module Capybara
                   find_modal accept_confirm dismiss_confirm accept_prompt
                   dismiss_prompt reset_modals] => :page
 
-      attr_reader :url_blacklist, :url_whitelist
-      alias url_blocklist url_blacklist
-      alias url_allowlist url_whitelist
-
       def initialize(options = nil)
-        options ||= {}
-        @client = nil
-        self.url_blacklist = options[:url_blacklist]
-        self.url_whitelist = options[:url_whitelist]
-
         super
-        @page = false
+
+        @options.url_blacklist = prepare_wildcards(options&.dig(:url_blacklist))
+        @options.url_whitelist = prepare_wildcards(options&.dig(:url_whitelist))
+
+        @page = nil
       end
 
-      def timeout=(value)
+      def command(...)
         super
-        @page.timeout = value unless @page.nil?
+      rescue Ferrum::DeadBrowserError
+        restart
+        raise
       end
 
       def page
-        raise Ferrum::NoSuchPageError if @page.nil?
+        raise Ferrum::NoSuchPageError if @page&.closed?
 
         @page ||= attach_page
       end
 
       def reset
         super
-        @page = attach_page
+        @options.reset_window_size
+        @page = nil
       end
 
       def quit
         super
-        @page = false
+        @page = nil
       end
 
+      def resize(**options)
+        @options.window_size = [options[:width], options[:height]]
+        super
+      end
+
+      def url_whitelist
+        @options.url_whitelist
+      end
+      alias url_allowlist url_whitelist
+
       def url_whitelist=(patterns)
-        @url_whitelist = prepare_wildcards(patterns)
-        page.network.whitelist = @url_whitelist if @client && @url_whitelist.any?
+        @options.url_whitelist = prepare_wildcards(patterns)
+        page.network.whitelist = @options.url_whitelist if @client && @options.url_whitelist.any?
       end
       alias url_allowlist= url_whitelist=
 
+      def url_blacklist
+        @options.url_blacklist
+      end
+      alias url_blocklist url_blacklist
+
       def url_blacklist=(patterns)
-        @url_blacklist = prepare_wildcards(patterns)
-        page.network.blacklist = @url_blacklist if @client && @url_blacklist.any?
+        @options.url_blacklist = prepare_wildcards(patterns)
+        page.network.blacklist = @options.url_blacklist if @client && @options.url_blacklist.any?
       end
       alias url_blocklist= url_blacklist=
 
@@ -109,8 +122,13 @@ module Capybara
         target = targets[target_id]
         raise Ferrum::NoSuchPageError unless target
 
-        @page = nil if @page.target_id == target.id
+        @page = ClosedPage.new if @page.target_id == target.id
         target.page.close
+        targets.delete(target_id) # page.close is async, delete target asap
+      end
+
+      def active_element
+        evaluate("document.activeElement")
       end
 
       def browser_error
@@ -121,24 +139,34 @@ module Capybara
         raise NotImplementedError
       end
 
-      def drag(node, other, steps)
+      def drag(node, other, steps, delay = nil, scroll = true)
+        node.scroll_into_view if scroll
         x1, y1 = node.find_position
-        x2, y2 = other.find_position
 
         mouse.move(x: x1, y: y1)
         mouse.down
+        sleep delay if delay
+
+        other.scroll_into_view if scroll
+
+        x2, y2 = other.find_position
         mouse.move(x: x2, y: y2, steps: steps)
+
         mouse.up
       end
 
-      def drag_by(node, x, y, steps)
+      def drag_by(node, dx, dy, steps, delay = nil, scroll = true)
         x1, y1 = node.find_position
-        x2 = x1 + x
-        y2 = y1 + y
 
         mouse.move(x: x1, y: y1)
         mouse.down
-        mouse.move(x: x2, y: y2, steps: steps)
+
+        sleep delay if delay
+
+        evaluate("window.scrollBy(#{dx}, #{dy})") if scroll # should be extracted to Mouse#scroll_by in ferrum
+
+        x2, y2 = node.find_position
+        mouse.move(x: x2 + dx, y: y2 + dy, steps: steps)
         mouse.up
       end
 
@@ -183,6 +211,10 @@ module Capybara
         evaluate_on(node: node, expression: "_cuprite.path(this)")
       end
 
+      def obscured?(node)
+        evaluate_on(node: node, expression: "_cuprite.isObscured(this)")
+      end
+
       def all_text(node)
         node.text
       end
@@ -224,10 +256,10 @@ module Capybara
       def attach_page(target_id = nil)
         target = targets[target_id] if target_id
         target ||= default_context.default_target
-        return target.page if target.attached?
+        return target.page if target.connected?
 
         target.maybe_sleep_if_new_window
-        target.page = Page.new(target.id, self)
+        target.page = Page.new(target.client, context_id: target.context_id, target_id: target.id)
         target.page
       end
     end
