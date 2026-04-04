@@ -62,14 +62,6 @@ RSpec.configure do |config|
       node #shadow_root should produce error messages when failing
       #fill_in should handle carriage returns with line feeds in a textarea correctly
       #has_field with valid should be false if field is invalid
-      #find with spatial filters should find an element above another element
-      #find with spatial filters should find an element below another element
-      #find with spatial filters should find an element left of another element
-      #find with spatial filters should find an element right of another element
-      #find with spatial filters should combine spatial filters
-      #find with spatial filters should find an element "near" another element
-      #has_css? with spatial requirements accepts spatial options
-      #has_css? with spatial requirements supports spatial sugar
       #has_element? should be true if the given element is on the page
       #assert_matches_style should raise error if the elements style doesn't contain the given properties
       #has_css? :style option should support Hash
