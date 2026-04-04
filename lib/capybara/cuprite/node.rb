@@ -236,6 +236,12 @@ module Capybara
         root && self.class.new(driver, root.node)
       end
 
+      def rect
+        driver.evaluate_script <<~JS, self
+          arguments[0].getBoundingClientRect().toJSON()
+        JS
+      end
+
       def inspect
         %(#<#{self.class} @node=#{@node.inspect}>)
       end

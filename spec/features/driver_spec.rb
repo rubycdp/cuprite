@@ -1447,6 +1447,20 @@ module Capybara
         end
       end
 
+      context "find" do
+        before { @session.visit("/cuprite/click_coordinates") }
+
+        it "supports position filters" do
+          box = @session.find(:css, "#box")
+          log = @session.find(:css, "#log")
+
+          expect(@session).to have_element(id: "box", above: log)
+          expect(@session).to have_element(id: "log", below: box)
+          expect(@session).not_to have_element(id: "box", below: log)
+          expect(@session).not_to have_element(id: "log", above: box)
+        end
+      end
+
       context "set" do
         before { @session.visit("/cuprite/set") }
 
