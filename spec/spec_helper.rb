@@ -60,15 +60,16 @@ RSpec.configure do |config|
       node #visible? works when details is toggled open and closed
       node #set should submit single text input forms if ended with
       node #shadow_root should produce error messages when failing
-      #fill_in should handle carriage returns with line feeds in a textarea correctly
       #has_field with valid should be false if field is invalid
       #has_element? should be true if the given element is on the page
       #assert_matches_style should raise error if the elements style doesn't contain the given properties
       #has_css? :style option should support Hash
     REGEXP
 
+    # These are tests that are currently skipped intentionally, as they don't even work in capybara.
     intentional_skip = <<~REGEXP.split("\n").map { |s| Regexp.quote(s.strip) }.join("|")
       Capybara::Session Cuprite #reset_session! closes extra windows
+      #fill_in should handle carriage returns with line feeds in a textarea correctly
     REGEXP
 
     metadata[:skip] = true if metadata[:full_description].match(/#{regexes}/)
