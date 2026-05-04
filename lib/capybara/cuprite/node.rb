@@ -89,7 +89,7 @@ module Capybara
         command(:value)
       end
 
-      def set(value, options = {}) # rubocop:disable Metrics/CyclomaticComplexity, Metrics/PerceivedComplexity
+      def set(value, options = {}) # rubocop:disable Metrics/CyclomaticComplexity, Metrics/PerceivedComplexity, Metrics/AbcSize
         warn "Options passed to Node#set but Cuprite doesn't currently support any - ignoring" unless options.empty?
 
         if tag_name == "input"
