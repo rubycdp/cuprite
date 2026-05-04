@@ -131,23 +131,6 @@ module Capybara
         end
       end
 
-      # Copied from MIT licensed capybara project
-      # revision 0be79d6
-      # path lib/capybara/selenium/node.rb
-      def set_value_js(value)
-        driver.execute_script(<<-JS, self, value)
-          if (arguments[0].readOnly) { return };
-          if (document.activeElement !== arguments[0]){
-            arguments[0].focus();
-          }
-          if (arguments[0].value != arguments[1]) {
-            arguments[0].value = arguments[1]
-            arguments[0].dispatchEvent(new InputEvent('input'));
-            arguments[0].dispatchEvent(new Event('change', { bubbles: true }));
-          }
-        JS
-      end
-
       def select_option
         command(:select, true)
       end
