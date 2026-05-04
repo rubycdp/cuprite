@@ -1447,6 +1447,20 @@ module Capybara
         end
       end
 
+      context "find" do
+        before { @session.visit("/cuprite/click_coordinates") }
+
+        it "supports position filters" do
+          box = @session.find(:css, "#box")
+          log = @session.find(:css, "#log")
+
+          expect(@session).to have_element(id: "box", above: log)
+          expect(@session).to have_element(id: "log", below: box)
+          expect(@session).not_to have_element(id: "box", below: log)
+          expect(@session).not_to have_element(id: "log", above: box)
+        end
+      end
+
       context "set" do
         before { @session.visit("/cuprite/set") }
 
@@ -1558,6 +1572,19 @@ module Capybara
           @session.fill_in "date_field", with: "2016-02-14"
 
           expect(@session.find(:css, "#date_field").value).to eq("2016-02-14")
+        end
+      end
+
+      context "input_fields" do
+        before { @session.visit("/cuprite/input_fields") }
+
+        it "focuses the element when filling in the value" do
+          input = @session.find(:css, "#text_field")
+          @session.fill_in "text_field", with: "2016-02-14"
+
+          expect(@session.find(:css, "#text_field").value).to eq("2016-02-14")
+          node = @session.driver.evaluate_script("document.activeElement")
+          expect(node).to eq input
         end
       end
 

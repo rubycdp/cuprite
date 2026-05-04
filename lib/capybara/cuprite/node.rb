@@ -89,7 +89,7 @@ module Capybara
         command(:value)
       end
 
-      def set(value, options = {})
+      def set(value, options = {}) # rubocop:disable Metrics/CyclomaticComplexity, Metrics/PerceivedComplexity
         warn "Options passed to Node#set but Cuprite doesn't currently support any - ignoring" unless options.empty?
 
         if tag_name == "input"
@@ -101,28 +101,25 @@ module Capybara
           when "file"
             files = value.respond_to?(:to_ary) ? value.to_ary.map(&:to_s) : value.to_s
             command(:select_file, files)
-          when 'date'
-            if value.respond_to?(:to_time)
-              set_value_js(value.to_date.iso8601)
-            else
-              command(:set, value.to_s)
-            end
-          when 'time'
-            if value.respond_to?(:to_time) && !value.is_a?(String)
-              set_value_js(value.to_time.strftime('%H:%M'))
-            else
-              command(:set, value.to_s)
-            end
-          when 'datetime-local'
-            if value.respond_to?(:to_time) && !value.is_a?(String)
-              set_value_js(value.to_time.strftime('%Y-%m-%dT%H:%M'))
-            else
-              command(:set, value.to_s)
-            end
-          when 'range'
-            set_value_js(value)
-          when 'color'
-            set_value_js(value)
+          when "color"
+            node.evaluate("this.setAttribute('value', '#{value}')")
+          when "date"
+            value = value.to_date.iso8601 if !value.is_a?(String) && value.respond_to?(:to_date)
+            command(:set, value.to_s)
+          when "time"
+            value = value.to_time.strftime("%H:%M") if !value.is_a?(String) && value.respond_to?(:to_time)
+            command(:set, value.to_s)
+          when "month"
+            value = value.to_date.strftime("%Y-%m") if !value.is_a?(String) && value.respond_to?(:to_date)
+            command(:set, value.to_s)
+          when "week"
+            value = value.to_date.strftime("%G-W%V") if !value.is_a?(String) && value.respond_to?(:to_date)
+            command(:set, value.to_s)
+          when "datetime-local"
+            value = value.to_time.strftime('%Y-%m-%dT%H:%M') if !value.is_a?(String) && value.respond_to?(:to_time)
+            command(:set, value.to_s)
+          when "range"
+            command(:set, value.to_s)
           else
             command(:set, value.to_s)
           end
@@ -252,6 +249,19 @@ module Capybara
 
       def obscured?
         command(:obscured?)
+      end
+
+      def shadow_root
+        root = driver.evaluate_script <<~JS, self
+          arguments[0].shadowRoot
+        JS
+        root && self.class.new(driver, root.node)
+      end
+
+      def rect
+        driver.evaluate_script <<~JS, self
+          arguments[0].getBoundingClientRect().toJSON()
+        JS
       end
 
       def inspect

@@ -140,6 +140,7 @@ module Capybara
       end
 
       def drag(node, other, steps, delay = nil, scroll = true)
+        node.scroll_into_view if scroll
         x1, y1 = node.find_position
 
         mouse.move(x: x1, y: y1)

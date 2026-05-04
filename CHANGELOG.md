@@ -1,15 +1,19 @@
 ## [Unreleased](https://github.com/rubycdp/ferrum/compare/v0.17...main) ##
 
 ### Added
+- Support time inputs [#245]
+- Add initial support for shadow_root [#234]
+- Support `Capybara::Cuprite::Node#rect` [#276]
 
 ### Changed
 
 ### Fixed
+- Ensure node has focus before setting value [#280]
 
 ### Removed
 
 
-## [0,17](https://github.com/rubycdp/ferrum/compare/v0.16...v0.17) ##
+## [0.17](https://github.com/rubycdp/ferrum/compare/v0.16...v0.17) ##
 
 ### Added
 
