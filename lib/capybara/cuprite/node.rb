@@ -116,9 +116,7 @@ module Capybara
             value = value.to_date.strftime("%G-W%V") if !value.is_a?(String) && value.respond_to?(:to_date)
             command(:set, value.to_s)
           when "datetime-local"
-            value = value.to_time.strftime('%Y-%m-%dT%H:%M') if !value.is_a?(String) && value.respond_to?(:to_time)
-            command(:set, value.to_s)
-          when "range"
+            value = value.to_time.strftime("%Y-%m-%dT%H:%M") if !value.is_a?(String) && value.respond_to?(:to_time)
             command(:set, value.to_s)
           else
             command(:set, value.to_s)
