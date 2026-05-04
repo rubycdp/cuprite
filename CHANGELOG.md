@@ -3,6 +3,7 @@
 ### Added
 
 ### Changed
+- Ferrum is bumped to `~> 0.19.0`
 
 ### Fixed
 - `Driver#reset!` kept the page it had cached when the browser failed to reset, so every later example raised
