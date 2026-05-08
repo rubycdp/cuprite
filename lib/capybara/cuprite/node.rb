@@ -89,7 +89,7 @@ module Capybara
         command(:value)
       end
 
-      def set(value, options = {}) # rubocop:disable Metrics/CyclomaticComplexity, Metrics/PerceivedComplexity
+      def set(value, options = {}) # rubocop:disable Metrics/CyclomaticComplexity, Metrics/PerceivedComplexity, Metrics/AbcSize
         warn "Options passed to Node#set but Cuprite doesn't currently support any - ignoring" unless options.empty?
 
         if tag_name == "input"
@@ -114,6 +114,9 @@ module Capybara
             command(:set, value.to_s)
           when "week"
             value = value.to_date.strftime("%G-W%V") if !value.is_a?(String) && value.respond_to?(:to_date)
+            command(:set, value.to_s)
+          when "datetime-local"
+            value = value.to_time.strftime("%Y-%m-%dT%H:%M") if !value.is_a?(String) && value.respond_to?(:to_time)
             command(:set, value.to_s)
           else
             command(:set, value.to_s)
