@@ -110,9 +110,13 @@ module Capybara
         handle = case locator
                  when Capybara::Node::Element
                    locator.native.description["frameId"]
+                 when Capybara::Cuprite::Node
+                   locator.description["frameId"]
                  when :parent, :top
                    locator
                  end
+
+        raise ArgumentError, "Unable to switch to frame from #{locator.class}" unless handle
 
         browser.switch_to_frame(handle)
       end
