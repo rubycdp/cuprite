@@ -813,6 +813,27 @@ describe Capybara::Session do
         end
       end
 
+      it "supports selection by driver node" do
+        @session.visit "/cuprite/frames"
+        frame = @session.driver.find_css("iframe[name]").first
+
+        @session.driver.switch_to_frame(frame)
+        expect(@session.driver.frame_url).to end_with("/cuprite/slow")
+      ensure
+        @session.driver.switch_to_frame(:top)
+      end
+
+      it "rejects driver nodes without frame ids" do
+        @session.visit "/cuprite/simple"
+        node = @session.driver.find_css("body").first
+
+        expect do
+          @session.driver.switch_to_frame(node)
+        end.to raise_error(ArgumentError, /Unable to switch to frame/)
+
+        expect(@session.driver.frame_url).to end_with("/cuprite/simple")
+      end
+
       it "supports selection by element without name or id" do
         @session.visit "/cuprite/frames"
         frame = @session.find(:css, "iframe:not([name]):not([id])")
