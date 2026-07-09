@@ -38,8 +38,6 @@ RSpec.configure do |config|
     regexes = <<~REGEXP.split("\n").map { |s| Regexp.quote(s.strip) }.join("|")
       node Element#drop can drop a file
       node Element#drop can drop multiple files
-      node Element#drop can drop strings
-      node Element#drop can drop multiple strings
       node Element#drop can drop a pathname
       node #visible? details non-summary descendants should be non-visible
       node #visible? works when details is toggled open and closed

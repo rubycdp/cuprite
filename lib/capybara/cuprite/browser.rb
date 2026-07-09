@@ -192,6 +192,11 @@ module Capybara
         mouse.up
       end
 
+      def drop(node, *args)
+        strings = args.flat_map { |arg| arg.map { |type, data| { "type" => type, "data" => data } } }
+        evaluate_on(node: node, expression: "_cuprite.dropString(#{strings.to_json}, this)")
+      end
+
       def select_file(node, value)
         node.select_file(value)
       end
