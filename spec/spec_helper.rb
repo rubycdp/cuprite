@@ -36,9 +36,6 @@ end
 RSpec.configure do |config|
   config.define_derived_metadata do |metadata|
     regexes = <<~REGEXP.split("\n").map { |s| Regexp.quote(s.strip) }.join("|")
-      node Element#drop can drop a file
-      node Element#drop can drop multiple files
-      node Element#drop can drop a pathname
       node #visible? details non-summary descendants should be non-visible
       node #visible? works when details is toggled open and closed
       node #set should submit single text input forms if ended with
