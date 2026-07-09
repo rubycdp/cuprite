@@ -7,6 +7,8 @@ module Capybara
     class Browser < Ferrum::Browser
       extend Forwardable
 
+      DRAG_HTML5_JS = File.read(File.expand_path("javascripts/drag.js", __dir__))
+
       delegate %i[send_keys select set hover trigger before_click switch_to_frame
                   find_modal accept_confirm dismiss_confirm accept_prompt
                   dismiss_prompt reset_modals] => :page
@@ -139,7 +141,14 @@ module Capybara
         raise NotImplementedError
       end
 
-      def drag(node, other, steps, delay = nil, scroll = true)
+      def drag(node, other, drop_modifiers, options = {})
+        steps = options.fetch(:steps, 1)
+        delay = options[:delay]
+        scroll = options.fetch(:scroll, true)
+        html5 = options[:html5]
+
+        execute("_cuprite.dragMousedownTracker()")
+
         node.scroll_into_view if scroll
         x1, y1 = node.find_position
 
@@ -147,11 +156,24 @@ module Capybara
         mouse.down
         sleep delay if delay
 
-        other.scroll_into_view if scroll
+        html5 = !evaluate_on(node: node, expression: "_cuprite.legacyDragCheck(this)") if html5.nil?
 
-        x2, y2 = other.find_position
-        mouse.move(x: x2, y: y2, steps: steps)
+        if html5
+          drag_html5(node, other, drop_modifiers, delay)
+        else
+          modifiers = keyboard.modifiers(drop_modifiers)
 
+          other.scroll_into_view if scroll
+          x2, y2 = other.find_position
+          mouse.move(x: x2, y: y2, steps: steps)
+
+          mouse.up(modifiers: modifiers)
+        end
+      end
+
+      def drag_html5(node, other, drop_modifiers, delay)
+        keys = drop_modifiers.map(&:to_s)
+        evaluate_async(DRAG_HTML5_JS, timeout, node, other, (delay || 0.05) * 1000, keys)
         mouse.up
       end
 
@@ -168,6 +190,18 @@ module Capybara
         x2, y2 = node.find_position
         mouse.move(x: x2 + dx, y: y2 + dy, steps: steps)
         mouse.up
+      end
+
+      def drop(node, *args)
+        if args[0].is_a?(String)
+          execute("_cuprite.attachDropInput()")
+          input = find(:css, "#_cuprite_drop_file").first
+          select_file(input, args)
+          evaluate_on(node: node, expression: "_cuprite.dropFile(this)")
+        else
+          strings = args.flat_map { |arg| arg.map { |type, data| { "type" => type, "data" => data } } }
+          evaluate_on(node: node, expression: "_cuprite.dropString(#{strings.to_json}, this)")
+        end
       end
 
       def select_file(node, value)
