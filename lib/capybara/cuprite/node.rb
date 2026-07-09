@@ -12,6 +12,8 @@ module Capybara
       delegate %i[description] => :node
       delegate %i[browser] => :driver
 
+      DRAG_MODIFIER_ALIASES = { control: :ctrl, command: :meta, cmd: :meta }.freeze
+
       def initialize(driver, node)
         super(driver, self)
         @node = node
@@ -177,8 +179,9 @@ module Capybara
       def drag_to(other, **options)
         options[:steps] ||= 1
         options[:scroll] = true unless options.key?(:scroll)
+        modifiers = Array(options[:drop_modifiers]).map { |m| DRAG_MODIFIER_ALIASES.fetch(m.to_sym, m.to_sym) }
 
-        command(:drag, other.node, options[:steps], options[:delay], options[:scroll])
+        command(:drag, other.node, modifiers, options.slice(:steps, :delay, :scroll, :html5))
       end
 
       def drag_by(x, y, **options)
