@@ -452,7 +452,7 @@ describe Capybara::Session do
         shadow_root = @session.find(:css, "#shadow_host").shadow_root
         expect do
           expect(shadow_root).to have_css("#shadow_content", text: "Not in the document")
-        end.to raise_error(/tag="#document-fragment"/)
+        end.to raise_error(/tag="ShadowRoot"/)
       end
 
       it "extends visibility check across shadow host boundary" do
