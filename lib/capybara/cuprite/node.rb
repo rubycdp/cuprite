@@ -220,6 +220,9 @@ module Capybara
       end
 
       def send_keys(*keys)
+        keys = keys.reject { |key| key.nil? || key == "" }
+        return if keys.empty?
+
         command(:send_keys, keys)
       end
       alias send_key send_keys

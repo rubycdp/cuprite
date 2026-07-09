@@ -9,6 +9,7 @@
 
 ### Fixed
 - Ensure node has focus before setting value [#280]
+- `Capybara::Cuprite::Node#send_keys` ignores empty or nil keys instead of raising, matching the Selenium and rack_test drivers
 
 ### Removed
 

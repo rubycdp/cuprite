@@ -1272,6 +1272,15 @@ module Capybara
           expect(input.value).to eq("Text appended")
         end
 
+        it "ignores empty or nil keys instead of raising" do
+          input = @session.find(:css, "#filled_input")
+
+          expect { input.native.send_keys("") }.not_to raise_error
+          expect { input.native.send_keys(nil) }.not_to raise_error
+
+          expect(input.value).to eq("Text")
+        end
+
         it "sends keys to empty textarea" do
           input = @session.find(:css, "#empty_textarea")
 
