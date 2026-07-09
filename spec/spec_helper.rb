@@ -59,7 +59,6 @@ RSpec.configure do |config|
       node #visible? details non-summary descendants should be non-visible
       node #visible? works when details is toggled open and closed
       node #set should submit single text input forms if ended with
-      node #shadow_root should produce error messages when failing
       #has_field with valid should be false if field is invalid
       #has_element? should be true if the given element is on the page
       #assert_matches_style should raise error if the elements style doesn't contain the given properties

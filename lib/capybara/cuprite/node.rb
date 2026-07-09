@@ -139,7 +139,7 @@ module Capybara
       end
 
       def tag_name
-        @tag_name ||= description["nodeName"].downcase
+        @tag_name ||= description["shadowRootType"] ? "ShadowRoot" : description["nodeName"].downcase
       end
 
       def visible?
