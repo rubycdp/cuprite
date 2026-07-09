@@ -36,21 +36,6 @@ end
 RSpec.configure do |config|
   config.define_derived_metadata do |metadata|
     regexes = <<~REGEXP.split("\n").map { |s| Regexp.quote(s.strip) }.join("|")
-      #drag_to should simulate a single held down modifier key
-      #drag_to should simulate multiple held down modifier keys
-      #drag_to should support key aliases
-      #drag_to HTML5 should HTML5 drag and drop an object
-      #drag_to HTML5 should HTML5 drag and drop an object child
-      #drag_to HTML5 should set clientX/Y in dragover events
-      #drag_to HTML5 should preserve clientX/Y from last dragover event
-      #drag_to HTML5 should HTML5 drag and drop when scrolling needed
-      #drag_to HTML5 should drag HTML5 default draggable elements
-      #drag_to HTML5 should work with SortableJS
-      #drag_to HTML5 should drag HTML5 default draggable element child
-      #drag_to HTML5 should simulate a single held down modifier key
-      #drag_to HTML5 should simulate multiple held down modifier keys
-      #drag_to HTML5 should support key aliases
-      #drag_to HTML5 should trigger a dragenter event, before the first dragover event
       node Element#drop can drop a file
       node Element#drop can drop multiple files
       node Element#drop can drop strings
