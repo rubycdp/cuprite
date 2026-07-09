@@ -56,8 +56,6 @@ RSpec.configure do |config|
       node Element#drop can drop strings
       node Element#drop can drop multiple strings
       node Element#drop can drop a pathname
-      node #visible? details non-summary descendants should be non-visible
-      node #visible? works when details is toggled open and closed
       node #set should submit single text input forms if ended with
       node #shadow_root should produce error messages when failing
       #has_field with valid should be false if field is invalid
