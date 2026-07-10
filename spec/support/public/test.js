@@ -34,6 +34,14 @@ $(function() {
       $("#changes_on_blur").text("Blur")
     })
 
+  $("#change_me_color")
+    .change(function(event) {
+      $("#changes").text($(this).val())
+    })
+    .bind("input", function(event) {
+      $("#changes_on_input").text($(this).val())
+    })
+
   $("#browser")
     .change(function(event) {
       $("#changes").text($(this).val())

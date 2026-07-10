@@ -103,6 +103,8 @@ module Capybara
             command(:select_file, files)
           when "color"
             node.evaluate("this.setAttribute('value', '#{value}')")
+            node.evaluate("this.dispatchEvent(new InputEvent('input'))")
+            node.evaluate("this.dispatchEvent(new Event('change', { bubbles: true }))")
           when "date"
             value = value.to_date.iso8601 if !value.is_a?(String) && value.respond_to?(:to_date)
             command(:set, value.to_s)
