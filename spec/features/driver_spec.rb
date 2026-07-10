@@ -8,11 +8,12 @@ module Capybara
   module Cuprite
     describe Driver do
       let(:device_pixel_ratio) { @driver.device_pixel_ratio }
+      let(:mobile) { false }
 
       include Spec::Support::ExternalBrowser
 
       around do |example|
-        @session = TestSessions::Cuprite
+        @session = mobile ? TestSessions::CupriteMobile : TestSessions::Cuprite
         @driver = @session.driver
         example.run
       ensure
@@ -48,6 +49,30 @@ module Capybara
         FileUtils.rm_f(original_path)
         FileUtils.rm_f(file)
         driver&.quit
+      end
+
+      describe "mobile emulation" do
+        context "when mobile emulation is enabled" do
+          let(:mobile) { true }
+
+          it "emulates a mobile browser" do
+            @session.visit("/cuprite/mobile")
+            expect(@session).to have_text("I am a mobile.")
+            expect(@session).to have_no_text("I am a desktop.")
+            expect(@session.evaluate_script("'ontouchstart' in window || navigator.maxTouchPoints > 0")).to be_truthy
+          end
+        end
+
+        context "when mobile emulation is disabled" do
+          let(:mobile) { false }
+
+          it "does not emulate a mobile browser" do
+            @session.visit("/cuprite/mobile")
+            expect(@session).to have_text("I am a desktop.")
+            expect(@session).to have_no_text("I am a mobile.")
+            expect(@session.evaluate_script("'ontouchstart' in window || navigator.maxTouchPoints > 0")).to be_falsy
+          end
+        end
       end
 
       context "output redirection" do
