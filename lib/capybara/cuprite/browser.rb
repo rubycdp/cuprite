@@ -14,6 +14,7 @@ module Capybara
       def initialize(options = nil)
         super
 
+        @options.raise_on_unhandled_modal = options&.delete(:raise_on_unhandled_modal)
         @options.url_blacklist = prepare_wildcards(options&.dig(:url_blacklist))
         @options.url_whitelist = prepare_wildcards(options&.dig(:url_whitelist))
 
@@ -47,6 +48,14 @@ module Capybara
       def resize(**options)
         @options.window_size = [options[:width], options[:height]]
         super
+      end
+
+      def raise_on_unhandled_modal
+        @options.raise_on_unhandled_modal
+      end
+
+      def raise_on_unhandled_modal=(value)
+        @options.raise_on_unhandled_modal = value
       end
 
       def url_whitelist
