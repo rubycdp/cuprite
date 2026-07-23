@@ -61,6 +61,7 @@ end
 `Cuprite`-specific options are:
 
 * options `Hash`
+  * `:raise_on_unhandled_modal` (Boolean) - When set to `false`, output a warning. When set to `true`, raise an exception
   * `:url_blacklist` (Array) - array of regexes to match against requested URLs
   * `:url_whitelist` (Array) - array of regexes to match against requested URLs
 

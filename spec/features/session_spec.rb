@@ -1110,6 +1110,18 @@ describe Capybara::Session do
         expect(@session).to have_xpath("//a[@id='open-match' and @confirmed='true']")
       end
 
+      it "configured to raise warning" do
+        @session.driver.browser.raise_on_unhandled_modal = true
+
+        @session.visit "/cuprite/with_js"
+
+        expect { @session.click_link("Open for match") }.to raise_error(
+          "Modal window with text `{T}ext \\w|th [reg.exp] (chara©+er$)?` has been opened, " \
+          "but you didn't wrap your code into (`accept_prompt` | `dismiss_prompt` | `accept_confirm` " \
+          "| `dismiss_confirm` | `accept_alert`), accepting by default"
+        )
+      end
+
       it "matches on partial strings" do
         @session.visit "/cuprite/with_js"
         expect do
