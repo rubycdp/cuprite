@@ -162,10 +162,14 @@ module Capybara
             response = @modal_response || params["defaultPrompt"]
           else
             with_text = params["message"] ? "with text `#{params['message']}` " : ""
-            warn "Modal window #{with_text}has been opened, but you didn't wrap " \
+            message =
+                 "Modal window #{with_text}has been opened, but you didn't wrap " \
                  "your code into (`accept_prompt` | `dismiss_prompt` | " \
                  "`accept_confirm` | `dismiss_confirm` | `accept_alert`), " \
                  "accepting by default"
+
+            @options.raise_on_unhandled_modal ? raise(message) : warn(message)
+
             options = { accept: true }
             response = params["defaultPrompt"]
           end
