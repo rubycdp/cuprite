@@ -9,6 +9,7 @@
 
 ### Fixed
 - Ensure node has focus before setting value [#280]
+- Raise `ObsoleteNode` instead of silently acting on a node that got disconnected from the DOM between being found and being used [#239]
 
 ### Removed
 

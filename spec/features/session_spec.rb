@@ -42,6 +42,32 @@ describe Capybara::Session do
         expect(@session.current_path).to eq("/")
       end
 
+      it "raises an error instead of filling in a stale node replaced right after being found" do
+        @session.visit("/cuprite/with_js")
+        node = @session.find(:css, "[name=draft]", visible: :all)
+
+        @session.execute_script(<<~JS)
+          var wrapper = document.getElementById("draft-wrapper");
+          setTimeout(function() { wrapper.innerHTML = '<textarea name="draft"></textarea>'; }, 0);
+        JS
+
+        # native.set bypasses Capybara::Node::Element#reload, which would
+        # otherwise silently re-find and retry against the live replacement.
+        expect { node.native.set("World") }.to raise_error(Capybara::Cuprite::ObsoleteNode)
+      end
+
+      it "raises an error instead of checking a stale checkbox replaced right after being found" do
+        @session.visit("/cuprite/with_js")
+        node = @session.find(:css, "[name=agree]", visible: :all)
+
+        @session.execute_script(<<~JS)
+          var wrapper = document.getElementById("agree-wrapper");
+          setTimeout(function() { wrapper.innerHTML = '<input type="checkbox" name="agree">'; }, 0);
+        JS
+
+        expect { node.native.set(true) }.to raise_error(Capybara::Cuprite::ObsoleteNode)
+      end
+
       it "does not raise error when asserting svg elements with a count that is not what is in the dom" do
         @session.visit("/cuprite/with_js")
         expect { @session.has_css?("svg circle", count: 2) }.to_not raise_error

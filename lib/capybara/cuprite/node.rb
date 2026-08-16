@@ -18,6 +18,8 @@ module Capybara
       end
 
       def command(name, *args)
+        raise ObsoleteNode.new(self, nil) unless node.evaluate("this.isConnected")
+
         browser.send(name, node, *args)
       rescue Ferrum::NodeNotFoundError => e
         raise ObsoleteNode.new(self, e.response)
