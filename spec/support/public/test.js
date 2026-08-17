@@ -28,10 +28,10 @@ $(function() {
       $("#changes_on_keypress").text(increment)
     })
     .focus(function(event) {
-      $("#changes_on_focus").text("Focus")
+      $("#changes_on_focus").text(`Focus (${event.originalEvent.constructor.name})`)
     })
-    .blur(function() {
-      $("#changes_on_blur").text("Blur")
+    .blur(function(event) {
+      $("#changes_on_blur").text(`Blur (${event.originalEvent.constructor.name})`)
     })
 
   $("#browser")
