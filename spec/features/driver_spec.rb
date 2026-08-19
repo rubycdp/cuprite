@@ -658,6 +658,7 @@ module Capybara
         end
 
         it "operates a timeout when communicating with browser" do
+          @driver.browser.page # attach first so the low timeout covers visit only
           old_timeout = @driver.timeout
           @driver.timeout = 0.1
           expect do
