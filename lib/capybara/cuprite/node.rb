@@ -20,6 +20,8 @@ module Capybara
       end
 
       def command(name, *args)
+        raise ObsoleteNode.new(self, nil) unless node.evaluate("this.isConnected")
+
         browser.send(name, node, *args)
       rescue Ferrum::NodeNotFoundError => e
         raise ObsoleteNode.new(self, e.response)
@@ -141,7 +143,7 @@ module Capybara
       end
 
       def tag_name
-        @tag_name ||= description["nodeName"].downcase
+        @tag_name ||= description["shadowRootType"] ? "ShadowRoot" : description["nodeName"].downcase
       end
 
       def visible?
@@ -225,6 +227,9 @@ module Capybara
       end
 
       def send_keys(*keys)
+        keys = keys.reject { |key| key.nil? || key == "" }
+        return if keys.empty?
+
         command(:send_keys, keys)
       end
       alias send_key send_keys

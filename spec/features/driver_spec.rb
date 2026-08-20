@@ -658,6 +658,7 @@ module Capybara
         end
 
         it "operates a timeout when communicating with browser" do
+          @driver.browser.page # attach first so the low timeout covers visit only
           old_timeout = @driver.timeout
           @driver.timeout = 0.1
           expect do
@@ -1270,6 +1271,15 @@ module Capybara
           input.native.send_keys(" appended")
 
           expect(input.value).to eq("Text appended")
+        end
+
+        it "ignores empty or nil keys instead of raising" do
+          input = @session.find(:css, "#filled_input")
+
+          expect { input.native.send_keys("") }.not_to raise_error
+          expect { input.native.send_keys(nil) }.not_to raise_error
+
+          expect(input.value).to eq("Text")
         end
 
         it "sends keys to empty textarea" do

@@ -9,6 +9,8 @@
 
 ### Fixed
 - Ensure node has focus before setting value [#280]
+- Raise `ObsoleteNode` instead of silently acting on a node that got disconnected from the DOM between being found and being used [#239]
+- `Capybara::Cuprite::Node#send_keys` ignores empty or nil keys instead of raising, matching the Selenium and rack_test drivers [#313]
 
 ### Removed
 
