@@ -36,11 +36,6 @@ end
 RSpec.configure do |config|
   config.define_derived_metadata do |metadata|
     regexes = <<~REGEXP.split("\n").map { |s| Regexp.quote(s.strip) }.join("|")
-      node Element#drop can drop a file
-      node Element#drop can drop multiple files
-      node Element#drop can drop strings
-      node Element#drop can drop multiple strings
-      node Element#drop can drop a pathname
       node #set should submit single text input forms if ended with
       #has_field with valid should be false if field is invalid
       #has_element? should be true if the given element is on the page

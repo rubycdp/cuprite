@@ -193,6 +193,8 @@ module Capybara
         command(:drag_by, x, y, options[:steps], options[:delay], options[:scroll])
       end
 
+      def drop(...) = command(:drop, ...)
+
       def trigger(event)
         command(:trigger, event)
       end

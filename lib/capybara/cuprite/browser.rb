@@ -192,6 +192,18 @@ module Capybara
         mouse.up
       end
 
+      def drop(node, *args)
+        if args[0].is_a?(String)
+          execute("_cuprite.attachDropInput()")
+          input = find(:css, "#_cuprite_drop_file").first
+          select_file(input, args)
+          evaluate_on(node: node, expression: "_cuprite.dropFile(this)")
+        else
+          strings = args.flat_map { |arg| arg.map { |type, data| { "type" => type, "data" => data } } }
+          evaluate_on(node: node, expression: "_cuprite.dropString(#{strings.to_json}, this)")
+        end
+      end
+
       def select_file(node, value)
         node.select_file(value)
       end
