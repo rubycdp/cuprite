@@ -27,11 +27,26 @@ Capybara.register_driver(:cuprite) do |app|
 end
 ```
 
-if you use `Docker` don't forget to pass `no-sandbox` option:
+If Chrome cannot initialize its sandbox in Docker (for example, when the
+container runs as `root`), pass the `no-sandbox` browser option explicitly:
 
 ```ruby
-Capybara::Cuprite::Driver.new(app, browser_options: { 'no-sandbox': nil })
+Capybara::Cuprite::Driver.new(app, browser_options: { "no-sandbox" => nil })
 ```
+
+Alternatively, use Ferrum's container mode:
+
+```ruby
+Capybara::Cuprite::Driver.new(app, dockerize: true)
+```
+
+Cuprite passes these options to Ferrum. In Ferrum 0.17.2, `dockerize: true`
+adds both `--no-sandbox` and `--disable-setuid-sandbox`; Ferrum also includes
+`--disable-dev-shm-usage` in its default Chrome options. See Ferrum's
+[`dockerize` implementation](https://github.com/rubycdp/ferrum/blob/v0.17.2/lib/ferrum/browser/options/chrome.rb#L92-L99)
+and
+[`DEFAULT_OPTIONS`](https://github.com/rubycdp/ferrum/blob/v0.17.2/lib/ferrum/browser/options/chrome.rb#L5-L18).
+Use either `dockerize: true` or the explicit `no-sandbox` option, not both.
 
 Since Cuprite uses [Ferrum](https://github.com/rubycdp/ferrum#examples) there
 are many useful methods you can call even using this driver:
