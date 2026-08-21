@@ -27,7 +27,7 @@ Capybara.register_driver(:cuprite) do |app|
 end
 ```
 
-if you use `Docker` don't forget to pass `no-sandbox` option:
+If you use `Docker` don't forget to pass `no-sandbox` option:
 
 ```ruby
 Capybara::Cuprite::Driver.new(app, browser_options: { 'no-sandbox': nil })
@@ -64,6 +64,14 @@ end
   * `:url_blacklist` (Array) - array of regexes to match against requested URLs
   * `:url_whitelist` (Array) - array of regexes to match against requested URLs
 
+You can emulate specific devices at the time you register a driver:
+
+```ruby
+require "capybara/cuprite/devices"
+Capybara.register_driver(:cuprite) do |app|
+  Capybara::Cuprite::Driver.new(app, Capybara::Cuprite::Devices::IPHONE_14)
+end
+```
 
 ## Debugging
 
