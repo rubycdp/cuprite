@@ -4,13 +4,20 @@
 - Support time inputs [#245]
 - Add initial support for shadow_root [#234]
 - Support `Capybara::Cuprite::Node#rect` [#276]
+- Extend `Node#set` with the `datetime-local` input type [#295]
+- Support HTML5 drag-and-drop and drag modifier keys in `Node#drag_to` [#315]
+- Support `Element#drop` for files and strings [#316]
 
 ### Changed
+- Bump Ferrum dependency to `~> 0.18.0`
 
 ### Fixed
-- Ensure node has focus before setting value [#280]
+- Ensure the node has focus before setting value [#280]
 - Raise `ObsoleteNode` instead of silently acting on a node that got disconnected from the DOM between being found and being used [#239]
 - `Capybara::Cuprite::Node#send_keys` ignores empty or nil keys instead of raising, matching the Selenium and rack_test drivers [#313]
+- `Driver#switch_to_frame` accepts a `Capybara::Cuprite::Node` instead of only a wrapped `Capybara::Node::Element` [#312]
+- Report `tag_name` as `"ShadowRoot"` for shadow root nodes [#318]
+- Treat non-summary descendants of a closed `<details>` element as non-visible [#317]
 - `switch_to_window` sends `Target.activateTarget` so Chrome reactivates the window's renderer immediately instead of leaving it backgrounded, which could stall the next input command for several seconds [#321]
 - `Node#set` fires `input` and `change` events for a `color` input, since its value can only be set via JavaScript and never gets them naturally [#229]
 
