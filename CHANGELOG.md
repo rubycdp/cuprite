@@ -11,6 +11,7 @@
 - Ensure node has focus before setting value [#280]
 - Raise `ObsoleteNode` instead of silently acting on a node that got disconnected from the DOM between being found and being used [#239]
 - `Capybara::Cuprite::Node#send_keys` ignores empty or nil keys instead of raising, matching the Selenium and rack_test drivers [#313]
+- `switch_to_window` sends `Target.activateTarget` so Chrome reactivates the window's renderer immediately instead of leaving it backgrounded, which could stall the next input command for several seconds [#321]
 
 ### Removed
 

@@ -118,6 +118,7 @@ module Capybara
         raise Ferrum::NoSuchPageError unless target
 
         @page = attach_page(target.id)
+        @page.activate
       end
 
       def close_window(target_id)

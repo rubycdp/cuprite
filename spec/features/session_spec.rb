@@ -819,6 +819,26 @@ describe Capybara::Session do
         end
         same.close
       end
+
+      it "activates the target when switching back to a window" do
+        @session.visit "/"
+        original = @session.current_window
+
+        popup = @session.window_opened_by do
+          @session.execute_script <<-JS
+            window.open("/cuprite/simple", "popup")
+          JS
+        end
+
+        @session.within_window(popup) do
+          expect(@session.evaluate_script("document.visibilityState")).to eq("visible")
+        end
+
+        @session.switch_to_window(original)
+        expect(@session.evaluate_script("document.visibilityState")).to eq("visible")
+
+        popup.close
+      end
     end
 
     context "frame support" do
