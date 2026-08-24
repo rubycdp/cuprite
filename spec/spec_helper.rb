@@ -36,7 +36,6 @@ end
 RSpec.configure do |config|
   config.define_derived_metadata do |metadata|
     regexes = <<~REGEXP.split("\n").map { |s| Regexp.quote(s.strip) }.join("|")
-      #has_field with valid should be false if field is invalid
       #has_element? should be true if the given element is on the page
       #assert_matches_style should raise error if the elements style doesn't contain the given properties
       #has_css? :style option should support Hash

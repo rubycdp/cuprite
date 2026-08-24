@@ -9,7 +9,7 @@ module Capybara
 
       DRAG_HTML5_JS = File.read(File.expand_path("javascripts/drag.js", __dir__))
 
-      delegate %i[send_keys select set hover trigger before_click switch_to_frame
+      delegate %i[send_keys select set mark_dirty hover trigger before_click switch_to_frame
                   find_modal accept_confirm dismiss_confirm accept_prompt
                   dismiss_prompt reset_modals] => :page
 

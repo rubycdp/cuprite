@@ -33,6 +33,17 @@ module Capybara
         evaluate("_cuprite.set(arguments[0], arguments[1])", { "objectId" => object_id }, value)
       end
 
+      # Fires one harmless real edit (assumes the field is already focused,
+      # e.g. right after #set) so Chrome marks it as user-edited without
+      # touching its content - see Node#set_text for why this is needed.
+      def mark_dirty(_node)
+        keyboard.down(:home)
+        keyboard.up(:home)
+        keyboard.type(" ")
+        keyboard.down(:backspace)
+        keyboard.up(:backspace)
+      end
+
       def select(node, value)
         evaluate_on(node: node, expression: "_cuprite.select(this, #{value})")
       end

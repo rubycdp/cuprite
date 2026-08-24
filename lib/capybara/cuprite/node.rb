@@ -122,11 +122,13 @@ module Capybara
           when "datetime-local"
             value = value.to_time.strftime("%Y-%m-%dT%H:%M") if !value.is_a?(String) && value.respond_to?(:to_time)
             command(:set, value.to_s)
-          else
+          when "number", "range"
             command(:set, value.to_s)
+          else
+            set_text(value.to_s)
           end
         elsif tag_name == "textarea"
-          command(:set, value.to_s)
+          set_text(value.to_s)
         elsif self[:isContentEditable]
           command(:delete_text)
           click.type(value.to_s)
@@ -271,6 +273,25 @@ module Capybara
       end
 
       private
+
+      # Chrome only reacts to minlength/maxlength constraints (tooShort/
+      # tooLong) once a field's "dirty value flag" is set, which the scripted
+      # value setter used by the :set command never sets - only a genuine,
+      # trusted key event does. So after the fast scripted assignment, fire
+      # one harmless real edit (space then backspace, from the start of the
+      # field so it can't eat a real character even when already at
+      # maxlength) purely to mark the field as user-edited. This fires real,
+      # page-visible key events, so it's restricted to fields that actually
+      # declare minlength/maxlength - anything else keeps the exact
+      # keydown/keypress/input/keyup event sequence #set has always fired.
+      def set_text(value)
+        command(:set, value.to_s)
+        command(:mark_dirty) if needs_dirty_mark? && !self[:readOnly]
+      end
+
+      def needs_dirty_mark?
+        self[:minLength].to_i >= 0 || self[:maxLength].to_i >= 0
+      end
 
       def prepare_and_click(mode, name, keys, options)
         delay = options[:delay].to_i
