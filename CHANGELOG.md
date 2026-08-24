@@ -20,6 +20,7 @@
 - Treat non-summary descendants of a closed `<details>` element as non-visible [#317]
 - `switch_to_window` sends `Target.activateTarget` so Chrome reactivates the window's renderer immediately instead of leaving it backgrounded, which could stall the next input command for several seconds [#321]
 - `Node#set` fires `input` and `change` events for a `color` input, since its value can only be set via JavaScript and never gets them naturally [#229]
+- Generate a `FocusEvent` (not a generic `Event`) for focus-related events (`blur`, `focus`, `focusin`, `focusout`), matching real browser behavior [#272]
 
 ### Removed
 
