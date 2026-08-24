@@ -3,7 +3,7 @@
 require "uri"
 require "forwardable"
 
-# rubocop:disable Metrics/ClassLength
+# rubocop:disable-next Metrics/ClassLength
 module Capybara
   module Cuprite
     class Driver < Capybara::Driver::Base
@@ -412,4 +412,3 @@ module Capybara
     end
   end
 end
-# rubocop:enable Metrics/ClassLength
