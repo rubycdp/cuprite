@@ -9,6 +9,17 @@ describe Capybara::Cuprite::Driver do
     end
   end
 
+  describe "raise_on_unhandled_modal configuration" do
+    it "survives resetting the driver between examples" do
+      driver = described_class.new(nil, { raise_on_unhandled_modal: true })
+
+      driver.browser
+
+      expect { driver.reset! }.not_to(change { driver.browser.raise_on_unhandled_modal })
+      expect(driver.browser.raise_on_unhandled_modal).to eq(true)
+    end
+  end
+
   describe "save_path configuration" do
     it "defaults to the Capybara save path" do
       driver = with_capybara_save_path("/tmp/capybara-save-path") do

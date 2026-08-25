@@ -137,6 +137,7 @@ module Capybara
         @paper_size = nil
         browser.url_blacklist = @options[:url_blacklist]
         browser.url_whitelist = @options[:url_whitelist]
+        browser.raise_on_unhandled_modal = @options.fetch(:raise_on_unhandled_modal, false)
         browser.reset
         @started = false
       end

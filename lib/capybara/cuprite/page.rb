@@ -25,7 +25,23 @@ module Capybara
         @accept_modal = []
         @modal_messages = []
         @modal_response = nil
+        @unhandled_modal_error = nil
         super
+      end
+
+      # Keep a handle to Ferrum's own implementation before overriding it
+      # below, so answering a dialog (see `handle_javascript_dialog`) can
+      # bypass our override.
+      alias ferrum_command command
+
+      # The `Page.javascriptDialogOpening` event is handled on Ferrum's
+      # background CDP dispatcher thread, so raising there wouldn't reach
+      # the caller and would permanently kill that thread instead. The
+      # dialog is always accepted immediately from that thread, and the
+      # error (if any) is stashed here to be raised from the main thread
+      # the next time it makes a command round trip.
+      def command(...)
+        raise_pending_unhandled_modal_error! { super }
       end
 
       def set(node, value)
@@ -100,6 +116,7 @@ module Capybara
         @accept_modal = []
         @modal_response = nil
         @modal_messages = []
+        @unhandled_modal_error = nil
       end
 
       def before_click(node, name, _keys = [], offset = {})
@@ -141,6 +158,18 @@ module Capybara
 
       private
 
+      def raise_pending_unhandled_modal_error!
+        error = @unhandled_modal_error
+        @unhandled_modal_error = nil
+        raise error if error
+
+        yield
+      ensure
+        error = @unhandled_modal_error
+        @unhandled_modal_error = nil
+        raise error if error
+      end
+
       def prepare_page
         super
 
@@ -155,6 +184,8 @@ module Capybara
 
         on("Page.javascriptDialogOpening") do |params|
           accept_modal = @accept_modal.last
+          unhandled_modal_error = nil
+
           if [true, false].include?(accept_modal)
             @accept_modal.pop
             @modal_messages << params["message"]
@@ -162,15 +193,24 @@ module Capybara
             response = @modal_response || params["defaultPrompt"]
           else
             with_text = params["message"] ? "with text `#{params['message']}` " : ""
-            warn "Modal window #{with_text}has been opened, but you didn't wrap " \
-                 "your code into (`accept_prompt` | `dismiss_prompt` | " \
-                 "`accept_confirm` | `dismiss_confirm` | `accept_alert`), " \
-                 "accepting by default"
+            message = "Modal window #{with_text}has been opened, but you didn't wrap " \
+                      "your code into (`accept_prompt` | `dismiss_prompt` | " \
+                      "`accept_confirm` | `dismiss_confirm` | `accept_alert`), " \
+                      "accepting by default"
+
+            if @options.raise_on_unhandled_modal
+              unhandled_modal_error = UnhandledModalError.new(message)
+            else
+              warn message
+            end
+
             options = { accept: true }
             response = params["defaultPrompt"]
           end
           options.merge!(promptText: response) if response
-          command("Page.handleJavaScriptDialog", **options)
+          ferrum_command("Page.handleJavaScriptDialog", **options)
+
+          @unhandled_modal_error = unhandled_modal_error if unhandled_modal_error
         end
       end
 

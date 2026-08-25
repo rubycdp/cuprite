@@ -43,6 +43,15 @@ module Capybara
       end
     end
 
+    class UnhandledModalError < Error
+      attr_reader :message
+
+      def initialize(message)
+        @message = message
+        super()
+      end
+    end
+
     class ObsoleteNode < ClientError
       attr_reader :node
 
