@@ -76,7 +76,12 @@ end
 `Cuprite`-specific options are:
 
 * options `Hash`
-  * `:raise_on_unhandled_modal` (Boolean) - When set to `false`, output a warning. When set to `true`, raise an exception
+  * `:raise_on_unhandled_modal` (Boolean) - When set to `false`, output a warning. When set to `true`, raise
+    `Capybara::Cuprite::UnhandledModalError` instead. The dialog is always auto-accepted either way; the raise is
+    deferred and surfaces on the next command sent to the browser. In practice that's almost always the same action
+    that triggered the dialog (a click, `visit`, `evaluate_script`, ...), since a JS dialog blocks the page until
+    answered, so that action's own command is what was waiting. A dialog fired with nothing in flight (e.g. a bare JS
+    timer) only surfaces on whatever command runs next.
   * `:url_blacklist` (Array) - array of regexes to match against requested URLs
   * `:url_whitelist` (Array) - array of regexes to match against requested URLs
 

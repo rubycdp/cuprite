@@ -7,6 +7,7 @@
 - Extend `Node#set` with the `datetime-local` input type [#295]
 - Support HTML5 drag-and-drop and drag modifier keys in `Node#drag_to` [#315]
 - Support `Element#drop` for files and strings [#316]
+- Add `:raise_on_unhandled_modal` browser option to raise instead of warn on an unhandled modal [#320]
 
 ### Changed
 - Bump Ferrum dependency to `~> 0.18.0`
