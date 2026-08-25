@@ -1,4 +1,4 @@
-## [Unreleased](https://github.com/rubycdp/ferrum/compare/v0.17...main) ##
+## [Unreleased](https://github.com/rubycdp/cuprite/compare/v0.17...main) ##
 
 ### Added
 - Support time inputs [#245]
@@ -26,7 +26,7 @@
 ### Removed
 
 
-## [0.17](https://github.com/rubycdp/ferrum/compare/v0.16...v0.17) ##
+## [0.17](https://github.com/rubycdp/cuprite/compare/v0.16...v0.17) ##
 
 ### Added
 
@@ -39,7 +39,7 @@
 ### Removed
 
 
-## [0.16](https://github.com/rubycdp/ferrum/compare/0.16) - (May 10, 2025) ##
+## [0.16](https://github.com/rubycdp/cuprite/compare/0.16) - (May 10, 2025) ##
 
 ### Added
 
@@ -52,7 +52,7 @@
 ### Removed
 
 
-## [0.15.1](https://github.com/rubycdp/ferrum/compare/v0.15...0.15.1) - (Jun 15, 2024) ##
+## [0.15.1](https://github.com/rubycdp/cuprite/compare/v0.15...0.15.1) - (Jun 15, 2024) ##
 
 ### Added
 - Support for `Driver#send_keys`, the `:focused` filter, and `Driver#active_element` [#261]
@@ -78,7 +78,7 @@
 ### Removed
 
 
-## [0.15](https://github.com/rubycdp/ferrum/compare/v0.14.3...0.15) - (Nov 4, 2023) ##
+## [0.15](https://github.com/rubycdp/cuprite/compare/v0.14.3...0.15) - (Nov 4, 2023) ##
 
 ### Added
 - `url_blocklist | url_allowlist` aliases for `whitelist | blacklist`
