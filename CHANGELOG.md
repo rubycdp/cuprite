@@ -1,4 +1,15 @@
-## [Unreleased](https://github.com/rubycdp/cuprite/compare/v0.17...main) ##
+## [Unreleased](https://github.com/rubycdp/ferrum/compare/v0.18...main) ##
+
+### Added
+
+### Changed
+
+### Fixed
+
+### Removed
+
+
+## [0.18](https://github.com/rubycdp/cuprite/compare/v0.17...v0.18) ##
 
 ### Added
 - Support time inputs [#245]
