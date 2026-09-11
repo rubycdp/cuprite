@@ -4,6 +4,8 @@
 
 ### Changed
 
+- Change `Node#send_keys` to avoid triggering `click` on an already focused element [#327]
+
 ### Fixed
 
 ### Removed

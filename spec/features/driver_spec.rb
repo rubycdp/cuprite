@@ -1331,6 +1331,9 @@ module Capybara
 
         it "sends keys to the active_element" do
           @session.find_field("empty_input").execute_script("this.focus()")
+          @session.find_field("empty_input").execute_script <<~JS
+            this.addEventListener("click", () => window.clickedBeforeFocus = true)
+          JS
 
           expect(@session).to have_field("empty_input", focused: true)
 
@@ -1338,6 +1341,7 @@ module Capybara
 
           expect(@session).to have_field("empty_input", focused: false)
             .and(have_field("filled_input", focused: true))
+          expect(@session.evaluate_script("window.clickedBeforeFocus")).to be_nil
         end
 
         it "sends keys to filled contenteditable div" do
