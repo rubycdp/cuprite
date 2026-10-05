@@ -410,6 +410,34 @@ describe Capybara::Session do
       it "element with all children hidden returns empty text" do
         expect(@session.find(:css, "div").text).to eq("")
       end
+
+      it "considers a shown popover to be visible past opacity: 0" do
+        popover = @session.find(:css, "#popover_in_transparent", visible: false)
+        expect(popover.visible?).to be false
+
+        popover.execute_script("this.showPopover()")
+
+        expect(popover.visible?).to be true
+      end
+
+      it "considers a shown modal dialog to be visible past opacity: 0" do
+        dialog = @session.find(:css, "#dialog_in_transparent", visible: false)
+        expect(dialog.visible?).to be false
+
+        dialog.execute_script("this.showModal()")
+        expect(dialog.visible?).to be true
+
+        dialog.execute_script("this.close(); this.show()")
+        expect(dialog.visible?).to be false
+      end
+
+      it "considers a shown popover to not be visible past display: none" do
+        popover = @session.find(:css, "#popover_in_display_none", visible: false)
+
+        popover.execute_script("this.showPopover()")
+
+        expect(popover.visible?).to be false
+      end
     end
 
     describe "Node#checked?" do
