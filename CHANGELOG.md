@@ -5,6 +5,9 @@
 ### Changed
 
 ### Fixed
+- `Driver#reset!` kept the page it had cached when the browser failed to reset, so every later example raised
+  `Session with given id not found` or `Browser is dead or given window is closed` instead of starting on a fresh
+  page [#274], [rubycdp/ferrum#641]
 
 ### Removed
 

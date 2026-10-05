@@ -38,6 +38,7 @@ module Capybara
 
       def reset
         super
+      ensure
         @options.reset_window_size
         @page = nil
       end

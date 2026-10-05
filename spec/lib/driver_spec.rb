@@ -20,6 +20,22 @@ describe Capybara::Cuprite::Driver do
     end
   end
 
+  describe "#reset!" do
+    it "drops the cached page even when the browser fails to reset" do
+      driver = described_class.new(nil)
+      driver.visit("about:blank")
+      allow(driver.browser.contexts).to receive(:reset).and_wrap_original do |reset|
+        reset.call
+        raise Ferrum::TimeoutError
+      end
+
+      expect { driver.reset! }.to raise_error(Ferrum::TimeoutError)
+      expect { driver.visit("about:blank") }.not_to raise_error
+    ensure
+      driver&.quit
+    end
+  end
+
   describe "save_path configuration" do
     it "defaults to the Capybara save path" do
       driver = with_capybara_save_path("/tmp/capybara-save-path") do
