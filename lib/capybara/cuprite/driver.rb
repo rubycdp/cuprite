@@ -139,6 +139,7 @@ module Capybara
         browser.url_whitelist = @options[:url_whitelist]
         browser.raise_on_unhandled_modal = @options.fetch(:raise_on_unhandled_modal, false)
         browser.reset
+      ensure
         @started = false
       end
 
