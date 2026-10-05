@@ -4,6 +4,8 @@
 
 ### Changed
 
+- Change `Node#send_keys` to avoid triggering `click` on an already focused element [#327]
+
 ### Fixed
 - `Driver#reset!` kept the page it had cached when the browser failed to reset, so every later example raised
   `Session with given id not found` or `Browser is dead or given window is closed` instead of starting on a fresh

@@ -66,7 +66,7 @@ module Capybara
       end
 
       def send_keys(node, keys)
-        unless evaluate_on(node: node, expression: %(_cuprite.containsSelection(this)))
+        unless evaluate_on(node: node, expression: %(_cuprite.containsSelection(this) || _cuprite.hasFocus(this)))
           before_click(node, "click")
           node.click(mode: :left, keys: keys)
         end
