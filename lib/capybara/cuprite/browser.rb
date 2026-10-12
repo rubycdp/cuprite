@@ -17,8 +17,8 @@ module Capybara
         super
 
         @options.raise_on_unhandled_modal = options&.dig(:raise_on_unhandled_modal)
-        @options.url_blacklist = prepare_wildcards(options&.dig(:url_blacklist))
-        @options.url_whitelist = prepare_wildcards(options&.dig(:url_whitelist))
+        @options.url_blacklist = prepare_wildcards(options&.dig(:url_blocklist) || options&.dig(:url_blacklist))
+        @options.url_whitelist = prepare_wildcards(options&.dig(:url_allowlist) || options&.dig(:url_whitelist))
 
         @page = nil
       end
