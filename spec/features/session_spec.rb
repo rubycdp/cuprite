@@ -420,6 +420,16 @@ describe Capybara::Session do
         expect(popover.visible?).to be true
       end
 
+      it "considers a child of a shown popover to be visible past opacity: 0" do
+        button = @session.find(:css, "#button_in_popover", visible: false)
+        expect(button.visible?).to be false
+
+        @session.execute_script("document.getElementById('popover_in_transparent').showPopover()")
+
+        expect(button.visible?).to be true
+        button.click
+      end
+
       it "considers a shown modal dialog to be visible past opacity: 0" do
         dialog = @session.find(:css, "#dialog_in_transparent", visible: false)
         expect(dialog.visible?).to be false
