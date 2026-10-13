@@ -989,6 +989,26 @@ module Capybara
         expect(@driver.window_handles.size).to eq(2)
       end
 
+      it "does not count worker targets as windows" do
+        worker = 'new Worker(URL.createObjectURL(new Blob(["self.onmessage = () => {}"], { type: "text/javascript" })))'
+        @session.visit "/"
+        @session.execute_script(worker)
+        sleep 0.1
+
+        expect(@driver.window_handles.size).to eq(1)
+
+        popup = @session.window_opened_by do
+          @session.execute_script <<~JS
+            const popup = window.open("about:blank")
+            popup.eval('#{worker}')
+          JS
+          sleep 0.1
+        end
+
+        expect(@driver.window_handles.size).to eq(2)
+        @session.within_window(popup) { expect(@session.current_url).to eq("about:blank") }
+      end
+
       context "a new window inherits settings" do
         it "inherits size" do
           @session.visit "/"

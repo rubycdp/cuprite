@@ -110,7 +110,11 @@ module Capybara
       end
 
       def window_handles
-        targets.keys
+        handles = []
+        targets.each_pair do |id, target|
+          handles << id if target.type == "page"
+        end
+        handles
       end
 
       def within_window(locator = nil)
