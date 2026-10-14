@@ -9,6 +9,8 @@
   `Session with given id not found` or `Browser is dead or given window is closed` instead of starting on a fresh
   page [#274], [rubycdp/ferrum#641]
 - `Node#visible?` reported an open popover or modal dialog as hidden when an ancestor had `opacity: 0` [#328]
+- `Driver#window_handles` listed the web workers a page spawned as windows, so `window_opened_by` raised
+  `opened 2 windows instead of 1` [#326]
 
 ### Removed
 

@@ -989,6 +989,17 @@ module Capybara
         expect(@driver.window_handles.size).to eq(2)
       end
 
+      it "doesn't list web workers as windows" do
+        @session.visit "/cuprite/with_worker"
+
+        expect(@driver.window_handles.size).to eq(1)
+
+        new_window = @session.window_opened_by { @session.click_link "Open tab" }
+
+        expect(@driver.window_handles).to contain_exactly(@session.current_window.handle, new_window.handle)
+        @session.within_window(new_window) { expect(@session).to have_link("Open tab") }
+      end
+
       context "a new window inherits settings" do
         it "inherits size" do
           @session.visit "/"

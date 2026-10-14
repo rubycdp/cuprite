@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Worker</title>
+  </head>
+
+  <body>
+    <a href="/cuprite/with_worker" target="_blank">Open tab</a>
+    <script>
+      const blob = new Blob(["self.onmessage = () => {}"], { type: "text/javascript" });
+      new Worker(URL.createObjectURL(blob));
+    </script>
+  </body>
+</html>
