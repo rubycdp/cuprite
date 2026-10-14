@@ -46,6 +46,11 @@ $(function() {
     .change(function(event) {
       $("#changes").text($(this).val())
       $("#target_on_select").text(event.target.nodeName)
+      $("#select_events").append(" change")
+    })
+    .bind("input", function() {
+      $("#changes_on_input").text($(this).val())
+      $("#select_events").append(" input")
     })
     .focus(function() {
       $("#changes_on_focus").text($(this).val())
