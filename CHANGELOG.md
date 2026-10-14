@@ -11,6 +11,7 @@
 - `Node#visible?` reported an open popover or modal dialog as hidden when an ancestor had `opacity: 0` [#328]
 - `Driver#window_handles` listed the web workers a page spawned as windows, so `window_opened_by` raised
   `opened 2 windows instead of 1` [#326]
+- `Node#select_option` and `Node#unselect_option` didn't fire the `input` event on the select [#223]
 
 ### Removed
 

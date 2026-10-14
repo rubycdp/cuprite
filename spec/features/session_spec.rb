@@ -155,6 +155,11 @@ describe Capybara::Session do
           expect(@session.find(:css, "#changes").text).to eq("Firefox")
         end
 
+        it "fires the input event before the change event" do
+          expect(@session.find(:css, "#changes_on_input").text).to eq("Firefox")
+          expect(@session.find(:css, "#select_events").text).to eq("input change")
+        end
+
         it "fires the blur event" do
           expect(@session.find(:css, "#changes_on_blur").text).to eq("Firefox")
         end
@@ -175,6 +180,11 @@ describe Capybara::Session do
 
         it "fire the change event" do
           expect(@session.find(:css, "#changes").text).to eq("Safari")
+        end
+
+        it "fires the input event before the change event" do
+          expect(@session.find(:css, "#changes_on_input").text).to eq("Safari")
+          expect(@session.find(:css, "#select_events").text).to eq("input change")
         end
 
         it "fires the blur event" do
