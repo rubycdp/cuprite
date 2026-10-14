@@ -110,7 +110,7 @@ module Capybara
       end
 
       def window_handles
-        targets.keys
+        targets.values.select(&:page?).map(&:id)
       end
 
       def within_window(locator = nil)
@@ -124,17 +124,13 @@ module Capybara
       end
 
       def switch_to_window(target_id)
-        target = targets[target_id]
-        raise Ferrum::NoSuchPageError unless target
-
+        target = window_target(target_id)
         @page = attach_page(target.id)
         @page.activate
       end
 
       def close_window(target_id)
-        target = targets[target_id]
-        raise Ferrum::NoSuchPageError unless target
-
+        target = window_target(target_id)
         @page = ClosedPage.new if @page.target_id == target.id
         target.page.close
         targets.delete(target_id) # page.close is async, delete target asap
@@ -296,6 +292,13 @@ module Capybara
         if string_passed
           warn "Passing strings to blacklist/whitelist is deprecated, pass regexp at #{caller(4..4).first}"
         end
+      end
+
+      def window_target(target_id)
+        target = targets[target_id]
+        raise Ferrum::NoSuchPageError unless target&.page?
+
+        target
       end
 
       def attach_page(target_id = nil)
