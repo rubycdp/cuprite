@@ -29,8 +29,17 @@ Capybara.register_driver(:cuprite) do |app|
   Capybara::Cuprite::Driver.new(app, options)
 end
 
+Capybara.register_driver(:cuprite_mobile) do |app|
+  options = { emulate: :iphone_14 }
+  options.merge!(inspector: true) if ENV["INSPECTOR"]
+  options.merge!(logger: StringIO.new) if ENV["CI"]
+  options.merge!(headless: false) if ENV["HEADLESS"] == "false"
+  Capybara::Cuprite::Driver.new(app, options)
+end
+
 module TestSessions
   Cuprite = Capybara::Session.new(:cuprite, TestApp)
+  CupriteMobile = Capybara::Session.new(:cuprite_mobile, TestApp)
 end
 
 RSpec.configure do |config|

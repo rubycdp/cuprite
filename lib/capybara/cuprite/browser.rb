@@ -14,6 +14,8 @@ module Capybara
                   dismiss_prompt reset_modals] => :page
 
       def initialize(options = nil)
+        device = options&.dig(:emulate)
+        options = Devices.fetch(device).except(:user_agent).merge(options) if device
         super
 
         @options.raise_on_unhandled_modal = options&.dig(:raise_on_unhandled_modal)

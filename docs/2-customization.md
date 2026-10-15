@@ -27,6 +27,14 @@ Cuprite-specific options are:
     [URL filtering](/docs/cuprite/url-filtering).
   * `:url_whitelist` (Array) - Regexes to match against requested URLs that are allowed, see
     [URL filtering](/docs/cuprite/url-filtering).
+  * `:emulate` (Symbol) - Device to emulate, one of those listed in Chrome DevTools' device toolbar, such as
+    `:iphone_16`, `:pixel_9`, `:samsung_galaxy_a55` or `:ipad_mini`, see `Capybara::Cuprite::Devices::LIST`. It sets
+    the device's `:window_size`, `:scale_factor` and `:mobile`, options passed explicitly take precedence, and its
+    user agent, unless a `User-Agent` is set with [headers](/docs/cuprite/headers).
+  * `:mobile` (Boolean) - Emulate a mobile device: honor `<meta name="viewport">` and enable touch events, `false`
+    by default. Kept across window resizes.
+  * `:scale_factor` (Numeric) - Device scale factor (`window.devicePixelRatio`) to emulate, `0` (browser default)
+    by default.
 
 Cuprite changes a few Ferrum defaults:
 
@@ -49,6 +57,12 @@ Capybara::Cuprite::Driver.new(app, timeout: 15, process_timeout: 30)
 
 # Connect to a remote browser
 Capybara::Cuprite::Driver.new(app, url: "http://chrome:3333")
+
+# Emulate an iPhone 14
+Capybara::Cuprite::Driver.new(app, emulate: :iphone_14)
+
+# Emulate a Pixel 9 with a custom scale factor
+Capybara::Cuprite::Driver.new(app, emulate: :pixel_9, scale_factor: 1)
 ```
 
 ## Environment variables

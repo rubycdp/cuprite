@@ -59,3 +59,10 @@ Metrics/PerceivedComplexity:
 
 plugins:
   - rubocop-rake
+
+Naming/VariableNumber:
+  CheckSymbols: false
+
+Layout/LineLength:
+  Exclude:
+    - lib/capybara/cuprite/devices.rb

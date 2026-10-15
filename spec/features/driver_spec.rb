@@ -8,11 +8,12 @@ module Capybara
   module Cuprite
     describe Driver do
       let(:device_pixel_ratio) { @driver.device_pixel_ratio }
+      let(:mobile) { false }
 
       include Spec::Support::ExternalBrowser
 
       around do |example|
-        @session = TestSessions::Cuprite
+        @session = mobile ? TestSessions::CupriteMobile : TestSessions::Cuprite
         @driver = @session.driver
         example.run
       ensure
@@ -48,6 +49,94 @@ module Capybara
         FileUtils.rm_f(original_path)
         FileUtils.rm_f(file)
         driver&.quit
+      end
+
+      describe "mobile emulation" do
+        context "when mobile emulation is enabled" do
+          let(:mobile) { true }
+
+          it "emulates a mobile browser" do
+            @session.visit("/cuprite/mobile")
+            expect(@session).to have_text("I am a mobile.")
+            expect(@session).to have_no_text("I am a desktop.")
+            expect(@session.evaluate_script("'ontouchstart' in window || navigator.maxTouchPoints > 0")).to be_truthy
+          end
+
+          it "applies the device scale factor" do
+            @session.visit("/cuprite/mobile")
+            expect(@session.evaluate_script("window.devicePixelRatio")).to eq(3)
+          end
+
+          it "keeps emulating a mobile browser after resizing the window" do
+            @session.visit("/cuprite/mobile")
+            @driver.resize(414, 896)
+
+            expect(@session).to have_text("I am a mobile.")
+            expect(@session.evaluate_script("navigator.maxTouchPoints > 0")).to be(true)
+            expect(@session.evaluate_script("window.devicePixelRatio")).to eq(3)
+          end
+
+          it "sends the device user agent" do
+            @session.visit("/cuprite/headers")
+
+            expect(@driver.body).to include("USER_AGENT: Mozilla/5.0 (iPhone; CPU iPhone OS")
+            expect(@session.evaluate_script("navigator.userAgent")).to start_with("Mozilla/5.0 (iPhone;")
+          end
+
+          it "keeps the device user agent when other headers are set" do
+            @driver.headers = { "DV" => "hello" }
+            @session.visit("/cuprite/headers")
+
+            expect(@driver.body).to include("DV: hello")
+            expect(@session.evaluate_script("navigator.userAgent")).to start_with("Mozilla/5.0 (iPhone;")
+          end
+        end
+
+        context "when emulating a device with explicit options" do
+          let(:session) { Capybara::Session.new(:cuprite_pixel, TestApp) }
+
+          before do
+            Capybara.register_driver(:cuprite_pixel) do |app|
+              Capybara::Cuprite::Driver.new(app, emulate: :pixel_9, scale_factor: 1)
+            end
+          end
+
+          after { session.driver.quit }
+
+          it "lets the options override the device" do
+            session.visit("/cuprite/mobile")
+
+            expect(session).to have_text("I am a mobile.")
+            expect(session.evaluate_script("window.devicePixelRatio")).to eq(1)
+          end
+
+          it "fills in the running Chrome version" do
+            session.visit("/cuprite/mobile")
+            version = session.driver.browser.process.default_user_agent[%r{Chrome/(\S+)}, 1]
+
+            expect(session.evaluate_script("navigator.userAgent")).to eq(
+              "Mozilla/5.0 (Linux; Android 14; Pixel 9) AppleWebKit/537.36 (KHTML, like Gecko) " \
+              "Chrome/#{version} Mobile Safari/537.36"
+            )
+          end
+        end
+
+        it "raises an error for an unknown device" do
+          driver = Capybara::Cuprite::Driver.new(nil, emulate: :nokia_3310)
+
+          expect { driver.browser }.to raise_error(ArgumentError, /Unknown device to emulate: :nokia_3310/)
+        end
+
+        context "when mobile emulation is disabled" do
+          let(:mobile) { false }
+
+          it "does not emulate a mobile browser" do
+            @session.visit("/cuprite/mobile")
+            expect(@session).to have_text("I am a desktop.")
+            expect(@session).to have_no_text("I am a mobile.")
+            expect(@session.evaluate_script("'ontouchstart' in window || navigator.maxTouchPoints > 0")).to be_falsy
+          end
+        end
       end
 
       context "output redirection" do
