@@ -1,11 +1,18 @@
 # Cuprite - Headless Chrome driver for Capybara
 
+<img align="right"
+     width="160" height="160"
+     alt="Cuprite logo"
+     src="https://raw.githubusercontent.com/rubycdp/cuprite/main/logo.svg?sanitize=true">
+
 Cuprite is a pure Ruby driver (read as _no_ Selenium/WebDriver/ChromeDriver
 dependency) for [Capybara](https://github.com/teamcapybara/capybara). It allows
 you to run Capybara tests on a headless Chrome or Chromium. Under the hood it
 uses [Ferrum](https://github.com/rubycdp/ferrum#index) which is high-level API
 to the browser by CDP protocol.
 
+
+<br clear="right">
 
 ## Install
 

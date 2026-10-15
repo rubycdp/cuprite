@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <rect x="10" y="10" width="86" height="86" rx="10" fill="#000"></rect>
+  <rect x="4" y="4" width="86" height="86" rx="10" fill="#ff3f7f" stroke="#000" stroke-width="4"></rect>
+  <text x="13" y="22" font-family="'JetBrains Mono', ui-monospace, monospace" font-size="11" font-weight="700" fill="#000">29</text>
+  <text x="81" y="22" text-anchor="end" font-family="'JetBrains Mono', ui-monospace, monospace" font-size="9" font-weight="700" fill="#000">63.546</text>
+  <text x="47" y="72" text-anchor="middle" font-family="'Arial Black', 'Bricolage Grotesque', Impact, sans-serif" font-size="42" font-weight="900" fill="#000" letter-spacing="-1">Cu</text>
+  <text x="47" y="84" text-anchor="middle" font-family="'JetBrains Mono', ui-monospace, monospace" font-size="7" font-weight="700" fill="#000">Cu<tspan dy="1.5" font-size="5">2</tspan><tspan dy="-1.5">O</tspan></text>
+</svg>
