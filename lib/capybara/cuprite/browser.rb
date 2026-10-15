@@ -263,6 +263,10 @@ module Capybara
       private
 
       def find_all(method, selector, within = nil)
+        # Capybara appends its text-match hint as `(expr)[...]`, but with `exact_text: true` the hint
+        # is empty and the result `(expr)[]` is invalid XPath. An empty predicate is never valid, so
+        # dropping it can't change a valid selector. Remove once teamcapybara/capybara#2860 is released.
+        selector = selector.delete_suffix("[]") if method == :xpath
         nodes = if within
                   evaluate("_cuprite.find(arguments[0], arguments[1], arguments[2])", method, selector, within)
                 else

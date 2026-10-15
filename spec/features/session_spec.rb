@@ -804,6 +804,11 @@ describe Capybara::Session do
       expect(@session.evaluate_script("window.last_hashchange")).to eq("#foo")
     end
 
+    it "finds a link with exact_text: true" do
+      @session.visit "/with_html"
+      expect(@session.find_link("A link", exact_text: true)[:href]).to end_with("/with_simple_html")
+    end
+
     context "current_url" do
       let(:request_uri) { URI.parse(@session.current_url).request_uri }
 
