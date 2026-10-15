@@ -15,6 +15,8 @@
 - `Node#trigger` silently dispatched nothing for events other than mouse, focus and `submit`, such as `input`,
   `change` or custom events [#197]
 - `Node#set` with an empty string cleared a text field without firing the `input` event [#164]
+- Finders with `exact_text: true` raised `InvalidSelector` because Capybara appended an empty `[]` predicate to the
+  XPath [#256]
 
 ### Removed
 
