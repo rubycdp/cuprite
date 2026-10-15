@@ -14,6 +14,7 @@
 - `Node#select_option` and `Node#unselect_option` didn't fire the `input` event on the select [#223]
 - `Node#trigger` silently dispatched nothing for events other than mouse, focus and `submit`, such as `input`,
   `change` or custom events [#197]
+- `Node#set` with an empty string cleared a text field without firing the `input` event [#164]
 
 ### Removed
 
