@@ -8,6 +8,8 @@
 - Ferrum is bumped to `~> 0.19.0`
 
 ### Fixed
+- `window_size: nil` raised `Ferrum::BrowserError: Invalid parameters` on every page instead of leaving the window
+  size to Chrome, so `start-maximized` couldn't be used [#278]
 - `Driver#reset!` kept the page it had cached when the browser failed to reset, so every later example raised
   `Session with given id not found` or `Browser is dead or given window is closed` instead of starting on a fresh
   page [#274], [rubycdp/ferrum#641]

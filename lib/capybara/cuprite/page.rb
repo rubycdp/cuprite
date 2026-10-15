@@ -177,8 +177,7 @@ module Capybara
       def prepare_page
         super
 
-        width, height = @options.window_size
-        resize(width: width, height: height)
+        prepare_window_size
         command("Network.setUserAgentOverride", userAgent: default_user_agent) if @options.device_user_agent
 
         if @options.url_blacklist.any?
@@ -217,6 +216,11 @@ module Capybara
 
           @unhandled_modal_error = unhandled_modal_error if unhandled_modal_error
         end
+      end
+
+      def prepare_window_size
+        width, height = @options.window_size
+        width && height ? resize(width: width, height: height) : set_viewport
       end
 
       def find_position(node, **options)

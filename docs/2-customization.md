@@ -58,6 +58,9 @@ Capybara::Cuprite::Driver.new(app, timeout: 15, process_timeout: 30)
 # Connect to a remote browser
 Capybara::Cuprite::Driver.new(app, url: "http://chrome:3333")
 
+# Leave the window size to Chrome, e.g. to start maximized in headful mode
+Capybara::Cuprite::Driver.new(app, headless: false, window_size: nil, browser_options: { "start-maximized" => nil })
+
 # Emulate an iPhone 14
 Capybara::Cuprite::Driver.new(app, emulate: :iphone_14)
 

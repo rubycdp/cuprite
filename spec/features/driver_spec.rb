@@ -230,6 +230,25 @@ module Capybara
         driver&.quit
       end
 
+      it "leaves the window size to the browser when the option is nil" do
+        Capybara.register_driver :cuprite_without_window_size do |app|
+          Capybara::Cuprite::Driver.new(app, window_size: nil)
+        end
+        driver = Capybara::Session.new(:cuprite_without_window_size, TestApp).driver
+        driver.visit(session_url("/"))
+        default_size = driver.evaluate_script("[window.innerWidth, window.innerHeight]")
+        expect(default_size).not_to eq([1024, 768])
+
+        driver.resize(800, 600)
+        expect(driver.evaluate_script("[window.innerWidth, window.innerHeight]")).to eq([800, 600])
+
+        driver.reset!
+        driver.visit(session_url("/"))
+        expect(driver.evaluate_script("[window.innerWidth, window.innerHeight]")).to eq(default_size)
+      ensure
+        driver&.quit
+      end
+
       shared_examples "render screen" do
         it "supports rendering the whole of a page that goes outside the viewport" do
           @session.visit("/cuprite/long_page")
