@@ -7,6 +7,7 @@ PROJECT_ROOT = File.expand_path("..", __dir__)
 %w[/lib /spec].each { |p| $LOAD_PATH.unshift(p) }
 
 require "fileutils"
+require "logger"
 require "shellwords"
 
 require "capybara/spec/spec_helper"
@@ -14,6 +15,8 @@ require "capybara/cuprite"
 
 require "support/test_app"
 require "support/external_browser"
+
+TestApp.use(Rack::CommonLogger, Logger.new("/tmp/cuprite/test_app.log")) if ENV["CI"]
 
 puts ""
 command = Ferrum::Browser::Command.build(Ferrum::Browser::Options.new, nil)
