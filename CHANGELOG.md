@@ -12,6 +12,8 @@
 - `Driver#window_handles` listed the web workers a page spawned as windows, so `window_opened_by` raised
   `opened 2 windows instead of 1` [#326]
 - `Node#select_option` and `Node#unselect_option` didn't fire the `input` event on the select [#223]
+- `Node#trigger` silently dispatched nothing for events other than mouse, focus and `submit`, such as `input`,
+  `change` or custom events [#197]
 
 ### Removed
 

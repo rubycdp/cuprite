@@ -197,6 +197,30 @@ describe Capybara::Session do
       end
     end
 
+    describe "Node#trigger" do
+      let(:input) { @session.find(:css, "#input") }
+      let(:output) { @session.find(:css, "#output") }
+
+      before { @session.visit("/cuprite/input_events") }
+
+      it "fires the input event" do
+        input.trigger(:input)
+        expect(output.text).to eq("input")
+        expect(output["data-input-type"]).to eq("insertText")
+      end
+
+      it "fires the change event" do
+        input.trigger(:change)
+        expect(output.text).to eq("change")
+      end
+
+      it "fires a custom event that bubbles" do
+        @session.execute_script("document.body.addEventListener('custom:ping', () => log('custom:ping'))")
+        input.trigger("custom:ping")
+        expect(output.text).to eq("custom:ping")
+      end
+    end
+
     describe "Node#set" do
       context "with_js" do
         before do
