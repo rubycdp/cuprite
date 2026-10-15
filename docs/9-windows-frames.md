@@ -54,7 +54,8 @@ Returns inner width and height of the window.
 page.current_window.size # => [1024, 768]
 ```
 
-The window size is reset to `:window_size` at the end of every test.
+The window size is reset to `:window_size` at the end of every test. With `window_size: nil` Cuprite doesn't
+set the size, so Chrome's own one, or `start-maximized`, applies.
 
 ## Frames
 

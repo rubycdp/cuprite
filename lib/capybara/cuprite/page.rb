@@ -178,7 +178,7 @@ module Capybara
         super
 
         width, height = @options.window_size
-        resize(width: width, height: height)
+        width && height ? resize(width: width, height: height) : set_viewport
         command("Network.setUserAgentOverride", userAgent: default_user_agent) if @options.device_user_agent
 
         if @options.url_blacklist.any?
