@@ -1,0 +1,86 @@
+---
+sidebar_position: 10
+---
+
+# Network
+
+#### network_traffic(type = nil) : `Array<Ferrum::Network::Exchange>`
+
+Returns network traffic (loaded resources) on the current page. Each
+[exchange](/docs/ferrum/network) contains request and response details.
+
+* type `Symbol`
+  * `nil` - all requests that weren't blocked (default)
+  * `:all` - all requests
+  * `:blocked` - only requests blocked by [URL filtering](/docs/cuprite/url-filtering)
+
+```ruby
+traffic = page.driver.network_traffic
+exchange = traffic.first
+exchange.request.url # => "http://127.0.0.1:3000/"
+exchange.response.status # => 200
+
+page.driver.network_traffic(:blocked)
+```
+
+Network traffic is not cleared when you visit a new page.
+
+#### clear_network_traffic
+
+Clears collected network traffic.
+
+```ruby
+page.driver.clear_network_traffic
+```
+
+#### wait_for_network_idle(\*\*options) : `Boolean`
+
+Waits until there are no active connections. Returns `true` on success and
+`false` if there are still connections after timeout. Accepts the same options
+as Ferrum's [wait_for_idle](/docs/ferrum/network):
+
+* options `Hash`
+  * :connections `Integer` how many connections are allowed for network to be idling, `0` by default
+  * :duration `Float` sleep for given amount of time and check again, `0.05` by default
+  * :timeout `Float` during what time we try to check idle, `browser.timeout` by default
+
+```ruby
+click_button "Save"
+page.driver.wait_for_network_idle
+```
+
+#### wait_for_reload(timeout = 1)
+
+Unlike `wait_for_network_idle` waits until the whole page is reloaded. Useful
+when you know an action, like choosing an autocomplete suggestion, reloads the
+page. Sleep makes you wait longer or less than needed, and network idle can
+return before the page even started to reload.
+
+```ruby
+find(".suggestion").click
+page.driver.wait_for_reload
+```
+
+#### status_code : `Integer`
+
+Returns status code of the main page response.
+
+```ruby
+page.status_code # => 200
+```
+
+#### response_headers : `Hash`
+
+Returns headers of the main page response.
+
+```ruby
+page.response_headers["Content-Type"] # => "text/html; charset=utf-8"
+```
+
+#### clear_memory_cache
+
+Clears the browser cache.
+
+```ruby
+page.driver.clear_memory_cache
+```

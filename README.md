@@ -1,5 +1,7 @@
 # Cuprite - Headless Chrome driver for Capybara
 
+## [Documentation](https://docs.rubycdp.com/docs/cuprite/introduction)
+
 <img align="right"
      width="160" height="160"
      alt="Cuprite logo"
