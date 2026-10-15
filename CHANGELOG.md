@@ -1,6 +1,8 @@
 ## [Unreleased](https://github.com/rubycdp/cuprite/compare/v0.18...main) ##
 
 ### Added
+- `:emulate` driver option to emulate a device listed in Chrome DevTools with its user agent, e.g.
+  `emulate: :iphone_14`, along with `:mobile` and `:scale_factor` options it sets, kept across window resizes [#216]
 
 ### Changed
 - Ferrum is bumped to `~> 0.19.0`

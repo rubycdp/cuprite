@@ -44,6 +44,10 @@ module Capybara
         raise_pending_unhandled_modal_error! { super }
       end
 
+      def set_viewport(width: 0, height: 0, scale_factor: @options.scale_factor, mobile: @options.mobile)
+        super
+      end
+
       def set(node, value)
         object_id = command("DOM.resolveNode", nodeId: node.node_id).dig("object", "objectId")
         evaluate("_cuprite.set(arguments[0], arguments[1])", { "objectId" => object_id }, value)
@@ -175,6 +179,7 @@ module Capybara
 
         width, height = @options.window_size
         resize(width: width, height: height)
+        command("Network.setUserAgentOverride", userAgent: default_user_agent) if @options.device_user_agent
 
         if @options.url_blacklist.any?
           network.blacklist = @options.url_blacklist

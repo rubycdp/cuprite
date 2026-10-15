@@ -93,7 +93,18 @@ end
     timer) only surfaces on whatever command runs next.
   * `:url_blacklist` (Array) - array of regexes to match against requested URLs
   * `:url_whitelist` (Array) - array of regexes to match against requested URLs
+  * `:emulate` (Symbol) - device from Chrome DevTools' list to emulate, e.g. `:iphone_16`, `:pixel_9`, `:ipad_mini`
+  * `:mobile` (Boolean) - emulate a mobile device: viewport meta tag and touch events
+  * `:scale_factor` (Numeric) - device scale factor to emulate
 
+`emulate:` sets the device's `:window_size`, `:scale_factor`, `:mobile` and user agent, options passed explicitly
+take precedence:
+
+```ruby
+Capybara.register_driver(:cuprite) do |app|
+  Capybara::Cuprite::Driver.new(app, emulate: :iphone_14)
+end
+```
 
 ## Debugging
 
