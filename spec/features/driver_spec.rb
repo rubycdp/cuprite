@@ -1575,6 +1575,19 @@ module Capybara
             input.set("a")
             expect(output.text).to eq("keydown keypress input keyup change keydown keypress input keyup")
           end
+
+          it "calls the input event when clearing the value" do
+            input.set("a")
+            input.set("")
+            expect(output.text).to eq("keydown keypress input keyup change input change")
+            expect(output["data-input-type"]).to eq("deleteContentBackward")
+            expect(input.value).to be_empty
+          end
+
+          it "doesn't call the input event when clearing an empty value" do
+            input.set("")
+            expect(output.text).to be_empty
+          end
         end
       end
 
