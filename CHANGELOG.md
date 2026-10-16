@@ -6,8 +6,9 @@
 
 ### Changed
 - Ferrum is bumped to `~> 0.19.0`
-
-- Change `Node#send_keys` to avoid triggering `click` on an already focused element [#327]
+- Change `Node#send_keys` to avoid triggering `click` on an already focused element. `send_keys(:tab)` without an
+  element no longer clicks the middle of the page first, so Tab moves focus from the start of the page, and Capybara's
+  `#active_element` and `focused:` specs run in the suite [#327]
 
 ### Fixed
 - `window_size: nil` raised `Ferrum::BrowserError: Invalid parameters` on every page instead of leaving the window
