@@ -11,6 +11,9 @@
   `#active_element` and `focused:` specs run in the suite [#327]
 
 ### Fixed
+- `Node#drag_to` fired `dragleave` right before `drop` on an HTML5 drop target, which browsers never do, so libraries such
+  as Pragmatic drag and drop dropped onto nothing. A drag now ends with `drop` if the target accepted it, otherwise
+  with `dragleave` [#325]
 - `window_size: nil` raised `Ferrum::BrowserError: Invalid parameters` on every page instead of leaving the window
   size to Chrome, so `start-maximized` couldn't be used [#278]
 - `Driver#reset!` kept the page it had cached when the browser failed to reset, so every later example raised

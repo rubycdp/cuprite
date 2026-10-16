@@ -867,6 +867,24 @@ describe Capybara::Session do
       end
     end
 
+    context "HTML5 dragging support" do
+      before do
+        @session.visit "/cuprite/html5_drag"
+      end
+
+      it "ends with drop and no dragleave on a target that accepts it" do
+        @session.find(:css, "#source").drag_to(@session.find(:css, "#accepting"))
+
+        expect(@session.evaluate_script("window.events.accepting")).to eq(%w[dragenter dragover drop])
+      end
+
+      it "ends with dragleave and no drop on a target that refuses it" do
+        @session.find(:css, "#source").drag_to(@session.find(:css, "#refusing"))
+
+        expect(@session.evaluate_script("window.events.refusing")).to eq(%w[dragenter dragover dragleave])
+      end
+    end
+
     context "window switching support" do
       it "waits for the window to load" do
         @session.visit "/"

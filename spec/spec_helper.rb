@@ -61,8 +61,15 @@ RSpec.configure do |config|
       node #set should submit single text input forms if ended with
     REGEXP
 
+    browser_behavior = <<~REGEXP.split("\n").map { |s| Regexp.quote(s.strip) }.join("|")
+      #drag_to HTML5 should preserve clientX/Y from last dragover event
+    REGEXP
+
     metadata[:skip] = true if metadata[:full_description].match(/#{regexes}/)
     metadata[:skip] = "Intentionally skipped" if metadata[:full_description].match(/#{intentional_skip}/)
+    if metadata[:full_description].match(/#{browser_behavior}/)
+      metadata[:skip] = "Expects behavior browsers don't have, e.g. dragleave together with drop"
+    end
   end
 
   config.around do |example|
