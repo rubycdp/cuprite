@@ -3,6 +3,8 @@
 ### Added
 - `:emulate` driver option to emulate a device listed in Chrome DevTools with its user agent, e.g.
   `emulate: :iphone_14`, along with `:mobile` and `:scale_factor` options it sets, kept across window resizes [#216]
+- `Node#drag_to` accepts `x:` and `y:` to drop at an offset from the target, measured from its center or top left like
+  `click`, so drop targets that tell the upper half from the lower one can be driven [#325]
 
 ### Changed
 - Ferrum is bumped to `~> 0.19.0`

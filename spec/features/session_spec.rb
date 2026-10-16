@@ -883,6 +883,34 @@ describe Capybara::Session do
 
         expect(@session.evaluate_script("window.events.refusing")).to eq(%w[dragenter dragover dragleave])
       end
+
+      [true, false].each do |html5|
+        it "drops at an offset from the target's center with html5: #{html5}" do
+          @session.find(:css, "#source").drag_to(@session.find(:css, "#accepting"), x: 10, y: 5, html5: html5)
+
+          expect(@session.evaluate_script("window.dropPoint")).to eq([110, 55])
+        end
+
+        it "drops at an offset from the target's top left with html5: #{html5}" do
+          @session.find(:css, "#source")
+                  .drag_to(@session.find(:css, "#accepting"), x: 10, y: 5, offset: :top, html5: html5)
+
+          expect(@session.evaluate_script("window.dropPoint")).to eq([10, 5])
+        end
+      end
+
+      it "drops at an offset from the target's top left when w3c_click_offset is off" do
+        Capybara.w3c_click_offset = false
+        @session.find(:css, "#source").drag_to(@session.find(:css, "#accepting"), x: 10, y: 5)
+
+        expect(@session.evaluate_script("window.dropPoint")).to eq([10, 5])
+      end
+
+      it "requires both x: and y: for a drop offset" do
+        expect do
+          @session.find(:css, "#source").drag_to(@session.find(:css, "#accepting"), x: 10)
+        end.to raise_error(ArgumentError, "You must specify both x: and y: for a drop offset")
+      end
     end
 
     context "window switching support" do

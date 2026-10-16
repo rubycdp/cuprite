@@ -155,6 +155,7 @@ module Capybara
         delay = options[:delay]
         scroll = options.fetch(:scroll, true)
         html5 = options[:html5]
+        drop_offset = options[:drop_offset]
 
         execute("_cuprite.dragMousedownTracker()")
 
@@ -168,21 +169,21 @@ module Capybara
         html5 = !evaluate_on(node: node, expression: "_cuprite.legacyDragCheck(this)") if html5.nil?
 
         if html5
-          drag_html5(node, other, drop_modifiers, delay)
+          drag_html5(node, other, drop_modifiers, delay, drop_offset)
         else
           modifiers = keyboard.modifiers(drop_modifiers)
 
           other.scroll_into_view if scroll
-          x2, y2 = other.find_position
+          x2, y2 = other.find_position(**drop_offset.to_h)
           mouse.move(x: x2, y: y2, steps: steps)
 
           mouse.up(modifiers: modifiers)
         end
       end
 
-      def drag_html5(node, other, drop_modifiers, delay)
+      def drag_html5(node, other, drop_modifiers, delay, drop_offset = nil)
         keys = drop_modifiers.map(&:to_s)
-        evaluate_async(DRAG_HTML5_JS, timeout, node, other, (delay || 0.05) * 1000, keys)
+        evaluate_async(DRAG_HTML5_JS, timeout, node, other, (delay || 0.05) * 1000, keys, drop_offset)
         mouse.up
       end
 

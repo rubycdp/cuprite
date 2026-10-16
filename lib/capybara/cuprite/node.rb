@@ -181,11 +181,14 @@ module Capybara
       end
 
       def drag_to(other, **options)
+        raise ArgumentError, "You must specify both x: and y: for a drop offset" if options[:x].nil? ^ options[:y].nil?
+
         options[:steps] ||= 1
         options[:scroll] = true unless options.key?(:scroll)
+        options[:drop_offset] = drop_offset(*options.values_at(:x, :y, :offset))
         modifiers = Array(options[:drop_modifiers]).map { |m| DRAG_MODIFIER_ALIASES.fetch(m.to_sym, m.to_sym) }
 
-        command(:drag, other.node, modifiers, options.slice(:steps, :delay, :scroll, :html5))
+        command(:drag, other.node, modifiers, options.slice(:steps, :delay, :scroll, :html5, :drop_offset))
       end
 
       def drag_by(x, y, **options)
@@ -280,6 +283,13 @@ module Capybara
         offset = { x: x, y: y, position: options[:offset] || :top }
         command(:before_click, name, keys, offset)
         node.click(mode: mode, keys: keys, offset: offset, delay: delay)
+      end
+
+      def drop_offset(x, y, position)
+        return unless x
+
+        position ||= driver.session_options.w3c_click_offset ? :center : :top
+        { x: x, y: y, position: position.to_sym }
       end
 
       def filter_text(text)
