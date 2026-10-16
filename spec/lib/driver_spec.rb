@@ -7,6 +7,12 @@ describe Capybara::Cuprite::Driver do
 
       expect(driver.browser.options.to_h[:browser_options]).to include("remote-allow-origins": "*")
     end
+
+    it "sets the disable-web-security option" do
+      driver = described_class.new(nil)
+
+      expect(driver.browser.options.to_h[:browser_options]).to include("disable-web-security": nil)
+    end
   end
 
   describe "raise_on_unhandled_modal configuration" do

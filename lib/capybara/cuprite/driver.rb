@@ -42,6 +42,7 @@ module Capybara
         unless @options[:browser_options][:"remote-allow-origins"]
           @options[:browser_options].merge!("remote-allow-origins": "*")
         end
+        @options[:browser_options] = { "disable-web-security": nil }.merge(@options[:browser_options])
 
         super()
       end
