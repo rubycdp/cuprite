@@ -7,7 +7,7 @@
   `click`, so drop targets that tell the upper half from the lower one can be driven [#325]
 
 ### Changed
-- Ferrum is bumped to `~> 0.19.0`
+- Ferrum is bumped to `~> 0.19.1`
 - `--disable-web-security` is added to the browser options, since Ferrum dropped it from its defaults. Tests keep
   reaching into cross-origin frames, e.g. `current_url` within a frame from another origin [rubycdp/ferrum#472]
 - Change `Node#send_keys` to avoid triggering `click` on an already focused element. `send_keys(:tab)` without an
