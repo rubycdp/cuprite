@@ -1,0 +1,38 @@
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+  <head>
+    <meta http-equiv="Content-type" content="text/html; charset=utf-8"/>
+    <title>cuprite html5 drag_to</title>
+    <style type="text/css">
+      body { margin: 0; }
+      #source, #accepting, #refusing { position: absolute; width: 200px; height: 100px; }
+      #source { left: 0; top: 0; }
+      #accepting { left: 300px; top: 0; }
+      #refusing { left: 300px; top: 200px; }
+    </style>
+  </head>
+  <body>
+    <div id="source" draggable="true">Drag me</div>
+    <div id="accepting">Drop here</div>
+    <div id="refusing">Not here</div>
+
+    <script type="text/javascript">
+      window.events = { accepting: [], refusing: [] };
+      window.dropPoint = null;
+
+      for (const id of ["accepting", "refusing"]) {
+        const target = document.getElementById(id);
+        for (const type of ["dragenter", "dragover", "dragleave", "drop"]) {
+          target.addEventListener(type, event => {
+            const events = window.events[id];
+            if (events[events.length - 1] !== type) events.push(type);
+            if (id === "accepting" && type !== "dragleave") event.preventDefault();
+            if (type === "drop") {
+              const rect = target.getBoundingClientRect();
+              window.dropPoint = [Math.round(event.clientX - rect.left), Math.round(event.clientY - rect.top)];
+            }
+          });
+        }
+      }
+    </script>
+  </body>
+</html>

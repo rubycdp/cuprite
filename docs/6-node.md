@@ -79,9 +79,13 @@ automatically.
   * :scroll `Boolean` scroll elements into view, `true` by default
   * :html5 `Boolean` force HTML5 or legacy mouse drag
   * :drop_modifiers `Symbol` | `Array` modifier keys held on drop, e.g. `:shift`, `:ctrl`, `:alt`, `:meta`
+  * :x, :y `Integer` drop at this offset instead of the center of `other`, both are required
+  * :offset `:center` | `:top` where the offset is measured from, the center or the top left corner of `other`.
+    Follows `Capybara.w3c_click_offset` by default, like `click`
 
 ```ruby
 find("#item").drag_to(find("#basket"), steps: 10, drop_modifiers: :shift)
+find("#item").drag_to(find("#list li", text: "Milk"), x: 0, y: 10) # drop on the lower half
 ```
 
 #### drag_by(x, y, \*\*options)
