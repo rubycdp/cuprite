@@ -63,7 +63,6 @@ RSpec.configure do |config|
 
     metadata[:skip] = true if metadata[:full_description].match(/#{regexes}/)
     metadata[:skip] = "Intentionally skipped" if metadata[:full_description].match(/#{intentional_skip}/)
-    metadata[:skip] = true if metadata[:requires]&.include?(:active_element)
   end
 
   config.around do |example|
