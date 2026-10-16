@@ -15,7 +15,6 @@ module Capybara
       delegate %i[restart quit status_code timeout timeout= current_url title body
                   window_handles close_window switch_to_window within_window window_handle
                   back forward refresh wait_for_reload viewport_size device_pixel_ratio] => :browser
-      delegate %i[send_keys] => :active_element
       alias html body
       alias current_window_handle window_handle
       alias go_back back
@@ -73,6 +72,11 @@ module Capybara
 
       def active_element
         Node.new(self, browser.active_element)
+      end
+
+      def send_keys(*keys)
+        keys = keys.reject { |key| key.nil? || key == "" }
+        browser.page.keyboard.type(keys) unless keys.empty?
       end
 
       def find_xpath(selector)

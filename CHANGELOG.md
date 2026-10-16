@@ -8,6 +8,9 @@
 - Ferrum is bumped to `~> 0.19.0`
 
 ### Fixed
+- `Driver#send_keys` clicked the focused element before typing, so `send_keys(:tab)` from `<body>` clicked the middle of
+  the page and Tab moved focus from there instead of to the first element. It types into the focused element now, and
+  Capybara's `#active_element` and `focused:` specs run in the suite
 - `window_size: nil` raised `Ferrum::BrowserError: Invalid parameters` on every page instead of leaving the window
   size to Chrome, so `start-maximized` couldn't be used [#278]
 - `Driver#reset!` kept the page it had cached when the browser failed to reset, so every later example raised
