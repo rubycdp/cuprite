@@ -1,4 +1,15 @@
-## [Unreleased](https://github.com/rubycdp/cuprite/compare/v0.18...main) ##
+## [Unreleased](https://github.com/rubycdp/cuprite/compare/v0.19...main) ##
+
+### Added
+
+### Changed
+
+### Fixed
+
+### Removed
+
+
+## [0.19](https://github.com/rubycdp/cuprite/compare/v0.18...v0.19) ##
 
 ### Added
 - `:emulate` driver option to emulate a device listed in Chrome DevTools with its user agent, e.g.
@@ -32,9 +43,6 @@
 - `Node#set` with an empty string cleared a text field without firing the `input` event [#164]
 - Finders with `exact_text: true` raised `InvalidSelector` because Capybara appended an empty `[]` predicate to the
   XPath [#256]
-
-### Removed
-
 
 ## [0.18](https://github.com/rubycdp/cuprite/compare/v0.17...v0.18) ##
 
