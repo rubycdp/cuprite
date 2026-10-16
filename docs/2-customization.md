@@ -41,7 +41,8 @@ Cuprite changes a few Ferrum defaults:
 * `:save_path` - defaults to `Capybara.save_path` if it's set.
 * `:pending_connection_errors` - `true` by default.
 * `:browser_options` - `"remote-allow-origins" => "*"` is always added, so that
-  [debug](/docs/cuprite/debugging) can open DevTools.
+  [debug](/docs/cuprite/debugging) can open DevTools, and so is `"disable-web-security" => nil`, so that tests
+  can reach into cross-origin frames.
 
 ## Examples
 

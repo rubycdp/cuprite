@@ -6,6 +6,8 @@
 
 ### Changed
 - Ferrum is bumped to `~> 0.19.0`
+- `--disable-web-security` is added to the browser options, since Ferrum dropped it from its defaults. Tests keep
+  reaching into cross-origin frames, e.g. `current_url` within a frame from another origin [rubycdp/ferrum#472]
 - Change `Node#send_keys` to avoid triggering `click` on an already focused element. `send_keys(:tab)` without an
   element no longer clicks the middle of the page first, so Tab moves focus from the start of the page, and Capybara's
   `#active_element` and `focused:` specs run in the suite [#327]
