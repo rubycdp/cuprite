@@ -7,6 +7,7 @@ PROJECT_ROOT = File.expand_path("..", __dir__)
 %w[/lib /spec].each { |p| $LOAD_PATH.unshift(p) }
 
 require "fileutils"
+require "logger"
 require "shellwords"
 
 require "capybara/spec/spec_helper"
@@ -14,6 +15,8 @@ require "capybara/cuprite"
 
 require "support/test_app"
 require "support/external_browser"
+
+TestApp.use(Rack::CommonLogger, Logger.new("/tmp/cuprite/test_app.log")) if ENV["CI"]
 
 puts ""
 command = Ferrum::Browser::Command.build(Ferrum::Browser::Options.new, nil)
@@ -29,8 +32,17 @@ Capybara.register_driver(:cuprite) do |app|
   Capybara::Cuprite::Driver.new(app, options)
 end
 
+Capybara.register_driver(:cuprite_mobile) do |app|
+  options = { emulate: :iphone_14 }
+  options.merge!(inspector: true) if ENV["INSPECTOR"]
+  options.merge!(logger: StringIO.new) if ENV["CI"]
+  options.merge!(headless: false) if ENV["HEADLESS"] == "false"
+  Capybara::Cuprite::Driver.new(app, options)
+end
+
 module TestSessions
   Cuprite = Capybara::Session.new(:cuprite, TestApp)
+  CupriteMobile = Capybara::Session.new(:cuprite_mobile, TestApp)
 end
 
 RSpec.configure do |config|

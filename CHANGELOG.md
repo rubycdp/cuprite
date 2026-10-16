@@ -1,12 +1,29 @@
-## [Unreleased](https://github.com/rubycdp/ferrum/compare/v0.18...main) ##
+## [Unreleased](https://github.com/rubycdp/cuprite/compare/v0.18...main) ##
 
 ### Added
+- `:emulate` driver option to emulate a device listed in Chrome DevTools with its user agent, e.g.
+  `emulate: :iphone_14`, along with `:mobile` and `:scale_factor` options it sets, kept across window resizes [#216]
 
 ### Changed
+- Ferrum is bumped to `~> 0.19.0`
 
 - Change `Node#send_keys` to avoid triggering `click` on an already focused element [#327]
 
 ### Fixed
+- `window_size: nil` raised `Ferrum::BrowserError: Invalid parameters` on every page instead of leaving the window
+  size to Chrome, so `start-maximized` couldn't be used [#278]
+- `Driver#reset!` kept the page it had cached when the browser failed to reset, so every later example raised
+  `Session with given id not found` or `Browser is dead or given window is closed` instead of starting on a fresh
+  page [#274], [rubycdp/ferrum#641]
+- `Node#visible?` reported an open popover or modal dialog as hidden when an ancestor had `opacity: 0` [#328]
+- `Driver#window_handles` listed the web workers a page spawned as windows, so `window_opened_by` raised
+  `opened 2 windows instead of 1` [#326]
+- `Node#select_option` and `Node#unselect_option` didn't fire the `input` event on the select [#223]
+- `Node#trigger` silently dispatched nothing for events other than mouse, focus and `submit`, such as `input`,
+  `change` or custom events [#197]
+- `Node#set` with an empty string cleared a text field without firing the `input` event [#164]
+- Finders with `exact_text: true` raised `InvalidSelector` because Capybara appended an empty `[]` predicate to the
+  XPath [#256]
 
 ### Removed
 

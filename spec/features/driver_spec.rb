@@ -8,11 +8,12 @@ module Capybara
   module Cuprite
     describe Driver do
       let(:device_pixel_ratio) { @driver.device_pixel_ratio }
+      let(:mobile) { false }
 
       include Spec::Support::ExternalBrowser
 
       around do |example|
-        @session = TestSessions::Cuprite
+        @session = mobile ? TestSessions::CupriteMobile : TestSessions::Cuprite
         @driver = @session.driver
         example.run
       ensure
@@ -48,6 +49,94 @@ module Capybara
         FileUtils.rm_f(original_path)
         FileUtils.rm_f(file)
         driver&.quit
+      end
+
+      describe "mobile emulation" do
+        context "when mobile emulation is enabled" do
+          let(:mobile) { true }
+
+          it "emulates a mobile browser" do
+            @session.visit("/cuprite/mobile")
+            expect(@session).to have_text("I am a mobile.")
+            expect(@session).to have_no_text("I am a desktop.")
+            expect(@session.evaluate_script("'ontouchstart' in window || navigator.maxTouchPoints > 0")).to be_truthy
+          end
+
+          it "applies the device scale factor" do
+            @session.visit("/cuprite/mobile")
+            expect(@session.evaluate_script("window.devicePixelRatio")).to eq(3)
+          end
+
+          it "keeps emulating a mobile browser after resizing the window" do
+            @session.visit("/cuprite/mobile")
+            @driver.resize(414, 896)
+
+            expect(@session).to have_text("I am a mobile.")
+            expect(@session.evaluate_script("navigator.maxTouchPoints > 0")).to be(true)
+            expect(@session.evaluate_script("window.devicePixelRatio")).to eq(3)
+          end
+
+          it "sends the device user agent" do
+            @session.visit("/cuprite/headers")
+
+            expect(@driver.body).to include("USER_AGENT: Mozilla/5.0 (iPhone; CPU iPhone OS")
+            expect(@session.evaluate_script("navigator.userAgent")).to start_with("Mozilla/5.0 (iPhone;")
+          end
+
+          it "keeps the device user agent when other headers are set" do
+            @driver.headers = { "DV" => "hello" }
+            @session.visit("/cuprite/headers")
+
+            expect(@driver.body).to include("DV: hello")
+            expect(@session.evaluate_script("navigator.userAgent")).to start_with("Mozilla/5.0 (iPhone;")
+          end
+        end
+
+        context "when emulating a device with explicit options" do
+          let(:session) { Capybara::Session.new(:cuprite_pixel, TestApp) }
+
+          before do
+            Capybara.register_driver(:cuprite_pixel) do |app|
+              Capybara::Cuprite::Driver.new(app, emulate: :pixel_9, scale_factor: 1)
+            end
+          end
+
+          after { session.driver.quit }
+
+          it "lets the options override the device" do
+            session.visit("/cuprite/mobile")
+
+            expect(session).to have_text("I am a mobile.")
+            expect(session.evaluate_script("window.devicePixelRatio")).to eq(1)
+          end
+
+          it "fills in the running Chrome version" do
+            session.visit("/cuprite/mobile")
+            version = session.driver.browser.process.default_user_agent[%r{Chrome/(\S+)}, 1]
+
+            expect(session.evaluate_script("navigator.userAgent")).to eq(
+              "Mozilla/5.0 (Linux; Android 14; Pixel 9) AppleWebKit/537.36 (KHTML, like Gecko) " \
+              "Chrome/#{version} Mobile Safari/537.36"
+            )
+          end
+        end
+
+        it "raises an error for an unknown device" do
+          driver = Capybara::Cuprite::Driver.new(nil, emulate: :nokia_3310)
+
+          expect { driver.browser }.to raise_error(ArgumentError, /Unknown device to emulate: :nokia_3310/)
+        end
+
+        context "when mobile emulation is disabled" do
+          let(:mobile) { false }
+
+          it "does not emulate a mobile browser" do
+            @session.visit("/cuprite/mobile")
+            expect(@session).to have_text("I am a desktop.")
+            expect(@session).to have_no_text("I am a mobile.")
+            expect(@session.evaluate_script("'ontouchstart' in window || navigator.maxTouchPoints > 0")).to be_falsy
+          end
+        end
       end
 
       context "output redirection" do
@@ -137,6 +226,25 @@ module Capybara
         expect(
           driver.evaluate_script("[window.innerWidth, window.innerHeight]")
         ).to eq([800, 600])
+      ensure
+        driver&.quit
+      end
+
+      it "leaves the window size to the browser when the option is nil" do
+        Capybara.register_driver :cuprite_without_window_size do |app|
+          Capybara::Cuprite::Driver.new(app, window_size: nil)
+        end
+        driver = Capybara::Session.new(:cuprite_without_window_size, TestApp).driver
+        driver.visit(session_url("/"))
+        default_size = driver.evaluate_script("[window.innerWidth, window.innerHeight]")
+        expect(default_size).not_to eq([1024, 768])
+
+        driver.resize(800, 600)
+        expect(driver.evaluate_script("[window.innerWidth, window.innerHeight]")).to eq([800, 600])
+
+        driver.reset!
+        driver.visit(session_url("/"))
+        expect(driver.evaluate_script("[window.innerWidth, window.innerHeight]")).to eq(default_size)
       ensure
         driver&.quit
       end
@@ -989,6 +1097,17 @@ module Capybara
         expect(@driver.window_handles.size).to eq(2)
       end
 
+      it "doesn't list web workers as windows" do
+        @session.visit "/cuprite/with_worker"
+
+        expect(@driver.window_handles.size).to eq(1)
+
+        new_window = @session.window_opened_by { @session.click_link "Open tab" }
+
+        expect(@driver.window_handles).to contain_exactly(@session.current_window.handle, new_window.handle)
+        @session.within_window(new_window) { expect(@session).to have_link("Open tab") }
+      end
+
       context "a new window inherits settings" do
         it "inherits size" do
           @session.visit "/"
@@ -1567,6 +1686,19 @@ module Capybara
             input.set("a")
             input.set("a")
             expect(output.text).to eq("keydown keypress input keyup change keydown keypress input keyup")
+          end
+
+          it "calls the input event when clearing the value" do
+            input.set("a")
+            input.set("")
+            expect(output.text).to eq("keydown keypress input keyup change input change")
+            expect(output["data-input-type"]).to eq("deleteContentBackward")
+            expect(input.value).to be_empty
+          end
+
+          it "doesn't call the input event when clearing an empty value" do
+            input.set("")
+            expect(output.text).to be_empty
           end
         end
       end

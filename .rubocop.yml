@@ -55,7 +55,14 @@ Metrics/ModuleLength:
   Max: 602
 
 Metrics/PerceivedComplexity:
-  Max: 14
+  Max: 15
 
 plugins:
   - rubocop-rake
+
+Naming/VariableNumber:
+  CheckSymbols: false
+
+Layout/LineLength:
+  Exclude:
+    - lib/capybara/cuprite/devices.rb

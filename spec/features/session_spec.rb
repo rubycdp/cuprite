@@ -155,6 +155,11 @@ describe Capybara::Session do
           expect(@session.find(:css, "#changes").text).to eq("Firefox")
         end
 
+        it "fires the input event before the change event" do
+          expect(@session.find(:css, "#changes_on_input").text).to eq("Firefox")
+          expect(@session.find(:css, "#select_events").text).to eq("input change")
+        end
+
         it "fires the blur event" do
           expect(@session.find(:css, "#changes_on_blur").text).to eq("Firefox")
         end
@@ -177,6 +182,11 @@ describe Capybara::Session do
           expect(@session.find(:css, "#changes").text).to eq("Safari")
         end
 
+        it "fires the input event before the change event" do
+          expect(@session.find(:css, "#changes_on_input").text).to eq("Safari")
+          expect(@session.find(:css, "#select_events").text).to eq("input change")
+        end
+
         it "fires the blur event" do
           expect(@session.find(:css, "#changes_on_blur").text).to eq("Safari")
         end
@@ -184,6 +194,30 @@ describe Capybara::Session do
         it "fires the change event with the correct target" do
           expect(@session.find(:css, "#target_on_select").text).to eq("SELECT")
         end
+      end
+    end
+
+    describe "Node#trigger" do
+      let(:input) { @session.find(:css, "#input") }
+      let(:output) { @session.find(:css, "#output") }
+
+      before { @session.visit("/cuprite/input_events") }
+
+      it "fires the input event" do
+        input.trigger(:input)
+        expect(output.text).to eq("input")
+        expect(output["data-input-type"]).to eq("insertText")
+      end
+
+      it "fires the change event" do
+        input.trigger(:change)
+        expect(output.text).to eq("change")
+      end
+
+      it "fires a custom event that bubbles" do
+        @session.execute_script("document.body.addEventListener('custom:ping', () => log('custom:ping'))")
+        input.trigger("custom:ping")
+        expect(output.text).to eq("custom:ping")
       end
     end
 
@@ -409,6 +443,44 @@ describe Capybara::Session do
 
       it "element with all children hidden returns empty text" do
         expect(@session.find(:css, "div").text).to eq("")
+      end
+
+      it "considers a shown popover to be visible past opacity: 0" do
+        popover = @session.find(:css, "#popover_in_transparent", visible: false)
+        expect(popover.visible?).to be false
+
+        popover.execute_script("this.showPopover()")
+
+        expect(popover.visible?).to be true
+      end
+
+      it "considers a child of a shown popover to be visible past opacity: 0" do
+        button = @session.find(:css, "#button_in_popover", visible: false)
+        expect(button.visible?).to be false
+
+        @session.execute_script("document.getElementById('popover_in_transparent').showPopover()")
+
+        expect(button.visible?).to be true
+        button.click
+      end
+
+      it "considers a shown modal dialog to be visible past opacity: 0" do
+        dialog = @session.find(:css, "#dialog_in_transparent", visible: false)
+        expect(dialog.visible?).to be false
+
+        dialog.execute_script("this.showModal()")
+        expect(dialog.visible?).to be true
+
+        dialog.execute_script("this.close(); this.show()")
+        expect(dialog.visible?).to be false
+      end
+
+      it "considers a shown popover to not be visible past display: none" do
+        popover = @session.find(:css, "#popover_in_display_none", visible: false)
+
+        popover.execute_script("this.showPopover()")
+
+        expect(popover.visible?).to be false
       end
     end
 
@@ -730,6 +802,11 @@ describe Capybara::Session do
       @session.visit "/#foo"
       expect(@session.current_url).to match(%r{/#foo$})
       expect(@session.evaluate_script("window.last_hashchange")).to eq("#foo")
+    end
+
+    it "finds a link with exact_text: true" do
+      @session.visit "/with_html"
+      expect(@session.find_link("A link", exact_text: true)[:href]).to end_with("/with_simple_html")
     end
 
     context "current_url" do

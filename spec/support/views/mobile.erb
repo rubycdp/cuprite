@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>Mobile test page</title>
+    <style>
+      @media (min-width: 1000px) {
+        .desktop { display: block; }
+        .mobile { display: none; }
+      }
+
+      @media (max-width: 999px) {
+        .desktop { display: none; }
+        .mobile { display: block; }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="desktop">
+      I am a desktop.
+    </div>
+
+    <div class="mobile">
+      I am a mobile.
+    </div>
+  </body>
+</html>

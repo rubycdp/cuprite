@@ -14,6 +14,8 @@ module Capybara
                   dismiss_prompt reset_modals] => :page
 
       def initialize(options = nil)
+        device = options&.dig(:emulate)
+        options = Devices.fetch(device).except(:user_agent).merge(options) if device
         super
 
         @options.raise_on_unhandled_modal = options&.dig(:raise_on_unhandled_modal)
@@ -38,6 +40,7 @@ module Capybara
 
       def reset
         super
+      ensure
         @options.reset_window_size
         @page = nil
       end
@@ -109,7 +112,7 @@ module Capybara
       end
 
       def window_handles
-        targets.keys
+        targets.values.select(&:page?).map(&:id)
       end
 
       def within_window(locator = nil)
@@ -123,17 +126,13 @@ module Capybara
       end
 
       def switch_to_window(target_id)
-        target = targets[target_id]
-        raise Ferrum::NoSuchPageError unless target
-
+        target = window_target(target_id)
         @page = attach_page(target.id)
         @page.activate
       end
 
       def close_window(target_id)
-        target = targets[target_id]
-        raise Ferrum::NoSuchPageError unless target
-
+        target = window_target(target_id)
         @page = ClosedPage.new if @page.target_id == target.id
         target.page.close
         targets.delete(target_id) # page.close is async, delete target asap
@@ -266,6 +265,10 @@ module Capybara
       private
 
       def find_all(method, selector, within = nil)
+        # Capybara appends its text-match hint as `(expr)[...]`, but with `exact_text: true` the hint
+        # is empty and the result `(expr)[]` is invalid XPath. An empty predicate is never valid, so
+        # dropping it can't change a valid selector. Remove once teamcapybara/capybara#2860 is released.
+        selector = selector.delete_suffix("[]") if method == :xpath
         nodes = if within
                   evaluate("_cuprite.find(arguments[0], arguments[1], arguments[2])", method, selector, within)
                 else
@@ -295,6 +298,13 @@ module Capybara
         if string_passed
           warn "Passing strings to blacklist/whitelist is deprecated, pass regexp at #{caller(4..4).first}"
         end
+      end
+
+      def window_target(target_id)
+        target = targets[target_id]
+        raise Ferrum::NoSuchPageError unless target&.page?
+
+        target
       end
 
       def attach_page(target_id = nil)
