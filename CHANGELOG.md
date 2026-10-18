@@ -1,6 +1,7 @@
 ## [Unreleased](https://github.com/rubycdp/cuprite/compare/v0.19...main) ##
 
 ### Added
+- `Driver#downloads` to wait for downloads and list them, files are saved to `Capybara.save_path` [#181]
 
 ### Changed
 
