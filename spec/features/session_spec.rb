@@ -851,6 +851,25 @@ describe Capybara::Session do
         expect(droppable).to have_content("Dropped")
       end
 
+      it "holds drop modifiers while moving to the target" do
+        @session.execute_script(<<~JS)
+          window.events = [];
+          ["keydown", "keyup", "mousedown", "mousemove", "mouseup"].forEach(type =>
+            document.addEventListener(type, e => events.push(`${type}:${e.shiftKey}:${e.altKey}`)));
+        JS
+        draggable = @session.find(:css, "#drag_to #draggable")
+        droppable = @session.find(:css, "#drag_to #droppable")
+
+        draggable.drag_to(droppable, drop_modifiers: %i[shift alt])
+
+        events = @session.evaluate_script("window.events").chunk_while { |a, b| a == b }.map(&:first)
+        expect(events).to eq(
+          %w[mousemove:false:false mousedown:false:false keydown:true:false keydown:true:true
+             mousemove:true:true mouseup:true:true keyup:true:false keyup:false:false]
+        )
+        expect(droppable).to have_content("Dropped")
+      end
+
       it "supports drag_by on native element" do
         draggable = @session.find(:css, "#drag_by .draggable")
 
