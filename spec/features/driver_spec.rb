@@ -930,6 +930,24 @@ module Capybara
         end
       end
 
+      context "downloads" do
+        it "saves files to Capybara.save_path" do
+          @driver.downloads.wait { @session.visit("/cuprite/attachment.txt") }
+
+          file = @driver.downloads.files.last
+          expect(file["suggestedFilename"]).to eq("attachment.txt")
+          expect(file["state"]).to eq("completed")
+          expect(File.read(File.join(Capybara.save_path, "attachment.txt"))).to eq("attachment contents")
+        end
+
+        it "forgets files after reset" do
+          @driver.downloads.wait { @session.visit("/cuprite/attachment.txt") }
+          @driver.reset!
+
+          expect(@driver.downloads.files).to be_empty
+        end
+      end
+
       context "cookies support" do
         it "returns set cookies" do
           @session.visit("/set_cookie")

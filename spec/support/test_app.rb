@@ -98,6 +98,11 @@ class TestApp
     render_string("Cacheable request <a href='/cuprite/cacheable'>click me</a>")
   end
 
+  get "/cuprite/attachment.txt" do
+    attachment "attachment.txt"
+    "attachment contents"
+  end
+
   get "/cuprite/:view" do |view|
     render_view view
   end
