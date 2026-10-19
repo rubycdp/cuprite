@@ -556,6 +556,70 @@ describe Capybara::Session do
       end
     end
 
+    describe "finder hints" do
+      before do
+        @session.visit("/cuprite/find_hints")
+      end
+
+      def ids(nodes)
+        nodes.map { |node| node[:id] }
+      end
+
+      it "answers visibility, styles and position in the initial cache" do
+        shown, hidden = @session.driver.find_css("#shown, #hidden", uses_visibility: true,
+                                                                    styles: { color: "red" },
+                                                                    position: true)
+
+        expect(shown.initial_cache).to include(visible: true, style: { "color" => "rgb(255, 0, 0)" })
+        expect(shown.initial_cache[:position]).to eq(shown.rect)
+        expect(hidden.initial_cache).to include(visible: false)
+      end
+
+      it "leaves the initial cache empty without hints" do
+        expect(@session.driver.find_css("li").map(&:initial_cache)).to all(eq({}))
+      end
+
+      it "keeps only the nodes holding every text" do
+        expect(ids(@session.driver.find_css("li", texts: %w[Shown item]))).to eq(%w[shown])
+        expect(ids(@session.driver.find_css("li", texts: %w[Hidden]))).to eq(%w[hidden])
+        expect(@session.driver.find_css("li", texts: %w[shown])).to be_empty
+      end
+
+      it "matches the visible text only when visibility is asked for" do
+        expect(@session.driver.find_css("li", texts: %w[Splitword])).to be_empty
+        expect(ids(@session.driver.find_css("li", texts: %w[Splitword], uses_visibility: true))).to eq(%w[split])
+      end
+
+      it "finds what Capybara matches on text" do
+        expect(@session.find(:css, "li", text: "Splitword")[:id]).to eq("split")
+        expect(@session.find(:css, "li", text: "Zerowidth", visible: :all)[:id]).to eq("zero_width")
+        expect(@session.find(:css, "li", text: "SHOUTED")[:id]).to eq("shouted")
+        expect(@session.find(:css, "li", text: "Spaced out")[:id]).to eq("spaced")
+        expect(@session.find(:css, "li", text: "Non breaking")[:id]).to eq("non_breaking")
+      end
+
+      it "skips what Capybara doesn't match on text" do
+        expect(@session).to have_no_css("li", text: "shown item")
+        expect(@session).to have_no_css("li", text: "shouted")
+        expect(@session).to have_no_css("li", text: "Zerowidth")
+        expect(@session).to have_no_css("li", text: "Hidden item")
+      end
+
+      it "answers hints within a node" do
+        items = @session.find(:css, "#items")
+        nodes = items.base.find_css("*", texts: %w[Shown], uses_visibility: true)
+
+        expect(ids(nodes)).to eq(%w[shown])
+        expect(nodes.first.initial_cache).to eq(visible: true)
+      end
+
+      it "returns nothing when nothing matches" do
+        expect(@session.driver.find_css("#missing", uses_visibility: true, position: true)).to be_empty
+        expect(@session.driver.find_xpath("//li[@id='missing']", uses_visibility: true)).to be_empty
+        expect(@session.find(:css, "#items").base.find_css("p", texts: %w[Shown])).to be_empty
+      end
+    end
+
     describe "Node#shadow_root" do
       it "produces error messages when failing" do
         @session.visit("/with_shadow")

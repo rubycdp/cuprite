@@ -4,6 +4,9 @@
 - `Driver#downloads` to wait for downloads and list them, files are saved to `Capybara.save_path` [#181]
 
 ### Changed
+- `find_css` and `find_xpath` answer Capybara's finder hints in the call that finds the nodes: nodes that can't hold
+  the text are dropped there, and visibility, styles and position come back in `Node#initial_cache`, so Capybara no
+  longer asks for each node's visibility and text in a round trip of its own [#347]
 
 ### Fixed
 
