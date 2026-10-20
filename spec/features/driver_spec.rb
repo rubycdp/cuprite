@@ -112,7 +112,7 @@ module Capybara
 
           it "fills in the running Chrome version" do
             session.visit("/cuprite/mobile")
-            version = session.driver.browser.process.default_user_agent[%r{Chrome/(\S+)}, 1]
+            version = session.driver.browser.version.user_agent[%r{Chrome/(\S+)}, 1]
 
             expect(session.evaluate_script("navigator.userAgent")).to eq(
               "Mozilla/5.0 (Linux; Android 14; Pixel 9) AppleWebKit/537.36 (KHTML, like Gecko) " \
