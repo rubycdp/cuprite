@@ -677,8 +677,6 @@ module Capybara
             extensions: [File.expand_path("../support/non_existent.js", __dir__)]
           )
           expect { failing_driver.visit(session_url("/")) }.to raise_error(Errno::ENOENT)
-        ensure
-          failing_driver.quit
         end
       end
 

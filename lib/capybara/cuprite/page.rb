@@ -13,6 +13,7 @@ module Capybara
     class Page < Ferrum::Page
       MODAL_WAIT = ENV.fetch("CUPRITE_MODAL_WAIT", 0.05).to_f
       TRIGGER_CLICK_WAIT = ENV.fetch("CUPRITE_TRIGGER_CLICK_WAIT", 0.1).to_f
+      EXTENSION_JS = File.read(Driver::EXTENSION).freeze
 
       extend Forwardable
 
@@ -176,6 +177,7 @@ module Capybara
 
       def prepare_page
         super
+        execute(EXTENSION_JS)
 
         width, height = @options.window_size
         width && height ? resize(width: width, height: height) : set_viewport
