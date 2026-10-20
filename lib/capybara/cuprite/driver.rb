@@ -76,16 +76,16 @@ module Capybara
         Node.new(self, browser.active_element)
       end
 
-      def find_xpath(selector)
-        find(:xpath, selector)
+      def find_xpath(selector, **hints)
+        find(:xpath, selector, **hints)
       end
 
-      def find_css(selector)
-        find(:css, selector)
+      def find_css(selector, **hints)
+        find(:css, selector, **hints)
       end
 
-      def find(method, selector)
-        browser.find(method, selector).map { |native| Node.new(self, native) }
+      def find(method, selector, **hints)
+        browser.find_with_hints(method, selector, hints).map { |native, cache| Node.new(self, native, cache) }
       end
 
       def click(x, y)

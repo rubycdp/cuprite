@@ -148,6 +148,30 @@ module Capybara
         end
       end
 
+      # Ferrum resolves a returned array only when it holds nothing but nodes, so the hints and
+      # nodes `_cuprite.findWithHints` returns together are read from the array's handle here.
+      def find_with_hints(method, selector, hints, within = nil)
+        arguments = [{ value: method }, { value: selector }, { value: hints }]
+        arguments << { objectId: within } if within
+
+        Ferrum::Utils::Attempt.with_retry(errors: [Ferrum::NodeNotFoundError, Ferrum::NoExecutionContextError],
+                                          max: Ferrum::Frame::Runtime::INTERMITTENT_ATTEMPTS,
+                                          wait: Ferrum::Frame::Runtime::INTERMITTENT_SLEEP) do
+          response = command("Runtime.callFunctionOn",
+                             slowmoable: true,
+                             executionContextId: execution_id!,
+                             functionDeclaration: "function() { return _cuprite.findWithHints(...arguments) }",
+                             arguments: arguments)
+          raise Ferrum::JavaScriptError, response["exceptionDetails"] if response["exceptionDetails"]
+
+          array_items(response.dig("result", "objectId")).each_slice(2).map do |cache, node|
+            description = command("DOM.describeNode", objectId: node["objectId"])["node"]
+            node = Ferrum::Node.new(active_frame, target_id, description, object_id: node["objectId"])
+            [node, JSON.parse(cache["value"]).transform_keys(&:to_sym)]
+          end
+        end
+      end
+
       def frame_name
         evaluate("window.name")
       end
@@ -225,6 +249,14 @@ module Capybara
         raise MouseEventFailed, "MouseEventFailed: click, none, 0, 0" if e.message == "Could not compute content quads."
 
         raise
+      end
+
+      def array_items(object_id)
+        properties = command("Runtime.getProperties", objectId: object_id, ownProperties: true)["result"]
+        properties.each_with_object([]) do |property, items|
+          index = Integer(property["name"], exception: false)
+          items[index] = property["value"] if index
+        end
       end
 
       def active_frame
