@@ -171,13 +171,10 @@ module Capybara
         if html5
           drag_html5(node, other, drop_modifiers, delay, drop_offset)
         else
-          modifiers = keyboard.modifiers(drop_modifiers)
-
           other.scroll_into_view if scroll
           x2, y2 = other.find_position(**drop_offset.to_h)
-          mouse.move(x: x2, y: y2, steps: steps)
 
-          mouse.up(modifiers: modifiers)
+          keyboard.hold(*drop_modifiers) { mouse.move(x: x2, y: y2, steps: steps).up }
         end
       end
 
