@@ -10,6 +10,7 @@
   them, like Selenium does. They used to be set only on mouseup [rubycdp/ferrum#581]
 
 ### Removed
+- Ruby 3.1 support, Cuprite requires Ruby 3.2 or newer
 
 
 ## [0.19](https://github.com/rubycdp/cuprite/compare/v0.18...v0.19) ##
