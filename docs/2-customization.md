@@ -59,6 +59,9 @@ Capybara::Cuprite::Driver.new(app, timeout: 15, process_timeout: 30)
 # Connect to a remote browser
 Capybara::Cuprite::Driver.new(app, url: "http://chrome:3333")
 
+# Keep a remote browser's connection active through a proxy that drops idle connections
+Capybara::Cuprite::Driver.new(app, url: "http://chrome:3333", timeout: 120, keepalive_interval: 25)
+
 # Leave the window size to Chrome, e.g. to start maximized in headful mode
 Capybara::Cuprite::Driver.new(app, headless: false, window_size: nil, browser_options: { "start-maximized" => nil })
 
