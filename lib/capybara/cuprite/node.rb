@@ -14,17 +14,17 @@ module Capybara
       DRAG_HTML5_JS = File.read(File.expand_path("javascripts/drag.js", __dir__))
       TRIGGER_CLICK_WAIT = ENV.fetch("CUPRITE_TRIGGER_CLICK_WAIT", 0.1).to_f
 
-      def initialize(driver, node)
-        super(driver, self)
+      def initialize(driver, node, initial_cache = {})
+        super(driver, self, initial_cache)
         @node = node
       end
 
-      def find_xpath(selector)
-        find(:xpath, selector)
+      def find_xpath(selector, **hints)
+        find(:xpath, selector, **hints)
       end
 
-      def find_css(selector)
-        find(:css, selector)
+      def find_css(selector, **hints)
+        find(:css, selector, **hints)
       end
 
       def all_text
@@ -237,9 +237,9 @@ module Capybara
 
       private
 
-      def find(method, selector)
-        command { Finder.find(driver.browser, method, selector, node) }.map do |node|
-          self.class.new(driver, node)
+      def find(method, selector, **hints)
+        command { Finder.find(driver.browser, method, selector, node, **hints) }.map do |node, cache|
+          self.class.new(driver, node, cache)
         end
       end
 

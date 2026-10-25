@@ -522,6 +522,58 @@ describe Capybara::Cuprite::Driver do
       @session.visit "/cuprite/table"
       expect { @session.find(:css, "table tr:last") }.to raise_error(Capybara::Cuprite::InvalidSelector)
     end
+
+    context "with finder hints" do
+      before { @session.visit("/cuprite/find_hints") }
+
+      def ids(nodes)
+        nodes.map { |node| node[:id] }
+      end
+
+      it "answers visibility, styles and position in the initial cache" do
+        shown, hidden = @driver.find_css("#shown, #hidden", uses_visibility: true,
+                                                            styles: { color: "red" },
+                                                            position: true)
+
+        expect(shown.initial_cache).to include(visible: true, style: { "color" => "rgb(255, 0, 0)" })
+        expect(shown.initial_cache[:position]).to eq(shown.rect)
+        expect(hidden.initial_cache).to include(visible: false)
+      end
+
+      it "leaves the initial cache empty without hints" do
+        expect(@driver.find_css("li").map(&:initial_cache)).to all(eq({}))
+      end
+
+      it "keeps only the nodes holding every text" do
+        expect(ids(@driver.find_css("li", texts: %w[Shown item]))).to eq(%w[shown])
+        expect(ids(@driver.find_css("li", texts: %w[Hidden]))).to eq(%w[hidden])
+        expect(@driver.find_css("li", texts: %w[shown])).to be_empty
+      end
+
+      it "matches the visible text only when visibility is asked for" do
+        expect(@driver.find_css("li", texts: %w[Splitword])).to be_empty
+        expect(ids(@driver.find_css("li", texts: %w[Splitword], uses_visibility: true))).to eq(%w[split])
+      end
+
+      it "finds what Capybara matches on text" do
+        expect(@session.find(:css, "li", text: "Splitword")[:id]).to eq("split")
+        expect(@session.find(:css, "li", text: "Zerowidth", visible: :all)[:id]).to eq("zero_width")
+        expect(@session.find(:css, "li", text: "SHOUTED")[:id]).to eq("shouted")
+        expect(@session.find(:css, "li", text: "Spaced out")[:id]).to eq("spaced")
+        expect(@session.find(:css, "li", text: "Non breaking")[:id]).to eq("non_breaking")
+      end
+
+      it "skips what Capybara doesn't match on text" do
+        expect(@session).to have_no_css("li", text: "shown item")
+        expect(@session).to have_no_css("li", text: "shouted")
+        expect(@session).to have_no_css("li", text: "Zerowidth")
+        expect(@session).to have_no_css("li", text: "Hidden item")
+      end
+
+      it "returns nothing when nothing matches" do
+        expect(@driver.find_css("#missing", uses_visibility: true, position: true)).to be_empty
+      end
+    end
   end
 
   describe "#find_xpath" do
@@ -539,6 +591,11 @@ describe Capybara::Cuprite::Driver do
     it "finds a link with exact_text: true" do
       @session.visit "/with_html"
       expect(@session.find_link("A link", exact_text: true)[:href]).to end_with("/with_simple_html")
+    end
+
+    it "returns nothing with finder hints when nothing matches" do
+      @session.visit("/cuprite/find_hints")
+      expect(@driver.find_xpath("//li[@id='missing']", uses_visibility: true)).to be_empty
     end
   end
 
