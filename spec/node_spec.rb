@@ -924,6 +924,19 @@ describe Capybara::Cuprite::Node do
     end
   end
 
+  describe "#find_css" do
+    it "answers finder hints within the node" do
+      @session.visit("/cuprite/find_hints")
+      items = @session.find(:css, "#items").base
+
+      nodes = items.find_css("*", texts: %w[Shown], uses_visibility: true)
+
+      expect(nodes.map { |node| node[:id] }).to eq(%w[shown])
+      expect(nodes.first.initial_cache).to eq(visible: true)
+      expect(items.find_css("p", texts: %w[Shown])).to be_empty
+    end
+  end
+
   describe "#shadow_root" do
     it "describes the shadow root in failure messages" do
       @session.visit("/with_shadow")
