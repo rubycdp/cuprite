@@ -19,7 +19,7 @@ module Capybara
 
       delegate %i[at_css at_xpath css xpath
                   current_url current_title body execution_id execution_id!
-                  evaluate evaluate_on evaluate_async execute] => :active_frame
+                  evaluate evaluate_on execute] => :active_frame
 
       def initialize(...)
         @frame_stack = []
@@ -50,12 +50,11 @@ module Capybara
       end
 
       def set(node, value)
-        object_id = command("DOM.resolveNode", nodeId: node.node_id).dig("object", "objectId")
-        evaluate("_cuprite.set(arguments[0], arguments[1])", { "objectId" => object_id }, value)
+        node.evaluate("_cuprite.set(this, arguments[0])", value)
       end
 
       def select(node, value)
-        evaluate_on(node: node, expression: "_cuprite.select(this, #{value})")
+        node.evaluate("_cuprite.select(this, #{value})")
       end
 
       def trigger(node, event)
@@ -65,13 +64,13 @@ module Capybara
       end
 
       def hover(node)
-        evaluate_on(node: node, expression: "_cuprite.scrollIntoViewport(this)")
+        node.evaluate("_cuprite.scrollIntoViewport(this)")
         x, y = find_position(node)
         command("Input.dispatchMouseEvent", type: "mouseMoved", x: x, y: y)
       end
 
       def send_keys(node, keys)
-        unless evaluate_on(node: node, expression: %(_cuprite.containsSelection(this) || _cuprite.hasFocus(this)))
+        unless node.evaluate(%(_cuprite.containsSelection(this) || _cuprite.hasFocus(this)))
           before_click(node, "click")
           node.click(mode: :left, keys: keys)
         end
@@ -125,14 +124,14 @@ module Capybara
       end
 
       def before_click(node, name, _keys = [], offset = {})
-        evaluate_on(node: node, expression: "_cuprite.scrollIntoViewport(this)")
+        node.evaluate("_cuprite.scrollIntoViewport(this)")
 
         # If offset is given it may go outside of the element and likely error
         # will be raised that we detected another element at this position.
         return true if offset[:x] || offset[:y]
 
         x, y = find_position(node, **offset)
-        evaluate_on(node: node, expression: "_cuprite.mouseEventTest(this, '#{name}', #{x}, #{y})")
+        node.evaluate("_cuprite.mouseEventTest(this, '#{name}', #{x}, #{y})")
         true
       rescue Ferrum::JavaScriptError => e
         raise MouseEventFailed, e.message if e.class_name == "MouseEventFailed"
