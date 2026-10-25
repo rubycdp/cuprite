@@ -14,8 +14,8 @@ module Capybara
 
       DRAG_MODIFIER_ALIASES = { control: :ctrl, command: :meta, cmd: :meta }.freeze
 
-      def initialize(driver, node)
-        super(driver, self)
+      def initialize(driver, node, initial_cache = {})
+        super(driver, self, initial_cache)
         @node = node
       end
 
@@ -40,17 +40,17 @@ module Capybara
         end
       end
 
-      def find_xpath(selector)
-        find(:xpath, selector)
+      def find_xpath(selector, **hints)
+        find(:xpath, selector, **hints)
       end
 
-      def find_css(selector)
-        find(:css, selector)
+      def find_css(selector, **hints)
+        find(:css, selector, **hints)
       end
 
-      def find(method, selector)
-        command(:find_within, method, selector).map do |node|
-          self.class.new(driver, node)
+      def find(method, selector, **hints)
+        command(:find_within_with_hints, method, selector, hints).map do |node, cache|
+          self.class.new(driver, node, cache)
         end
       end
 
