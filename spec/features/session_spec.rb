@@ -532,6 +532,10 @@ describe Capybara::Session do
         expect(@session.find_field("checked")["checked"]).to be true
         expect(@session.find_field("unchecked")["checked"]).to be false
       end
+
+      it "gets the attribute for a property holding a node" do
+        expect(@session.find_field("outside_form")["form"]).to eq "outer_form"
+      end
     end
 
     describe "Node#==" do
