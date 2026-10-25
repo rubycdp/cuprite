@@ -219,6 +219,20 @@ describe Capybara::Session do
         input.trigger("custom:ping")
         expect(output.text).to eq("custom:ping")
       end
+
+      it "waits for the page a triggered click opens" do
+        page = @session.driver.browser.page
+        navigated = loaded = false
+        page.on("Page.frameNavigated") { |params| navigated = params.dig("frame", "url").end_with?("/cuprite/slow") }
+        page.on("Page.loadEventFired") { loaded = navigated }
+        @session.execute_script(<<~JS)
+          document.body.insertAdjacentHTML("beforeend", '<a id="slow" href="/cuprite/slow">slow</a>')
+        JS
+
+        @session.find(:css, "#slow").trigger(:click)
+
+        expect(loaded).to be(true)
+      end
     end
 
     describe "Node#set" do

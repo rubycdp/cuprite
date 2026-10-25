@@ -19,7 +19,7 @@ module Capybara
 
       delegate %i[at_css at_xpath css xpath
                   current_url current_title body execution_id execution_id!
-                  evaluate evaluate_on execute] => :active_frame
+                  evaluate execute] => :active_frame
 
       def initialize(...)
         @frame_stack = []
@@ -58,9 +58,10 @@ module Capybara
       end
 
       def trigger(node, event)
-        options = {}
-        options.merge!(wait: TRIGGER_CLICK_WAIT) if event.to_s == "click" && TRIGGER_CLICK_WAIT.positive?
-        evaluate_on(node: node, expression: %(_cuprite.trigger(this, "#{event}")), **options)
+        script = %(_cuprite.trigger(this, "#{event}"))
+        return node.evaluate(script) unless event.to_s == "click" && TRIGGER_CLICK_WAIT.positive?
+
+        wait_for_navigation!(TRIGGER_CLICK_WAIT) { node.evaluate(script) }
       end
 
       def hover(node)
