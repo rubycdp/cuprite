@@ -209,7 +209,7 @@ module Capybara
 
         sleep delay if delay
 
-        evaluate("window.scrollBy(#{dx}, #{dy})") if scroll # should be extracted to Mouse#scroll_by in ferrum
+        mouse.scroll_by(dx, dy) if scroll
 
         x2, y2 = node.find_position
         mouse.move(x: x2 + dx, y: y2 + dy, steps: steps)
