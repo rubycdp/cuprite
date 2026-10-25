@@ -233,7 +233,7 @@ module Capybara
       end
 
       def parents(node)
-        evaluate_on(node: node, expression: "_cuprite.parents(this)", by_value: false)
+        node.evaluate("function() { return _cuprite.parents(this) }")
       end
 
       def visible_text(node)
