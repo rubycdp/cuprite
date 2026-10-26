@@ -649,7 +649,8 @@ describe Capybara::Session do
         })()
       JS
 
-      expect(@session.evaluate_script(code)).to eq(Ferrum::CyclicObject.instance)
+      cyclic = Ferrum::CyclicObject.instance
+      expect(@session.evaluate_script(code)).to eq("a" => cyclic, "b" => {}, "c" => { "a" => cyclic })
     end
 
     it "synchronises page loads properly" do
