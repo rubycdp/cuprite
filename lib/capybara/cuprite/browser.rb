@@ -8,6 +8,19 @@ module Capybara
       extend Forwardable
 
       DRAG_HTML5_JS = File.read(File.expand_path("javascripts/drag.js", __dir__))
+      CALLBACK_JS = <<~JS
+        function(...args) {
+          return new Promise((resolve, reject) => {
+            try {
+              (function() {
+                SCRIPT
+              }).apply(this, [...args, resolve]);
+            } catch (error) {
+              reject(error);
+            }
+          });
+        }
+      JS
 
       delegate %i[send_keys select set hover trigger before_click switch_to_frame
                   find_modal accept_confirm dismiss_confirm accept_prompt
@@ -138,6 +151,10 @@ module Capybara
         targets.delete(target_id) # page.close is async, delete target asap
       end
 
+      def evaluate_async(script, wait, *args)
+        evaluate(CALLBACK_JS.sub("SCRIPT") { script }, *args, timeout: wait)
+      end
+
       def active_element
         evaluate("document.activeElement")
       end
@@ -166,7 +183,7 @@ module Capybara
         mouse.down
         sleep delay if delay
 
-        html5 = !evaluate_on(node: node, expression: "_cuprite.legacyDragCheck(this)") if html5.nil?
+        html5 = !node.evaluate("_cuprite.legacyDragCheck(this)") if html5.nil?
 
         if html5
           drag_html5(node, other, drop_modifiers, delay, drop_offset)
@@ -192,7 +209,7 @@ module Capybara
 
         sleep delay if delay
 
-        evaluate("window.scrollBy(#{dx}, #{dy})") if scroll # should be extracted to Mouse#scroll_by in ferrum
+        mouse.scroll_by(dx, dy) if scroll
 
         x2, y2 = node.find_position
         mouse.move(x: x2 + dx, y: y2 + dy, steps: steps)
@@ -204,10 +221,10 @@ module Capybara
           execute("_cuprite.attachDropInput()")
           input = find(:css, "#_cuprite_drop_file").first
           select_file(input, args)
-          evaluate_on(node: node, expression: "_cuprite.dropFile(this)")
+          node.evaluate("_cuprite.dropFile(this)")
         else
           strings = args.flat_map { |arg| arg.map { |type, data| { "type" => type, "data" => data } } }
-          evaluate_on(node: node, expression: "_cuprite.dropString(#{strings.to_json}, this)")
+          node.evaluate("_cuprite.dropString(#{strings.to_json}, this)")
         end
       end
 
@@ -216,44 +233,44 @@ module Capybara
       end
 
       def parents(node)
-        evaluate_on(node: node, expression: "_cuprite.parents(this)", by_value: false)
+        node.evaluate("function() { return _cuprite.parents(this) }")
       end
 
       def visible_text(node)
-        evaluate_on(node: node, expression: "_cuprite.visibleText(this)")
+        node.evaluate("_cuprite.visibleText(this)")
       end
 
       def delete_text(node)
-        evaluate_on(node: node, expression: "_cuprite.deleteText(this)")
+        node.evaluate("_cuprite.deleteText(this)")
       end
 
       def attributes(node)
-        value = evaluate_on(node: node, expression: "_cuprite.getAttributes(this)")
+        value = node.evaluate("_cuprite.getAttributes(this)")
         JSON.parse(value)
       end
 
       def attribute(node, name)
-        evaluate_on(node: node, expression: %(_cuprite.getAttribute(this, "#{name}")))
+        node.evaluate(%(_cuprite.getAttribute(this, "#{name}")))
       end
 
       def value(node)
-        evaluate_on(node: node, expression: "_cuprite.value(this)")
+        node.evaluate("_cuprite.value(this)")
       end
 
       def visible?(node)
-        evaluate_on(node: node, expression: "_cuprite.isVisible(this)")
+        node.evaluate("_cuprite.isVisible(this)")
       end
 
       def disabled?(node)
-        evaluate_on(node: node, expression: "_cuprite.isDisabled(this)")
+        node.evaluate("_cuprite.isDisabled(this)")
       end
 
       def path(node)
-        evaluate_on(node: node, expression: "_cuprite.path(this)")
+        node.evaluate("_cuprite.path(this)")
       end
 
       def obscured?(node)
-        evaluate_on(node: node, expression: "_cuprite.isObscured(this)")
+        node.evaluate("_cuprite.isObscured(this)")
       end
 
       def all_text(node)

@@ -79,10 +79,10 @@ module Capybara
           return command(:attribute, name) && command(:property, name)
         end
 
-        value = property(name)
-        value = command(:attribute, name) if value.nil? || value.is_a?(Hash)
-
-        value
+        case (value = property(name))
+        when String, Numeric, true, false then value
+        else command(:attribute, name)
+        end
       end
 
       def attributes
