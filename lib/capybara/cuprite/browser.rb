@@ -94,7 +94,11 @@ module Capybara
       end
 
       def find(method, selector)
-        find_all(method, selector)
+        find_with_hints(method, selector).map(&:first)
+      end
+
+      def find_with_hints(method, selector, hints = {})
+        find_all(method, selector, hints)
       end
 
       def property(node, name)
@@ -102,9 +106,13 @@ module Capybara
       end
 
       def find_within(node, method, selector)
+        find_within_with_hints(node, method, selector).map(&:first)
+      end
+
+      def find_within_with_hints(node, method, selector, hints = {})
         resolved = page.command("DOM.resolveNode", nodeId: node.node_id)
         object_id = resolved.dig("object", "objectId")
-        find_all(method, selector, { "objectId" => object_id })
+        find_all(method, selector, hints, { "objectId" => object_id })
       end
 
       def window_handle
@@ -262,18 +270,21 @@ module Capybara
 
       private
 
-      def find_all(method, selector, within = nil)
+      def find_all(method, selector, hints, within = nil)
         # Capybara appends its text-match hint as `(expr)[...]`, but with `exact_text: true` the hint
         # is empty and the result `(expr)[]` is invalid XPath. An empty predicate is never valid, so
         # dropping it can't change a valid selector. Remove once teamcapybara/capybara#2860 is released.
         selector = selector.delete_suffix("[]") if method == :xpath
-        nodes = if within
-                  evaluate("_cuprite.find(arguments[0], arguments[1], arguments[2])", method, selector, within)
-                else
-                  evaluate("_cuprite.find(arguments[0], arguments[1])", method, selector)
-                end
+        styles = hints[:styles]
+        hints = {
+          visible: hints.fetch(:uses_visibility, false),
+          texts: hints.fetch(:texts, []),
+          styles: (styles.keys.map(&:to_s) if styles.is_a?(Hash)),
+          position: hints.fetch(:position, false)
+        }
 
-        nodes.select(&:node?)
+        evaluate("_cuprite.findWithHints(...arguments)", *[method, selector, hints, within].compact)
+          .map { |node, cache| [node, cache.transform_keys(&:to_sym)] }
       rescue Ferrum::JavaScriptError => e
         raise InvalidSelector.new(e.response, method, selector) if e.class_name == "InvalidSelector"
 
