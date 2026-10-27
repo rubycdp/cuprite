@@ -178,7 +178,7 @@ page.driver.refresh
 
 Please note that network traffic is not cleared when you visit new page. You can
 manually clear the network traffic by calling `page.driver.clear_network_traffic`
-or `page.driver.reset`
+or `page.driver.reset!`
 
 * `page.driver.wait_for_reload` unlike `wait_for_network_idle` will wait until
 the whole page is reloaded or raise a timeout error. It's useful when you know
