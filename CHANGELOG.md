@@ -9,6 +9,7 @@
 
 ### Deprecated
 - `Driver#body`, use `Driver#html` instead
+- `Driver#back` and `Driver#forward`, use `Driver#go_back` and `Driver#go_forward` instead
 
 ### Fixed
 - `Node#drag_to` with `drop_modifiers:` holds the modifiers while moving to the target and sends keydown and keyup for
