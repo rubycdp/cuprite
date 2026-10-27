@@ -163,7 +163,7 @@ module Capybara
           browser.screenshot(path: path, **options)
         end
       end
-      alias render save_screenshot
+      deprecate :render, :save_screenshot
 
       def render_base64(format = :png, options = {})
         if pdf?(nil, options)
