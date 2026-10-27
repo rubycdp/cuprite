@@ -12,12 +12,21 @@ module Capybara
 
       extend Forwardable
 
-      delegate %i[restart quit status_code timeout timeout= current_url title body
+      def self.deprecate(name, replacement)
+        define_method(name) do |*args, **kwargs, &block|
+          warn "#{self.class}##{name} is deprecated, use ##{replacement} instead", uplevel: 1
+          public_send(replacement, *args, **kwargs, &block)
+        end
+      end
+      private_class_method :deprecate
+
+      delegate %i[restart quit status_code timeout timeout= current_url title
                   window_handles close_window switch_to_window within_window window_handle
                   back forward refresh wait_for_reload viewport_size device_pixel_ratio downloads
                   console] => :browser
       delegate %i[send_keys] => :active_element
-      alias html body
+      def_delegator :browser, :body, :html
+      deprecate :body, :html
       alias current_window_handle window_handle
       alias go_back back
       alias go_forward forward

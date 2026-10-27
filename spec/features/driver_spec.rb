@@ -79,7 +79,7 @@ module Capybara
           it "sends the device user agent" do
             @session.visit("/cuprite/headers")
 
-            expect(@driver.body).to include("USER_AGENT: Mozilla/5.0 (iPhone; CPU iPhone OS")
+            expect(@driver.html).to include("USER_AGENT: Mozilla/5.0 (iPhone; CPU iPhone OS")
             expect(@session.evaluate_script("navigator.userAgent")).to start_with("Mozilla/5.0 (iPhone;")
           end
 
@@ -87,7 +87,7 @@ module Capybara
             @driver.headers = { "DV" => "hello" }
             @session.visit("/cuprite/headers")
 
-            expect(@driver.body).to include("DV: hello")
+            expect(@driver.html).to include("DV: hello")
             expect(@session.evaluate_script("navigator.userAgent")).to start_with("Mozilla/5.0 (iPhone;")
           end
         end
@@ -470,8 +470,8 @@ module Capybara
             "DV" => "hello"
           }
           @session.visit("/cuprite/headers")
-          expect(@driver.body).to include("COOKIE: foo=bar")
-          expect(@driver.body).to include("DV: hello")
+          expect(@driver.html).to include("COOKIE: foo=bar")
+          expect(@driver.html).to include("DV: hello")
         end
 
         it "allows headers to be read" do
@@ -498,16 +498,16 @@ module Capybara
               document.body.innerHTML = request.responseText;
             }
           JS
-          expect(@driver.body).to include("X_OMG: wat")
+          expect(@driver.html).to include("X_OMG: wat")
         end
 
         it "adds new headers" do
           @driver.headers = { "User-Agent" => "Browser", "DV" => "hello" }
           @driver.add_headers("User-Agent" => "Cuprite", "Appended" => "true")
           @session.visit("/cuprite/headers")
-          expect(@driver.body).to include("USER_AGENT: Cuprite")
-          expect(@driver.body).to include("DV: hello")
-          expect(@driver.body).to include("APPENDED: true")
+          expect(@driver.html).to include("USER_AGENT: Cuprite")
+          expect(@driver.html).to include("DV: hello")
+          expect(@driver.html).to include("APPENDED: true")
         end
 
         it "sets headers on the initial request for referer only" do
@@ -534,7 +534,7 @@ module Capybara
         it "keeps added headers on redirects" do
           @driver.add_header("X-Custom-Header", "1", permanent: false)
           @session.visit("/cuprite/redirect_to_headers")
-          expect(@driver.body).to include("X_CUSTOM_HEADER: 1")
+          expect(@driver.html).to include("X_CUSTOM_HEADER: 1")
         end
 
         context "multiple windows", skip: true do
@@ -547,9 +547,9 @@ module Capybara
             @session.visit("/cuprite/popup_headers")
             @session.click_link "pop up"
             @session.switch_to_window @session.windows.last
-            expect(@driver.body).to include("USER_AGENT: foo")
-            expect(@driver.body).to include("COOKIE: foo=bar")
-            expect(@driver.body).to include("HOST: foo.com")
+            expect(@driver.html).to include("USER_AGENT: foo")
+            expect(@driver.html).to include("COOKIE: foo=bar")
+            expect(@driver.html).to include("HOST: foo.com")
           end
 
           it "sets headers in existing windows" do
@@ -560,15 +560,15 @@ module Capybara
               "User-Agent" => "foo"
             }
             @session.visit("/cuprite/headers")
-            expect(@driver.body).to include("USER_AGENT: foo")
-            expect(@driver.body).to include("COOKIE: foo=bar")
-            expect(@driver.body).to include("HOST: foo.com")
+            expect(@driver.html).to include("USER_AGENT: foo")
+            expect(@driver.html).to include("COOKIE: foo=bar")
+            expect(@driver.html).to include("HOST: foo.com")
 
             @session.switch_to_window @session.windows.last
             @session.visit("/cuprite/headers")
-            expect(@driver.body).to include("USER_AGENT: foo")
-            expect(@driver.body).to include("COOKIE: foo=bar")
-            expect(@driver.body).to include("HOST: foo.com")
+            expect(@driver.html).to include("USER_AGENT: foo")
+            expect(@driver.html).to include("COOKIE: foo=bar")
+            expect(@driver.html).to include("HOST: foo.com")
           end
 
           it "keeps temporary headers local to the current window" do
@@ -577,11 +577,11 @@ module Capybara
 
             @session.switch_to_window @session.windows.last
             @session.visit("/cuprite/headers")
-            expect(@driver.body).not_to include("X_CUSTOM_HEADER: 1")
+            expect(@driver.html).not_to include("X_CUSTOM_HEADER: 1")
 
             @session.switch_to_window @session.windows.first
             @session.visit("/cuprite/headers")
-            expect(@driver.body).to include("X_CUSTOM_HEADER: 1")
+            expect(@driver.html).to include("X_CUSTOM_HEADER: 1")
           end
 
           it "does not mix temporary headers with permanent ones when propagating to other windows" do
@@ -591,13 +591,13 @@ module Capybara
 
             @session.switch_to_window @session.windows.last
             @session.visit("/cuprite/headers")
-            expect(@driver.body).to include("HOST: foo.com")
-            expect(@driver.body).not_to include("X_CUSTOM_HEADER: 1")
+            expect(@driver.html).to include("HOST: foo.com")
+            expect(@driver.html).not_to include("X_CUSTOM_HEADER: 1")
 
             @session.switch_to_window @session.windows.first
             @session.visit("/cuprite/headers")
-            expect(@driver.body).to include("HOST: foo.com")
-            expect(@driver.body).to include("X_CUSTOM_HEADER: 1")
+            expect(@driver.html).to include("HOST: foo.com")
+            expect(@driver.html).to include("X_CUSTOM_HEADER: 1")
           end
 
           it "does not propagate temporary headers to new windows" do
@@ -607,11 +607,11 @@ module Capybara
 
             @session.switch_to_window @session.windows.last
             @session.visit("/cuprite/headers")
-            expect(@driver.body).not_to include("X_CUSTOM_HEADER: 1")
+            expect(@driver.html).not_to include("X_CUSTOM_HEADER: 1")
 
             @session.switch_to_window @session.windows.first
             @session.visit("/cuprite/headers")
-            expect(@driver.body).to include("X_CUSTOM_HEADER: 1")
+            expect(@driver.html).to include("X_CUSTOM_HEADER: 1")
           end
         end
       end
@@ -619,13 +619,13 @@ module Capybara
       it "supports clicking precise coordinates" do
         @session.visit("/cuprite/click_coordinates")
         @driver.click(100, 150)
-        expect(@driver.body).to include("x: 100, y: 150")
+        expect(@driver.html).to include("x: 100, y: 150")
       end
 
       it "supports clicking overlayed elements" do
         @session.visit("/cuprite/click_overlay")
         @session.click_link "hidden link"
-        expect(@driver.body).to include("hidden-link")
+        expect(@driver.html).to include("hidden-link")
       end
 
       it "supports executing multiple lines of javascript" do
@@ -657,7 +657,7 @@ module Capybara
           extended_driver.visit session_url("/cuprite/requiring_custom_extension")
 
           expect(
-            extended_driver.body
+            extended_driver.html
           ).to include(%(Location: <span id="location">1,-1</span>))
 
           expect(
@@ -726,7 +726,7 @@ module Capybara
           driver.visit session_url("/cuprite/js_error")
           driver.execute_script "setTimeout(function() { omg }, 0)"
           sleep 0.1
-          expect(driver.body).to include("hello")
+          expect(driver.html).to include("hello")
         ensure
           driver&.quit
         end
@@ -737,7 +737,7 @@ module Capybara
           driver.visit session_url("/cuprite/js_error")
           driver.execute_script "setTimeout(function() { omg }, 0)"
           sleep 0.1
-          expect(driver.body).to include("hello")
+          expect(driver.html).to include("hello")
         ensure
           driver&.quit
         end
@@ -983,17 +983,17 @@ module Capybara
         it "can set cookies" do
           @driver.set_cookie "capybara", "omg"
           @session.visit("/get_cookie")
-          expect(@driver.body).to include("omg")
+          expect(@driver.html).to include("omg")
         end
 
         it "can set cookies with custom settings" do
           @driver.set_cookie "capybara", "omg", path: "/cuprite"
 
           @session.visit("/get_cookie")
-          expect(@driver.body).to_not include("omg")
+          expect(@driver.html).to_not include("omg")
 
           @session.visit("/cuprite/get_cookie")
-          expect(@driver.body).to include("omg")
+          expect(@driver.html).to include("omg")
 
           expect(@driver.cookies["capybara"].path).to eq("/cuprite")
         end
@@ -1002,24 +1002,24 @@ module Capybara
           @session.visit("/set_cookie")
 
           @session.visit("/get_cookie")
-          expect(@driver.body).to include("test_cookie")
+          expect(@driver.html).to include("test_cookie")
 
           @driver.remove_cookie "capybara"
 
           @session.visit("/get_cookie")
-          expect(@driver.body).to_not include("test_cookie")
+          expect(@driver.html).to_not include("test_cookie")
         end
 
         it "can clear cookies" do
           @session.visit("/set_cookie")
 
           @session.visit("/get_cookie")
-          expect(@driver.body).to include("test_cookie")
+          expect(@driver.html).to include("test_cookie")
 
           @driver.clear_cookies
 
           @session.visit("/get_cookie")
-          expect(@driver.body).to_not include("test_cookie")
+          expect(@driver.html).to_not include("test_cookie")
         end
 
         it "can set cookies with an expires time" do
@@ -1035,10 +1035,10 @@ module Capybara
           @driver.set_cookie "capybara", "localhost", domain: "localhost"
 
           @session.visit("http://localhost:#{port}/cuprite/get_cookie")
-          expect(@driver.body).to include("localhost")
+          expect(@driver.html).to include("localhost")
 
           @session.visit("http://127.0.0.1:#{port}/cuprite/get_cookie")
-          expect(@driver.body).to include("127.0.0.1")
+          expect(@driver.html).to include("127.0.0.1")
         end
 
         it "sets cookies correctly when Capybara.app_host is set" do
@@ -1049,10 +1049,10 @@ module Capybara
 
             port = @session.server.port
             @session.visit("http://localhost:#{port}/cuprite/get_cookie")
-            expect(@driver.body).to include("app_host")
+            expect(@driver.html).to include("app_host")
 
             @session.visit("http://127.0.0.1:#{port}/cuprite/get_cookie")
-            expect(@driver.body).not_to include("app_host")
+            expect(@driver.html).not_to include("app_host")
           ensure
             Capybara.app_host = old_app_host
           end

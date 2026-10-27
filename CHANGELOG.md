@@ -7,6 +7,9 @@
 
 ### Changed
 
+### Deprecated
+- `Driver#body`, use `Driver#html` instead
+
 ### Fixed
 - `Node#drag_to` with `drop_modifiers:` holds the modifiers while moving to the target and sends keydown and keyup for
   them, like Selenium does. They used to be set only on mouseup [rubycdp/ferrum#581]
