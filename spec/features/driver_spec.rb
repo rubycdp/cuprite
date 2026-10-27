@@ -380,7 +380,7 @@ module Capybara
           end
         end
 
-        shared_examples "when #zoom_factor= is set" do
+        shared_examples "with :scale" do
           it "changes image dimensions" do
             @session.visit("/cuprite/zoom_test")
 
@@ -391,32 +391,30 @@ module Capybara
             @driver.save_screenshot(file)
             before = black_pixels_count[file]
 
-            @driver.zoom_factor = zoom_factor
-            @driver.save_screenshot(file)
+            @driver.save_screenshot(file, scale: scale)
             after = black_pixels_count[file]
 
-            expect(after.to_f / before).to eq(zoom_factor**2)
+            expect(after.to_f / before).to eq(scale**2)
           end
         end
 
         context "zoom in" do
-          let(:zoom_factor) { 2 }
-          include_examples "when #zoom_factor= is set"
+          let(:scale) { 2 }
+          include_examples "with :scale"
         end
 
         context "zoom out" do
-          let(:zoom_factor) { 0.5 }
-          include_examples "when #zoom_factor= is set"
+          let(:scale) { 0.5 }
+          include_examples "with :scale"
         end
 
-        context "when #paper_size= is set" do
+        context "with :paper_width and :paper_height" do
           let(:format) { :pdf }
 
           it "changes pdf size" do
             @session.visit("/cuprite/long_page")
-            @driver.paper_size = { width: "6in", height: "12in" }
 
-            @driver.save_screenshot(file)
+            @driver.save_screenshot(file, paper_width: 6, paper_height: 12)
 
             reader = PDF::Reader.new(file)
             reader.pages.each do |page|

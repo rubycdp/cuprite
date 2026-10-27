@@ -16,6 +16,8 @@
 - `Driver#render_base64`, use `page.driver.browser.screenshot` or `page.driver.browser.pdf` instead
 - `Driver#resize` and `Driver#resize_window`, use `page.current_window.resize_to` instead
 - `Driver#basic_authorize`, use `Driver#authorize` instead
+- `Driver#zoom_factor=` and `Driver#paper_size=`, pass `scale:`, `paper_width:` and `paper_height:` to
+  `save_screenshot` instead
 
 ### Fixed
 - `Node#drag_to` with `drop_modifiers:` holds the modifiers while moving to the target and sends keydown and keyup for

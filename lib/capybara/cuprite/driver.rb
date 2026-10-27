@@ -178,10 +178,15 @@ module Capybara
       end
 
       def zoom_factor=(value)
+        warn "#{self.class}#zoom_factor= is deprecated, pass scale: to save_screenshot instead", uplevel: 1
         @zoom_factor = value.to_f
       end
 
-      attr_writer :paper_size
+      def paper_size=(value)
+        warn "#{self.class}#paper_size= is deprecated, pass paper_width: and paper_height: to save_screenshot instead",
+             uplevel: 1
+        @paper_size = value
+      end
 
       def resize(width, height)
         warn "#{self.class}##{__callee__} is deprecated, use page.current_window.resize_to instead", uplevel: 1
