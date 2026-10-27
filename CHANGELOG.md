@@ -17,6 +17,7 @@
 - `Capybara::Cuprite::Cookie`, it was never loaded. `Driver#cookies` returns `Ferrum::Cookies::Cookie` objects
 - `Page#frame_name`, it was unused
 - `Browser#browser_error`, it was used only in specs
+- `Node#as_json` and `Node#to_json`, they were unused
 
 
 ## [0.19](https://github.com/rubycdp/cuprite/compare/v0.18...v0.19) ##

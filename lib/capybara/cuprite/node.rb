@@ -264,17 +264,6 @@ module Capybara
         %(#<#{self.class} @node=#{@node.inspect}>)
       end
 
-      # @api private
-      def to_json(*)
-        JSON.generate(as_json)
-      end
-
-      # @api private
-      def as_json(*)
-        # FIXME: Where is this method used and why attr is called id?
-        { ELEMENT: { node: node, id: node.node_id } }
-      end
-
       private
 
       def prepare_and_click(mode, name, keys, options)
