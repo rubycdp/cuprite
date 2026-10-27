@@ -1236,7 +1236,7 @@ module Capybara
         end
 
         it "allows with given credentials" do
-          @driver.basic_authorize("login", "pass")
+          @driver.authorize("login", "pass")
 
           @session.visit "/cuprite/basic_auth"
 
@@ -1245,7 +1245,7 @@ module Capybara
         end
 
         it "allows even overwriting headers" do
-          @driver.basic_authorize("login", "pass")
+          @driver.authorize("login", "pass")
           @driver.headers = { "Cuprite" => "true" }
 
           @session.visit "/cuprite/basic_auth"
@@ -1255,7 +1255,7 @@ module Capybara
         end
 
         it "denies with wrong credentials" do
-          @driver.basic_authorize("user", "pass!")
+          @driver.authorize("user", "pass!")
 
           @session.visit "/cuprite/basic_auth"
 
@@ -1264,7 +1264,7 @@ module Capybara
         end
 
         it "allows on POST request" do
-          @driver.basic_authorize("login", "pass")
+          @driver.authorize("login", "pass")
 
           @session.visit "/cuprite/basic_auth"
           @session.click_button("Submit")

@@ -214,7 +214,7 @@ Besides capybara screenshot method you can get image as Base64:
 
 ## Authorization
 
-* `page.driver.basic_authorize(user, password)`
+* `page.driver.authorize(user, password)`
 
 ## Proxy
 

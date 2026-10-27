@@ -14,6 +14,7 @@
 - `Driver#window_handle`, use `Driver#current_window_handle` instead
 - `Driver#render`, use `Driver#save_screenshot` instead
 - `Driver#resize` and `Driver#resize_window`, use `page.current_window.resize_to` instead
+- `Driver#basic_authorize`, use `Driver#authorize` instead
 
 ### Fixed
 - `Node#drag_to` with `drop_modifiers:` holds the modifiers while moving to the target and sends keydown and keyup for

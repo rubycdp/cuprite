@@ -285,12 +285,12 @@ module Capybara
         browser.network.clear(:cache)
       end
 
-      def basic_authorize(user, password)
+      def authorize(user, password)
         browser.network.authorize(user: user, password: password) do |request, _index, _total|
           request.continue
         end
       end
-      alias authorize basic_authorize
+      deprecate :basic_authorize, :authorize
 
       def debug(...)
         browser.debug(...)
