@@ -69,7 +69,7 @@ module Capybara
 
           it "keeps emulating a mobile browser after resizing the window" do
             @session.visit("/cuprite/mobile")
-            @driver.resize(414, 896)
+            @session.current_window.resize_to(414, 896)
 
             expect(@session).to have_text("I am a mobile.")
             expect(@session.evaluate_script("navigator.maxTouchPoints > 0")).to be(true)
@@ -178,7 +178,7 @@ module Capybara
 
       it "allows the viewport to be resized" do
         @session.visit("/")
-        @driver.resize(200, 400)
+        @session.current_window.resize_to(200, 400)
         expect(
           @driver.evaluate_script("[window.innerWidth, window.innerHeight]")
         ).to eq([200, 400])
@@ -239,7 +239,7 @@ module Capybara
         default_size = driver.evaluate_script("[window.innerWidth, window.innerHeight]")
         expect(default_size).not_to eq([1024, 768])
 
-        driver.resize(800, 600)
+        driver.resize_window_to(driver.current_window_handle, 800, 600)
         expect(driver.evaluate_script("[window.innerWidth, window.innerHeight]")).to eq([800, 600])
 
         driver.reset!

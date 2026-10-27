@@ -666,12 +666,12 @@ describe Capybara::Session do
       end
 
       after do
-        @session.driver.resize(1024, 768)
+        @session.current_window.resize_to(1024, 768)
         @session.driver.reset!
       end
 
       it "scrolls around so that elements can be clicked" do
-        @session.driver.resize(200, 200)
+        @session.current_window.resize_to(200, 200)
         log = @session.find(:css, "#log")
 
         instructions = %w[one four one two three]
@@ -719,7 +719,7 @@ describe Capybara::Session do
         end
 
         it "clicks in the center of an element within the viewport, if part is outside the viewport" do
-          @session.driver.resize(200, 200)
+          @session.current_window.resize_to(200, 200)
 
           expect do
             @session.find(:css, "#one").click
@@ -776,7 +776,7 @@ describe Capybara::Session do
       end
 
       it "double clicks properly" do
-        @session.driver.resize(200, 200)
+        @session.current_window.resize_to(200, 200)
         log = @session.find(:css, "#log")
 
         instructions = %w[one four one two three]

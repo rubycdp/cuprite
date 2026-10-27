@@ -182,13 +182,14 @@ module Capybara
       attr_writer :paper_size
 
       def resize(width, height)
-        browser.resize(width: width, height: height)
+        warn "#{self.class}##{__callee__} is deprecated, use page.current_window.resize_to instead", uplevel: 1
+        resize_window_to(current_window_handle, width, height)
       end
       alias resize_window resize
 
       def resize_window_to(handle, width, height)
         within_window(handle) do
-          resize(width, height)
+          browser.resize(width: width, height: height)
         end
       end
 
