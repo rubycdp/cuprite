@@ -13,6 +13,7 @@
 
 ### Removed
 - Ruby 3.1 support, Cuprite requires Ruby 3.2 or newer
+- `Driver#source`, it always raised `NotImplementedError`. Use `page.html` or `page.source` instead
 
 
 ## [0.19](https://github.com/rubycdp/cuprite/compare/v0.18...v0.19) ##

@@ -163,10 +163,6 @@ module Capybara
         evaluate("_cuprite.browserError()")
       end
 
-      def source
-        raise NotImplementedError
-      end
-
       def drag(node, other, drop_modifiers, options = {})
         steps = options.fetch(:steps, 1)
         delay = options[:delay]

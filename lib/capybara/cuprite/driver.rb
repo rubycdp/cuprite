@@ -65,10 +65,6 @@ module Capybara
         evaluate_script("window.location.href")
       end
 
-      def source
-        browser.source.to_s
-      end
-
       def frame_title
         evaluate_script("document.title")
       end
