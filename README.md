@@ -194,7 +194,7 @@ rescue.
 The following methods are used to inspect and manipulate cookies:
 
 * `page.driver.cookies` - a hash of cookies accessible to the current
-  page. The keys are cookie names. The values are `Cookie` objects, with
+  page. The keys are cookie names. The values are `Ferrum::Cookies::Cookie` objects, with
   the following methods: `name`, `value`, `domain`, `path`, `size`, `secure?`,
   `httponly?`, `session?`, `expires`.
 * `page.driver.set_cookie(name, value, options = {})` - set a cookie.
