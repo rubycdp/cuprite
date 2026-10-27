@@ -21,13 +21,12 @@ module Capybara
       private_class_method :deprecate
 
       delegate %i[restart quit status_code timeout timeout= current_url title
-                  window_handles close_window switch_to_window within_window
+                  window_handles current_window_handle close_window switch_to_window within_window
                   refresh wait_for_reload viewport_size device_pixel_ratio downloads
                   console] => :browser
       delegate %i[send_keys] => :active_element
       def_delegator :browser, :body, :html
       deprecate :body, :html
-      def_delegator :browser, :window_handle, :current_window_handle
       deprecate :window_handle, :current_window_handle
       def_delegator :browser, :back, :go_back
       def_delegator :browser, :forward, :go_forward

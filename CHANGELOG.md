@@ -6,6 +6,7 @@
   `:logger` output to get them [#113]
 
 ### Changed
+- `Browser#window_handle` is renamed to `Browser#current_window_handle`
 
 ### Deprecated
 - `Driver#body`, use `Driver#html` instead

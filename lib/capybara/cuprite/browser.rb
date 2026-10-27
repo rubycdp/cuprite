@@ -120,7 +120,7 @@ module Capybara
         find_all(method, selector, { "objectId" => object_id })
       end
 
-      def window_handle
+      def current_window_handle
         page.target_id
       end
 
@@ -129,7 +129,7 @@ module Capybara
       end
 
       def within_window(locator = nil)
-        original = window_handle
+        original = current_window_handle
         raise Ferrum::NoSuchPageError unless window_handles.include?(locator)
 
         switch_to_window(locator)
