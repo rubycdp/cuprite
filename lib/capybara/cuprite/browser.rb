@@ -159,10 +159,6 @@ module Capybara
         evaluate("document.activeElement")
       end
 
-      def browser_error
-        evaluate("_cuprite.browserError()")
-      end
-
       def drag(node, other, drop_modifiers, options = {})
         steps = options.fetch(:steps, 1)
         delay = options[:delay]

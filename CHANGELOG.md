@@ -16,6 +16,7 @@
 - `Driver#source`, it always raised `NotImplementedError`. Use `page.html` or `page.source` instead
 - `Capybara::Cuprite::Cookie`, it was never loaded. `Driver#cookies` returns `Ferrum::Cookies::Cookie` objects
 - `Page#frame_name`, it was unused
+- `Browser#browser_error`, it was used only in specs
 
 
 ## [0.19](https://github.com/rubycdp/cuprite/compare/v0.18...v0.19) ##

@@ -683,12 +683,12 @@ module Capybara
       context "javascript errors" do
         let(:driver) { Capybara::Cuprite::Driver.new(@session.app, js_errors: true) }
 
-        it "propagates a Javascript error inside Cuprite to a ruby exception" do
+        it "propagates a Javascript error with its stack trace to a ruby exception" do
           expect do
-            driver.browser.browser_error
+            driver.browser.evaluate("(function browserError() { throw new Error('zomg') })()")
           end.to raise_error(Ferrum::JavaScriptError) { |e|
             expect(e.message).to include("Error: zomg")
-            expect(e.message).to include("Cuprite.browserError")
+            expect(e.message).to include("at browserError")
           }
         end
 
