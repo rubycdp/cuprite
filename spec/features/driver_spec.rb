@@ -436,14 +436,16 @@ module Capybara
         let(:file) { "#{PROJECT_ROOT}/spec/tmp/screenshot.#{format}" }
 
         def create_screenshot(file, *args)
-          image = @driver.render_base64(format, *args)
+          image = nil
+          expect { image = @driver.render_base64(format, *args) }.to output(/render_base64 is deprecated/).to_stderr
           File.binwrite(file, Base64.decode64(image))
         end
 
         it "supports rendering the page in base64" do
           @session.visit("/")
 
-          screenshot = @driver.render_base64
+          screenshot = nil
+          expect { screenshot = @driver.render_base64 }.to output(/render_base64 is deprecated/).to_stderr
 
           expect(screenshot.length).to be > 100
         end

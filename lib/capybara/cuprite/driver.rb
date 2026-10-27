@@ -166,6 +166,8 @@ module Capybara
       deprecate :render, :save_screenshot
 
       def render_base64(format = :png, options = {})
+        warn "#{self.class}#render_base64 is deprecated, use page.driver.browser.screenshot or .pdf instead", uplevel: 1
+
         if pdf?(nil, options)
           options[:paperWidth] = @paper_size[:width].to_f if @paper_size
           options[:paperHeight] = @paper_size[:height].to_f if @paper_size

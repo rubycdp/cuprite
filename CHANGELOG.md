@@ -13,6 +13,7 @@
 - `Driver#back` and `Driver#forward`, use `Driver#go_back` and `Driver#go_forward` instead
 - `Driver#window_handle`, use `Driver#current_window_handle` instead
 - `Driver#render`, use `Driver#save_screenshot` instead
+- `Driver#render_base64`, use `page.driver.browser.screenshot` or `page.driver.browser.pdf` instead
 - `Driver#resize` and `Driver#resize_window`, use `page.current_window.resize_to` instead
 - `Driver#basic_authorize`, use `Driver#authorize` instead
 

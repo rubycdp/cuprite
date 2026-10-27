@@ -207,9 +207,12 @@ The following methods are used to inspect and manipulate cookies:
 
 ## Screenshot
 
-Besides capybara screenshot method you can get image as Base64:
+Besides capybara screenshot method you can get image or PDF as Base64 with Ferrum:
 
-* `page.driver.render_base64(format, options)`
+```ruby
+page.driver.browser.screenshot(format: :jpeg, full: true)
+page.driver.browser.pdf(paper_width: 6, paper_height: 12)
+```
 
 
 ## Authorization
