@@ -21,12 +21,12 @@ open_new_window
 
 ## Window size
 
-#### resize(width, height)
+#### resize_to(width, height)
 
-Resizes the current window. Also aliased as `resize_window`.
+Capybara's way to resize a window, it waits until the new size is applied.
+`page.driver.resize` and `page.driver.resize_window` are deprecated in favor of it.
 
 ```ruby
-page.driver.resize(1024, 768)
 page.current_window.resize_to(1024, 768)
 ```
 

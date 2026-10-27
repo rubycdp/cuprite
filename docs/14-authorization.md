@@ -4,11 +4,12 @@ sidebar_position: 14
 
 # Authorization
 
-#### basic_authorize(user, password)
+#### authorize(user, password)
 
-Sets credentials for HTTP basic authentication. Also aliased as `authorize`.
+Sets credentials for HTTP basic authentication. `basic_authorize` is deprecated
+in favor of it.
 
 ```ruby
-page.driver.basic_authorize("login", "password")
+page.driver.authorize("login", "password")
 visit "/admin"
 ```
