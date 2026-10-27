@@ -27,6 +27,32 @@ Pass `js_errors: true` to re-raise JavaScript errors from the page as
 Capybara::Cuprite::Driver.new(app, js_errors: true)
 ```
 
+## Console
+
+`page.driver.console` is Ferrum's [console](/docs/ferrum/javascript#console)
+for the current page: `console.*` calls, browser log entries (failed resource
+loads, CSP violations, deprecations, ...) and uncaught exceptions. It's
+`Enumerable` over the last 1000 messages and is cleared at the end of every
+test.
+
+```ruby
+visit "/"
+page.driver.console.last.text # => "Hello world"
+page.driver.console.select(&:error?) # => [#<Ferrum::Console::Message type=:error source=:network ...>]
+```
+
+Fail a test on browser errors:
+
+```ruby
+after { expect(page.driver.console.select(&:error?)).to be_empty }
+```
+
+Print what the page logged:
+
+```ruby
+after { page.driver.console.each { |message| warn(message) } }
+```
+
 ## Preloading scripts
 
 Use the `:extensions` option to load scripts into every page before any other
