@@ -4,7 +4,7 @@ source "https://rubygems.org"
 
 gem "byebug", "~> 11.1", platforms: %i[mri windows]
 gem "chunky_png", "~> 1.4"
-gem "ferrum", github: "rubycdp/ferrum", branch: "main"
+gem "ferrum"
 gem "image_size", "~> 3.0"
 gem "launchy", "~> 2.5"
 gem "logger"

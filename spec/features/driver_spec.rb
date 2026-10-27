@@ -946,6 +946,24 @@ module Capybara
         end
       end
 
+      context "console" do
+        it "collects console messages of the page" do
+          @session.visit("/cuprite/console_log")
+
+          message = @driver.console.last
+          expect(message.text).to eq("Hello world")
+          expect(message.type).to eq(:log)
+          expect(message.source).to eq(:console_api)
+        end
+
+        it "forgets messages after reset" do
+          @session.visit("/cuprite/console_log")
+          @driver.reset!
+
+          expect(@driver.console).to be_empty
+        end
+      end
+
       context "cookies support" do
         it "returns set cookies" do
           @session.visit("/set_cookie")
