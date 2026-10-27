@@ -155,7 +155,7 @@ module Capybara
       def save_screenshot(path, options = {})
         options[:scale] = @zoom_factor if @zoom_factor
 
-        if pdf?(path, options)
+        if File.extname(path) == ".pdf"
           options[:paperWidth] = @paper_size[:width].to_f if @paper_size
           options[:paperHeight] = @paper_size[:height].to_f if @paper_size
           browser.pdf(path: path, **options)
@@ -167,14 +167,7 @@ module Capybara
 
       def render_base64(format = :png, options = {})
         warn "#{self.class}#render_base64 is deprecated, use page.driver.browser.screenshot or .pdf instead", uplevel: 1
-
-        if pdf?(nil, options)
-          options[:paperWidth] = @paper_size[:width].to_f if @paper_size
-          options[:paperHeight] = @paper_size[:height].to_f if @paper_size
-          browser.pdf(encoding: :base64, **options)
-        else
-          browser.screenshot(format: format, encoding: :base64, **options)
-        end
+        browser.screenshot(format: format, encoding: :base64, **options)
       end
 
       def zoom_factor=(value)
@@ -422,11 +415,6 @@ module Capybara
         else
           arg
         end
-      end
-
-      def pdf?(path, options)
-        (path && File.extname(path).delete(".") == "pdf") ||
-          options[:format].to_s == "pdf"
       end
     end
   end

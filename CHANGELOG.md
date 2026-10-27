@@ -25,6 +25,7 @@
 
 ### Removed
 - Ruby 3.1 support, Cuprite requires Ruby 3.2 or newer
+- `format: :pdf` in `Driver#save_screenshot`, broken since Ferrum 0.6. A `.pdf` path renders a PDF
 - `Driver#source`, it always raised `NotImplementedError`. Use `page.html` or `page.source` instead
 - `Capybara::Cuprite::Cookie`, it was never loaded. `Driver#cookies` returns `Ferrum::Cookies::Cookie` objects
 - `Page#frame_name`, it was unused
