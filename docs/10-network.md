@@ -52,15 +52,18 @@ and `clear_memory_cache` are deprecated in favor of these. Note that
 
 #### wait_for_reload(timeout = 1)
 
-Unlike `network.wait_for_idle` waits until the whole page is reloaded. Useful
+Ferrum's `browser.wait_for_reload`, unlike `network.wait_for_idle`, waits until
+the whole page is reloaded, or `timeout` seconds pass. Useful
 when you know an action, like choosing an autocomplete suggestion, reloads the
 page. Sleep makes you wait longer or less than needed, and network idle can
 return before the page even started to reload.
 
 ```ruby
 find(".suggestion").click
-page.driver.wait_for_reload
+page.driver.browser.wait_for_reload
 ```
+
+`page.driver.wait_for_reload` is deprecated in favor of it.
 
 #### status_code : `Integer`
 

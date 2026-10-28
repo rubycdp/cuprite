@@ -7,7 +7,7 @@ require "chunky_png"
 module Capybara
   module Cuprite
     describe Driver do
-      let(:device_pixel_ratio) { @driver.device_pixel_ratio }
+      let(:device_pixel_ratio) { @driver.browser.device_pixel_ratio }
       let(:mobile) { false }
 
       include Spec::Support::ExternalBrowser
@@ -262,7 +262,7 @@ module Capybara
 
           create_screenshot file
           File.open(file, "rb") do |f|
-            expect(ImageSize.new(f.read).size).to eq(@driver.viewport_size.map { |s| s * @driver.device_pixel_ratio })
+            expect(ImageSize.new(f.read).size).to eq(@driver.browser.viewport_size.map { |s| s * device_pixel_ratio })
           end
 
           create_screenshot file, full: true
@@ -279,7 +279,7 @@ module Capybara
 
           create_screenshot file, full: true
           File.open(file, "rb") do |f|
-            expect(ImageSize.new(f.read).size).to eq(@driver.viewport_size.map { |s| s * @driver.device_pixel_ratio })
+            expect(ImageSize.new(f.read).size).to eq(@driver.browser.viewport_size.map { |s| s * device_pixel_ratio })
           end
         end
 
@@ -296,7 +296,7 @@ module Capybara
                 return [rect.width, rect.height];
               }();
             JS
-            expect(ImageSize.new(f.read).size).to eq(size.map { |s| s * @driver.device_pixel_ratio })
+            expect(ImageSize.new(f.read).size).to eq(size.map { |s| s * device_pixel_ratio })
           end
         end
 
@@ -643,6 +643,16 @@ module Capybara
         expect(@driver.html).to include("x: 100, y: 150")
       end
 
+      it "warns that the browser delegates are deprecated" do
+        @session.visit("/")
+
+        expect { @driver.timeout }.to output(/timeout is deprecated/).to_stderr
+        expect { @driver.timeout = @driver.browser.timeout }.to output(/timeout= is deprecated/).to_stderr
+        expect { @driver.device_pixel_ratio }.to output(/device_pixel_ratio is deprecated/).to_stderr
+        expect { @driver.viewport_size }.to output(/viewport_size is deprecated/).to_stderr
+        expect { @driver.wait_for_reload(0.01) }.to output(/wait_for_reload is deprecated/).to_stderr
+      end
+
       it "supports clicking overlayed elements" do
         @session.visit("/cuprite/click_overlay")
         @session.click_link "hidden link"
@@ -786,8 +796,8 @@ module Capybara
 
         it "operates a timeout when communicating with browser" do
           @driver.browser.page # attach first so the low timeout covers visit only
-          old_timeout = @driver.timeout
-          @driver.timeout = 0.1
+          old_timeout = @driver.browser.timeout
+          @driver.browser.timeout = 0.1
           expect do
             @driver.visit(session_url("/cuprite/really_slow"))
           end.to raise_error(
@@ -795,12 +805,12 @@ module Capybara
             %r{there are still pending connections: http://.*/cuprite/really_slow}
           )
         ensure
-          @driver.timeout = old_timeout
+          @driver.browser.timeout = old_timeout
         end
 
         it "reports open resource requests" do
-          old_timeout = @session.driver.timeout
-          @session.driver.timeout = 2
+          old_timeout = @session.driver.browser.timeout
+          @session.driver.browser.timeout = 2
           expect do
             @session.visit("/cuprite/visit_timeout")
           end.to raise_error(
@@ -808,16 +818,16 @@ module Capybara
             %r{there are still pending connections: http://.*/cuprite/really_slow}
           )
         ensure
-          @session.driver.timeout = old_timeout
+          @session.driver.browser.timeout = old_timeout
         end
 
         it "does not report open resources where there are none" do
-          old_timeout = @session.driver.timeout
+          old_timeout = @session.driver.browser.timeout
           begin
-            @session.driver.timeout = 4
+            @session.driver.browser.timeout = 4
             expect { @session.visit("/cuprite/really_slow") }.not_to raise_error
           ensure
-            @session.driver.timeout = old_timeout
+            @session.driver.browser.timeout = old_timeout
           end
         end
       end

@@ -56,6 +56,9 @@ Capybara::Cuprite::Driver.new(app, js_errors: true)
 # Increase timeout for slow CI machines
 Capybara::Cuprite::Driver.new(app, timeout: 15, process_timeout: 30)
 
+# Change it at runtime, it stays for the following tests
+page.driver.browser.timeout = 30
+
 # Connect to a remote browser
 Capybara::Cuprite::Driver.new(app, url: "http://chrome:3333")
 

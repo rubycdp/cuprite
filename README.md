@@ -181,8 +181,8 @@ Please note that network traffic is not cleared when you visit new page. You can
 manually clear the network traffic by calling
 `page.driver.browser.network.clear(:traffic)` or `page.driver.reset!`
 
-* `page.driver.wait_for_reload` unlike `network.wait_for_idle` will wait until
-the whole page is reloaded or raise a timeout error. It's useful when you know
+* `page.driver.browser.wait_for_reload` unlike `network.wait_for_idle` will wait until
+the whole page is reloaded or the timeout passes. It's useful when you know
 that for example after clicking autocomplete suggestion you expect page to be
 reloaded, you have a few choices - put sleep or wait for network idle, but both
 are bad. Sleep makes you wait longer or less than needed, network idle can

@@ -19,6 +19,8 @@
   `page.driver.browser.network` instead. `network.traffic` includes blocked requests
 - `Driver#click`, use `page.driver.browser.mouse.click` instead
 - `Driver#scroll_to`, use `page.scroll_to` instead
+- `Driver#wait_for_reload`, `timeout`, `timeout=`, `device_pixel_ratio` and `viewport_size`, use the same methods on
+  `page.driver.browser` instead
 - `Driver#zoom_factor=` and `Driver#paper_size=`, pass `scale:`, `paper_width:` and `paper_height:` to
   `save_screenshot` instead
 

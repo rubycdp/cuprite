@@ -49,6 +49,32 @@ module Capybara
         browser.mouse.scroll_to(left, top)
       end
 
+      def wait_for_reload(timeout = 1)
+        warn "#{self.class}#wait_for_reload is deprecated, use page.driver.browser.wait_for_reload instead", uplevel: 1
+        browser.wait_for_reload(timeout)
+      end
+
+      def timeout
+        warn "#{self.class}#timeout is deprecated, use page.driver.browser.timeout instead", uplevel: 1
+        browser.timeout
+      end
+
+      def timeout=(value)
+        warn "#{self.class}#timeout= is deprecated, use page.driver.browser.timeout= instead", uplevel: 1
+        browser.timeout = value
+      end
+
+      def device_pixel_ratio
+        warn "#{self.class}#device_pixel_ratio is deprecated, use page.driver.browser.device_pixel_ratio instead",
+             uplevel: 1
+        browser.device_pixel_ratio
+      end
+
+      def viewport_size
+        warn "#{self.class}#viewport_size is deprecated, use page.driver.browser.viewport_size instead", uplevel: 1
+        browser.viewport_size
+      end
+
       def authorize(user, password)
         warn "#{self.class}##{__callee__} is deprecated, use page.driver.browser.network.authorize instead", uplevel: 1
         browser.network.authorize(user: user, password: password) do |request, _index, _total|
