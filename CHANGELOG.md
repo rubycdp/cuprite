@@ -2,6 +2,8 @@
 
 ### Changed
 - `Browser#window_handle` is renamed to `Browser#current_window_handle`
+- Ferrum's `base_url` follows `Capybara.app_host` (or Capybara's server) and the visited page, so
+  `page.driver.browser.cookies` doesn't need `domain:`
 
 ### Deprecated
 - `Driver#body`, use `Driver#html` instead

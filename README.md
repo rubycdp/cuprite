@@ -196,10 +196,10 @@ Use Ferrum's cookies to inspect and manipulate cookies:
 
 ```ruby
 cookies = page.driver.browser.cookies
-cookies.set(name: "stealth", value: "omg", domain: "127.0.0.1")
+cookies.set(name: "stealth", value: "omg")
 cookies["stealth"].value # => "omg"
 cookies.all # => { "stealth" => #<Ferrum::Cookies::Cookie ...> }
-cookies.remove(name: "stealth", domain: "127.0.0.1")
+cookies.remove(name: "stealth")
 cookies.clear
 ```
 

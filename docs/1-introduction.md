@@ -80,7 +80,7 @@ Capybara has no API for what you need:
 ```ruby
 browser = page.driver.browser
 browser.headers.set("Accept-Language" => "de")
-browser.cookies.set(name: "stealth", value: "omg", domain: "127.0.0.1")
+browser.cookies.set(name: "stealth", value: "omg")
 browser.network.wait_for_idle
 browser.network.traffic.last.response.status # => 200
 browser.mouse.move(x: 123, y: 456).down.up

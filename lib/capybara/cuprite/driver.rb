@@ -52,11 +52,12 @@ module Capybara
       end
 
       def browser
-        @browser ||= Browser.new(@options)
+        @browser ||= Browser.new({ base_url: capybara_base_url }.compact.merge(@options))
       end
 
       def visit(url)
         @started = true
+        browser.base_url = url if url.match?(%r{\Ahttps?://})
         browser.visit(url)
       end
 
@@ -136,6 +137,8 @@ module Capybara
         browser.url_whitelist = @options[:url_whitelist]
         browser.raise_on_unhandled_modal = @options.fetch(:raise_on_unhandled_modal, false)
         browser.reset
+        base_url = @options[:base_url] || capybara_base_url
+        browser.base_url = base_url if base_url
       ensure
         @started = false
       end
@@ -229,6 +232,10 @@ module Capybara
       end
 
       private
+
+      def capybara_base_url
+        session_options.app_host || session&.server&.base_url
+      end
 
       def native_args(args)
         args.map { |arg| arg.is_a?(Capybara::Cuprite::Node) ? arg.node : arg }

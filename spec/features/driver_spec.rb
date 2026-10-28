@@ -1000,13 +1000,13 @@ module Capybara
         end
 
         it "can set cookies" do
-          @driver.browser.cookies.set(name: "capybara", value: "omg", domain: "127.0.0.1")
+          @driver.browser.cookies.set(name: "capybara", value: "omg")
           @session.visit("/get_cookie")
           expect(@driver.html).to include("omg")
         end
 
         it "can set cookies with custom settings" do
-          @driver.browser.cookies.set(name: "capybara", value: "omg", domain: "127.0.0.1", path: "/cuprite")
+          @driver.browser.cookies.set(name: "capybara", value: "omg", path: "/cuprite")
 
           @session.visit("/get_cookie")
           expect(@driver.html).to_not include("omg")
@@ -1023,7 +1023,7 @@ module Capybara
           @session.visit("/get_cookie")
           expect(@driver.html).to include("test_cookie")
 
-          @driver.browser.cookies.remove(name: "capybara", domain: "127.0.0.1")
+          @driver.browser.cookies.remove(name: "capybara")
 
           @session.visit("/get_cookie")
           expect(@driver.html).to_not include("test_cookie")
@@ -1044,13 +1044,13 @@ module Capybara
         it "can set cookies with an expires time" do
           time = Time.at(Time.now.to_i + 10_000)
           @session.visit "/"
-          @driver.browser.cookies.set(name: "foo", value: "bar", domain: "127.0.0.1", expires: time)
+          @driver.browser.cookies.set(name: "foo", value: "bar", expires: time)
           expect(@driver.browser.cookies["foo"].expires).to eq(time)
         end
 
         it "can set cookies for given domain" do
           port = @session.server.port
-          @driver.browser.cookies.set(name: "capybara", value: "127.0.0.1", domain: "127.0.0.1")
+          @driver.browser.cookies.set(name: "capybara", value: "127.0.0.1")
           @driver.browser.cookies.set(name: "capybara", value: "localhost", domain: "localhost")
 
           @session.visit("http://localhost:#{port}/cuprite/get_cookie")
@@ -1058,6 +1058,34 @@ module Capybara
 
           @session.visit("http://127.0.0.1:#{port}/cuprite/get_cookie")
           expect(@driver.html).to include("127.0.0.1")
+        end
+
+        it "sets cookies for the visited host" do
+          port = @session.server.port
+          @session.visit("http://localhost:#{port}/")
+          @driver.browser.cookies.set(name: "capybara", value: "localhost")
+
+          @session.visit("http://localhost:#{port}/cuprite/get_cookie")
+          expect(@driver.html).to include("localhost")
+
+          @session.visit("http://127.0.0.1:#{port}/cuprite/get_cookie")
+          expect(@driver.html).not_to include("localhost")
+        end
+
+        it "sets cookies for Capybara.app_host" do
+          old_app_host = Capybara.app_host
+          Capybara.app_host = "http://localhost/cuprite"
+          @driver.reset!
+          @driver.browser.cookies.set(name: "capybara", value: "app_host")
+
+          port = @session.server.port
+          @session.visit("http://localhost:#{port}/cuprite/get_cookie")
+          expect(@driver.html).to include("app_host")
+
+          @session.visit("http://127.0.0.1:#{port}/cuprite/get_cookie")
+          expect(@driver.html).not_to include("app_host")
+        ensure
+          Capybara.app_host = old_app_host
         end
 
         it "warns that the cookie methods are deprecated" do
