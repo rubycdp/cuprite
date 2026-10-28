@@ -28,7 +28,7 @@ Capybara::Cuprite::Driver.new(
 
 Lists set at runtime are reset to the driver options at the end of every test.
 If both lists are set, the blocklist takes precedence. Blocked requests can be
-inspected with `page.driver.network_traffic(:blocked)`.
+inspected with `page.driver.browser.network.traffic.select(&:blocked?)`.
 
 `url_blacklist=` and `url_whitelist=` setters continue to work for legacy support.
 Passing strings instead of regexes is deprecated, `*` is treated as a wildcard

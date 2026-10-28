@@ -93,6 +93,39 @@ module Capybara
         browser.cookies.clear
       end
 
+      def network_traffic(type = nil)
+        warn "#{self.class}#network_traffic is deprecated, use page.driver.browser.network.traffic instead", uplevel: 1
+        traffic = browser.network.traffic
+
+        case type.to_s
+        when "all"
+          traffic
+        when "blocked"
+          traffic.select(&:blocked?)
+        else
+          # when request isn't blocked
+          traffic.reject(&:blocked?)
+        end
+      end
+
+      def clear_network_traffic
+        warn "#{self.class}#clear_network_traffic is deprecated, " \
+             "use page.driver.browser.network.clear(:traffic) instead", uplevel: 1
+        browser.network.clear(:traffic)
+      end
+
+      def wait_for_network_idle(**options)
+        warn "#{self.class}#wait_for_network_idle is deprecated, use page.driver.browser.network.wait_for_idle instead",
+             uplevel: 1
+        browser.network.wait_for_idle(**options)
+      end
+
+      def clear_memory_cache
+        warn "#{self.class}#clear_memory_cache is deprecated, use page.driver.browser.network.clear(:cache) instead",
+             uplevel: 1
+        browser.network.clear(:cache)
+      end
+
       private
 
       def default_domain

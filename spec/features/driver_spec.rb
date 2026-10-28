@@ -812,7 +812,7 @@ module Capybara
       context "network traffic" do
         it "keeps track of network traffic" do
           @session.visit("/cuprite/with_js")
-          urls = @driver.network_traffic.map { |e| e.request.url }
+          urls = @driver.browser.network.traffic.map { |e| e.request.url }
 
           expect(urls.grep(%r{/cuprite/jquery.min.js$}).size).to eq(1)
           expect(urls.grep(%r{/cuprite/jquery-ui.min.js$}).size).to eq(1)
@@ -824,14 +824,14 @@ module Capybara
 
           @session.visit "/cuprite/url_blacklist"
 
-          blocked_urls = @driver.network_traffic(:blocked).map { |e| e.request.url }
+          blocked_urls = @driver.browser.network.traffic.select(&:blocked?).map { |e| e.request.url }
 
           expect(blocked_urls).to include(/unwanted/)
         end
 
         it "captures responses" do
           @session.visit("/cuprite/with_js")
-          request = @driver.network_traffic.last
+          request = @driver.browser.network.traffic.last
 
           expect(request.response.status).to eq(200)
         end
@@ -839,36 +839,36 @@ module Capybara
         it "captures errors" do
           @session.visit("/cuprite/with_ajax_fail")
           expect(@session).to have_css("h1", text: "Done")
-          error = @driver.network_traffic.last.error
+          error = @driver.browser.network.traffic.last.error
 
           expect(error).to be
         end
 
         it "keeps a running list between multiple web page views" do
           @session.visit("/cuprite/with_js")
-          expect(@driver.network_traffic.length).to eq(4)
+          expect(@driver.browser.network.traffic.length).to eq(4)
 
           @session.visit("/cuprite/with_js")
-          expect(@driver.network_traffic.length).to eq(8)
+          expect(@driver.browser.network.traffic.length).to eq(8)
         end
 
         it "gets cleared on restart" do
           @session.visit("/cuprite/with_js")
-          expect(@driver.network_traffic.length).to eq(4)
+          expect(@driver.browser.network.traffic.length).to eq(4)
 
           @driver.restart
 
           @session.visit("/cuprite/with_js")
-          expect(@driver.network_traffic.length).to eq(4)
+          expect(@driver.browser.network.traffic.length).to eq(4)
         end
 
         it "gets cleared when being cleared" do
           @session.visit("/cuprite/with_js")
-          expect(@driver.network_traffic.length).to eq(4)
+          expect(@driver.browser.network.traffic.length).to eq(4)
 
-          @driver.clear_network_traffic
+          @driver.browser.network.clear(:traffic)
 
-          expect(@driver.network_traffic.length).to eq(0)
+          expect(@driver.browser.network.traffic.length).to eq(0)
         end
 
         it "blocked requests get cleared along with network traffic" do
@@ -876,16 +876,27 @@ module Capybara
 
           @session.visit "/cuprite/url_blacklist"
 
-          expect(@driver.network_traffic(:blocked).length).to eq(3)
+          expect(@driver.browser.network.traffic.select(&:blocked?).length).to eq(3)
 
-          @driver.clear_network_traffic
+          @driver.browser.network.clear(:traffic)
 
-          expect(@driver.network_traffic(:blocked).length).to eq(0)
+          expect(@driver.browser.network.traffic.select(&:blocked?).length).to eq(0)
+        end
+
+        it "warns that the network methods are deprecated" do
+          @driver.browser.url_blacklist = /unwanted/
+          @session.visit "/cuprite/url_blacklist"
+
+          expect { @driver.network_traffic }.to output(/network_traffic is deprecated/).to_stderr
+          expect { @driver.wait_for_network_idle }.to output(/wait_for_network_idle is deprecated/).to_stderr
+          expect { @driver.clear_memory_cache }.to output(/clear_memory_cache is deprecated/).to_stderr
+          expect { @driver.clear_network_traffic }.to output(/clear_network_traffic is deprecated/).to_stderr
+          expect(@driver.browser.network.traffic).to be_empty
         end
 
         it "counts network traffic for each loaded resource" do
           @session.visit("/cuprite/with_js")
-          responses = @driver.network_traffic.map(&:response)
+          responses = @driver.browser.network.traffic.map(&:response)
           resources_size = {
             %r{/cuprite/jquery.min.js$} => File.size("#{PROJECT_ROOT}/spec/support/public/jquery-3.7.1.min.js"),
             %r{/cuprite/jquery-ui.min.js$} => File.size("#{PROJECT_ROOT}/spec/support/public/jquery-ui-1.13.2.min.js"),
@@ -899,24 +910,24 @@ module Capybara
       end
 
       it "can clear memory cache" do
-        @driver.clear_memory_cache
+        @driver.browser.network.clear(:cache)
 
         @session.visit("/cuprite/cacheable")
-        expect(@driver.network_traffic.length).to eq(1)
-        expect(@driver.network_traffic.last.response.status).to eq(200)
-        expect(@driver.network_traffic.last.response.params.dig("response", "fromDiskCache")).to be_falsey
+        expect(@driver.browser.network.traffic.length).to eq(1)
+        expect(@driver.browser.network.traffic.last.response.status).to eq(200)
+        expect(@driver.browser.network.traffic.last.response.params.dig("response", "fromDiskCache")).to be_falsey
 
         @session.click_link "click me"
-        expect(@driver.network_traffic.length).to eq(2)
-        expect(@driver.network_traffic.last.response.status).to eq(200)
-        expect(@driver.network_traffic.last.response.params.dig("response", "fromDiskCache")).to be_truthy
+        expect(@driver.browser.network.traffic.length).to eq(2)
+        expect(@driver.browser.network.traffic.last.response.status).to eq(200)
+        expect(@driver.browser.network.traffic.last.response.params.dig("response", "fromDiskCache")).to be_truthy
 
-        @driver.clear_memory_cache
+        @driver.browser.network.clear(:cache)
 
         @session.click_link "click me"
-        expect(@driver.network_traffic.length).to eq(3)
-        expect(@driver.network_traffic.last.response.status).to eq(200)
-        expect(@driver.network_traffic.last.response.params.dig("response", "fromDiskCache")).to be_falsey
+        expect(@driver.browser.network.traffic.length).to eq(3)
+        expect(@driver.browser.network.traffic.last.response.status).to eq(200)
+        expect(@driver.browser.network.traffic.last.response.params.dig("response", "fromDiskCache")).to be_falsey
       end
 
       context "status code support" do
@@ -1865,7 +1876,7 @@ module Capybara
         expect(@session).not_to have_content("test_cookie")
 
         @session.click_button "Set cookie slow"
-        @session.driver.wait_for_network_idle
+        @session.driver.browser.network.wait_for_idle
         @session.refresh
 
         expect(@session).to have_content("test_cookie")

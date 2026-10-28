@@ -154,11 +154,11 @@ cleared at the end of the test.
 
 ## Network traffic
 
-* `page.driver.network_traffic` allows you to inspect network traffic (i.e., loaded resources) on the current page. It returns an array of `Ferrum::Network::Exchange` objects, each representing a network request/response exchange. You can query both the request and response details of each exchange.
+* `page.driver.browser.network.traffic` allows you to inspect network traffic (i.e., loaded resources) on the current page. It returns an array of `Ferrum::Network::Exchange` objects, each representing a network request/response exchange. You can query both the request and response details of each exchange.
 
 ```ruby
 # Retrieve all network exchanges
-network_traffic = page.driver.network_traffic
+network_traffic = page.driver.browser.network.traffic
 
 # Access the first exchange
 first_exchange = network_traffic.first
@@ -167,21 +167,21 @@ first_exchange = network_traffic.first
 response = first_exchange.response
 ```
 
-* `page.driver.wait_for_network_idle` Natively waits for network idle and if
-there are no active connections returns or raises `TimeoutError` error. Accepts
-the same options as
+* `page.driver.browser.network.wait_for_idle` Natively waits for network idle
+and returns `false` if there are still active connections after timeout.
+Accepts the same options as
 [`wait_for_idle`](https://github.com/rubycdp/ferrum#wait_for_idleoptions)
 
 ```ruby
-page.driver.wait_for_network_idle
+page.driver.browser.network.wait_for_idle
 page.driver.refresh
 ```
 
 Please note that network traffic is not cleared when you visit new page. You can
-manually clear the network traffic by calling `page.driver.clear_network_traffic`
-or `page.driver.reset!`
+manually clear the network traffic by calling
+`page.driver.browser.network.clear(:traffic)` or `page.driver.reset!`
 
-* `page.driver.wait_for_reload` unlike `wait_for_network_idle` will wait until
+* `page.driver.wait_for_reload` unlike `network.wait_for_idle` will wait until
 the whole page is reloaded or raise a timeout error. It's useful when you know
 that for example after clicking autocomplete suggestion you expect page to be
 reloaded, you have a few choices - put sleep or wait for network idle, but both

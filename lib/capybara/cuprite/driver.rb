@@ -178,38 +178,12 @@ module Capybara
         browser.mouse.scroll_to(left, top)
       end
 
-      def network_traffic(type = nil)
-        traffic = browser.network.traffic
-
-        case type.to_s
-        when "all"
-          traffic
-        when "blocked"
-          traffic.select(&:blocked?)
-        else
-          # when request isn't blocked
-          traffic.reject(&:blocked?)
-        end
-      end
-
-      def clear_network_traffic
-        browser.network.clear(:traffic)
-      end
-
       def set_proxy(host, port, user = nil, password = nil, bypass = nil)
         @options.merge!(proxy: { host: host, port: port, user: user, password: password, bypass: bypass })
       end
 
       def response_headers
         browser.network.response&.headers
-      end
-
-      def wait_for_network_idle(**options)
-        browser.network.wait_for_idle(**options)
-      end
-
-      def clear_memory_cache
-        browser.network.clear(:cache)
       end
 
       def debug(...)
