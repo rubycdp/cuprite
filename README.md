@@ -218,7 +218,7 @@ page.driver.browser.pdf(paper_width: 6, paper_height: 12)
 
 ## Authorization
 
-* `page.driver.authorize(user, password)`
+* `page.driver.browser.network.authorize(user:, password:) { |request, _index, _total| request.continue }`
 
 ## Proxy
 

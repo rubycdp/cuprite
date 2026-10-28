@@ -284,11 +284,12 @@ module Capybara
       end
 
       def authorize(user, password)
+        warn "#{self.class}##{__callee__} is deprecated, use page.driver.browser.network.authorize instead", uplevel: 1
         browser.network.authorize(user: user, password: password) do |request, _index, _total|
           request.continue
         end
       end
-      deprecate :basic_authorize, :authorize
+      alias basic_authorize authorize
 
       def debug(...)
         browser.debug(...)

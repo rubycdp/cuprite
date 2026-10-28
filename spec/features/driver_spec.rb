@@ -1236,7 +1236,9 @@ module Capybara
         end
 
         it "allows with given credentials" do
-          @driver.authorize("login", "pass")
+          @driver.browser.network.authorize(user: "login", password: "pass") do |request, _index, _total|
+            request.continue
+          end
 
           @session.visit "/cuprite/basic_auth"
 
@@ -1245,7 +1247,9 @@ module Capybara
         end
 
         it "allows even overwriting headers" do
-          @driver.authorize("login", "pass")
+          @driver.browser.network.authorize(user: "login", password: "pass") do |request, _index, _total|
+            request.continue
+          end
           @driver.headers = { "Cuprite" => "true" }
 
           @session.visit "/cuprite/basic_auth"
@@ -1255,7 +1259,9 @@ module Capybara
         end
 
         it "denies with wrong credentials" do
-          @driver.authorize("user", "pass!")
+          @driver.browser.network.authorize(user: "user", password: "pass!") do |request, _index, _total|
+            request.continue
+          end
 
           @session.visit "/cuprite/basic_auth"
 
@@ -1263,8 +1269,19 @@ module Capybara
           expect(@session).not_to have_content("Welcome, authenticated client")
         end
 
+        it "warns that authorize and basic_authorize are deprecated" do
+          expect { @driver.authorize("login", "pass") }.to output(/authorize is deprecated/).to_stderr
+          expect { @driver.basic_authorize("login", "pass") }.to output(/basic_authorize is deprecated/).to_stderr
+
+          @session.visit "/cuprite/basic_auth"
+
+          expect(@session).to have_content("Welcome, authenticated client")
+        end
+
         it "allows on POST request" do
-          @driver.authorize("login", "pass")
+          @driver.browser.network.authorize(user: "login", password: "pass") do |request, _index, _total|
+            request.continue
+          end
 
           @session.visit "/cuprite/basic_auth"
           @session.click_button("Submit")
