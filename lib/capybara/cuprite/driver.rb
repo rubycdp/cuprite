@@ -21,8 +21,7 @@ module Capybara
 
       delegate %i[restart quit status_code timeout timeout= current_url title
                   window_handles current_window_handle close_window switch_to_window within_window
-                  refresh wait_for_reload viewport_size device_pixel_ratio downloads
-                  console] => :browser
+                  refresh wait_for_reload viewport_size device_pixel_ratio] => :browser
       delegate %i[send_keys] => :active_element
       def_delegator :browser, :body, :html
       deprecate :body, :html

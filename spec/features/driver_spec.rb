@@ -930,19 +930,19 @@ module Capybara
 
       context "downloads" do
         it "saves files to Capybara.save_path" do
-          @driver.downloads.wait { @session.visit("/cuprite/attachment.txt") }
+          @driver.browser.downloads.wait { @session.visit("/cuprite/attachment.txt") }
 
-          file = @driver.downloads.files.last
+          file = @driver.browser.downloads.files.last
           expect(file["suggestedFilename"]).to eq("attachment.txt")
           expect(file["state"]).to eq("completed")
           expect(File.read(File.join(Capybara.save_path, "attachment.txt"))).to eq("attachment contents")
         end
 
         it "forgets files after reset" do
-          @driver.downloads.wait { @session.visit("/cuprite/attachment.txt") }
+          @driver.browser.downloads.wait { @session.visit("/cuprite/attachment.txt") }
           @driver.reset!
 
-          expect(@driver.downloads.files).to be_empty
+          expect(@driver.browser.downloads.files).to be_empty
         end
       end
 
@@ -950,7 +950,7 @@ module Capybara
         it "collects console messages of the page" do
           @session.visit("/cuprite/console_log")
 
-          message = @driver.console.last
+          message = @driver.browser.console.last
           expect(message.text).to eq("Hello world")
           expect(message.type).to eq(:log)
           expect(message.source).to eq(:console_api)
@@ -960,7 +960,7 @@ module Capybara
           @session.visit("/cuprite/console_log")
           @driver.reset!
 
-          expect(@driver.console).to be_empty
+          expect(@driver.browser.console).to be_empty
         end
       end
 

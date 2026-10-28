@@ -1,10 +1,5 @@
 ## [Unreleased](https://github.com/rubycdp/cuprite/compare/v0.19...main) ##
 
-### Added
-- `Driver#downloads` to wait for downloads and list them, files are saved to `Capybara.save_path` [#181]
-- `Driver#console` with the page's `console.*` calls, browser log entries and uncaught exceptions, no more parsing the
-  `:logger` output to get them [#113]
-
 ### Changed
 - `Browser#window_handle` is renamed to `Browser#current_window_handle`
 
