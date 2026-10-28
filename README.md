@@ -220,17 +220,17 @@ page.driver.browser.pdf(paper_width: 6, paper_height: 12)
 
 ## Proxy
 
-* `page.driver.set_proxy(ip, port, user, password, bypass)`
+```ruby
+Capybara::Cuprite::Driver.new(app, proxy: { host: "127.0.0.1", port: 8080, user: "user", password: "password" })
+```
 
-The proxy is passed to Chrome as a command-line flag, so it has to be set before the browser starts: either with the
-`:proxy` driver option or by calling `set_proxy` before the browser is first used. Calling it once the browser is
-running has no effect.
+The proxy is passed to Chrome as a command-line flag when the browser starts.
 
 When connecting to a remote browser with the `:url` option (browserless, Selenoid, etc.), Cuprite doesn't launch
 Chrome and the proxy flag is never applied, so configure the proxy on the remote browser itself. The `user` and
 `password` are still used to answer the proxy's authentication challenge.
 
-The `bypass` argument is a list of hosts that skip the proxy, so don't pass the host you want to go through it.
+The `bypass` option is a list of hosts that skip the proxy, so don't pass the host you want to go through it.
 
 
 ## URL Blocklisting & Allowlisting

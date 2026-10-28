@@ -173,10 +173,6 @@ module Capybara
         end
       end
 
-      def set_proxy(host, port, user = nil, password = nil, bypass = nil)
-        @options.merge!(proxy: { host: host, port: port, user: user, password: password, bypass: bypass })
-      end
-
       def response_headers
         browser.network.response&.headers
       end

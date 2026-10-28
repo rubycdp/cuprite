@@ -164,6 +164,13 @@ module Capybara
         expect(driver.html).to include("Hello world")
       end
 
+      it "warns that set_proxy is deprecated" do
+        driver = Capybara::Cuprite::Driver.new(nil)
+
+        expect { driver.set_proxy("127.0.0.1", 8080) }.to output(/set_proxy is deprecated/).to_stderr
+        expect(driver.options[:proxy]).to include(host: "127.0.0.1", port: 8080)
+      end
+
       it "stops silently before visit call" do
         driver = Capybara::Cuprite::Driver.new(nil)
         expect { driver.quit }.not_to raise_error
@@ -1922,7 +1929,6 @@ module Capybara
       end
 
       it "waits for network idle" do
-        @session.driver.set_proxy("123", "123")
         @session.visit "/cuprite/show_cookies"
         expect(@session).not_to have_content("test_cookie")
 

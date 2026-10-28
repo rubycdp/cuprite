@@ -49,6 +49,11 @@ module Capybara
         browser.mouse.scroll_to(left, top)
       end
 
+      def set_proxy(host, port, user = nil, password = nil, bypass = nil)
+        warn "#{self.class}#set_proxy is deprecated, pass the :proxy option to the driver instead", uplevel: 1
+        @options.merge!(proxy: { host: host, port: port, user: user, password: password, bypass: bypass })
+      end
+
       def wait_for_reload(timeout = 1)
         warn "#{self.class}#wait_for_reload is deprecated, use page.driver.browser.wait_for_reload instead", uplevel: 1
         browser.wait_for_reload(timeout)
