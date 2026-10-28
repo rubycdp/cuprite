@@ -137,19 +137,19 @@ opened where you can further experiment with the test.
 
 ## Request headers
 
-Manipulate HTTP request headers like a boss:
+Manipulate HTTP request headers with Ferrum:
 
 ``` ruby
-page.driver.headers # => {}
-page.driver.headers = { "User-Agent" => "Cuprite" }
-page.driver.add_headers("Referer" => "https://example.com")
-page.driver.headers # => { "User-Agent" => "Cuprite", "Referer" => "https://example.com" }
+page.driver.browser.headers.get # => {}
+page.driver.browser.headers.set("User-Agent" => "Cuprite")
+page.driver.browser.headers.add({ "Referer" => "https://example.com" })
+page.driver.browser.headers.get # => { "User-Agent" => "Cuprite", "Referer" => "https://example.com" }
 ```
 
-Notice that `headers=` will overwrite already set headers. You should use
-`add_headers` if you want to add a few more. These headers will apply to all
-subsequent HTTP requests (including requests for assets, AJAX, etc). They will
-be automatically cleared at the end of the test.
+Notice that `set` will overwrite already set headers. You should use `add` if
+you want to add a few more. These headers will apply to all subsequent HTTP
+requests (including requests for assets, AJAX, etc). They will be automatically
+cleared at the end of the test.
 
 
 ## Network traffic

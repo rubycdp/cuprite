@@ -46,6 +46,26 @@ module Capybara
         end
       end
       alias basic_authorize authorize
+
+      def headers
+        warn "#{self.class}#headers is deprecated, use page.driver.browser.headers.get instead", uplevel: 1
+        browser.headers.get
+      end
+
+      def headers=(headers)
+        warn "#{self.class}#headers= is deprecated, use page.driver.browser.headers.set instead", uplevel: 1
+        browser.headers.set(headers)
+      end
+
+      def add_headers(headers)
+        warn "#{self.class}#add_headers is deprecated, use page.driver.browser.headers.add instead", uplevel: 1
+        browser.headers.add(headers)
+      end
+
+      def add_header(name, value, permanent: true)
+        warn "#{self.class}#add_header is deprecated, use page.driver.browser.headers.add instead", uplevel: 1
+        browser.headers.add({ name => value }, permanent: permanent)
+      end
     end
   end
 end

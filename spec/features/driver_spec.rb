@@ -84,7 +84,7 @@ module Capybara
           end
 
           it "keeps the device user agent when other headers are set" do
-            @driver.headers = { "DV" => "hello" }
+            @driver.browser.headers.set("DV" => "hello")
             @session.visit("/cuprite/headers")
 
             expect(@driver.html).to include("DV: hello")
@@ -465,29 +465,37 @@ module Capybara
 
       context "setting headers" do
         it "allows headers to be set" do
-          @driver.headers = {
+          @driver.browser.headers.set(
             "Cookie" => "foo=bar",
             "DV" => "hello"
-          }
+          )
           @session.visit("/cuprite/headers")
           expect(@driver.html).to include("COOKIE: foo=bar")
           expect(@driver.html).to include("DV: hello")
         end
 
         it "allows headers to be read" do
-          expect(@driver.headers).to eq({})
-          @driver.headers = { "User-Agent" => "Browser", "Host" => "foo.com" }
-          expect(@driver.headers).to eq("User-Agent" => "Browser", "Host" => "foo.com")
+          expect(@driver.browser.headers.get).to eq({})
+          @driver.browser.headers.set("User-Agent" => "Browser", "Host" => "foo.com")
+          expect(@driver.browser.headers.get).to eq("User-Agent" => "Browser", "Host" => "foo.com")
+        end
+
+        it "warns that the header methods are deprecated" do
+          expect { @driver.headers = { "DV" => "hello" } }.to output(/headers= is deprecated/).to_stderr
+          expect { @driver.add_headers("A" => "a") }.to output(/add_headers is deprecated/).to_stderr
+          expect { @driver.add_header("B", "b") }.to output(/add_header is deprecated/).to_stderr
+          expect { @driver.headers }.to output(/headers is deprecated/).to_stderr
+          expect(@driver.browser.headers.get).to eq("DV" => "hello", "A" => "a", "B" => "b")
         end
 
         it "supports User-Agent" do
-          @driver.headers = { "User-Agent" => "foo" }
+          @driver.browser.headers.set("User-Agent" => "foo")
           @session.visit "/"
           expect(@driver.evaluate_script("window.navigator.userAgent")).to eq("foo")
         end
 
         it "sets headers for all HTTP requests" do
-          @driver.headers = { "X-Omg" => "wat" }
+          @driver.browser.headers.set("X-Omg" => "wat")
           @session.visit "/"
           @driver.execute_script <<-JS
             var request = new XMLHttpRequest();
@@ -502,8 +510,8 @@ module Capybara
         end
 
         it "adds new headers" do
-          @driver.headers = { "User-Agent" => "Browser", "DV" => "hello" }
-          @driver.add_headers("User-Agent" => "Cuprite", "Appended" => "true")
+          @driver.browser.headers.set("User-Agent" => "Browser", "DV" => "hello")
+          @driver.browser.headers.add({ "User-Agent" => "Cuprite", "Appended" => "true" })
           @session.visit("/cuprite/headers")
           expect(@driver.html).to include("USER_AGENT: Cuprite")
           expect(@driver.html).to include("DV: hello")
@@ -511,10 +519,10 @@ module Capybara
         end
 
         it "sets headers on the initial request for referer only" do
-          @driver.headers = { "PermanentA" => "a" }
-          @driver.add_headers("PermanentB" => "b")
-          @driver.add_header("Referer", "http://google.com", permanent: false)
-          @driver.add_header("TempA", "a", permanent: false) # simply ignored
+          @driver.browser.headers.set("PermanentA" => "a")
+          @driver.browser.headers.add({ "PermanentB" => "b" })
+          @driver.browser.headers.add({ "Referer" => "http://google.com" }, permanent: false)
+          @driver.browser.headers.add({ "TempA" => "a" }, permanent: false) # simply ignored
 
           @session.visit("/cuprite/headers_with_ajax")
           initial_request = @session.find(:css, "#initial_request").text
@@ -532,18 +540,18 @@ module Capybara
         end
 
         it "keeps added headers on redirects" do
-          @driver.add_header("X-Custom-Header", "1", permanent: false)
+          @driver.browser.headers.add({ "X-Custom-Header" => "1" }, permanent: false)
           @session.visit("/cuprite/redirect_to_headers")
           expect(@driver.html).to include("X_CUSTOM_HEADER: 1")
         end
 
         context "multiple windows", skip: true do
           it "persists headers across popup windows" do
-            @driver.headers = {
+            @driver.browser.headers.set(
               "Cookie" => "foo=bar",
               "Host" => "foo.com",
               "User-Agent" => "foo"
-            }
+            )
             @session.visit("/cuprite/popup_headers")
             @session.click_link "pop up"
             @session.switch_to_window @session.windows.last
@@ -554,11 +562,11 @@ module Capybara
 
           it "sets headers in existing windows" do
             @session.open_new_window
-            @driver.headers = {
+            @driver.browser.headers.set(
               "Cookie" => "foo=bar",
               "Host" => "foo.com",
               "User-Agent" => "foo"
-            }
+            )
             @session.visit("/cuprite/headers")
             expect(@driver.html).to include("USER_AGENT: foo")
             expect(@driver.html).to include("COOKIE: foo=bar")
@@ -573,7 +581,7 @@ module Capybara
 
           it "keeps temporary headers local to the current window" do
             @session.open_new_window
-            @driver.add_header("X-Custom-Header", "1", permanent: false)
+            @driver.browser.headers.add({ "X-Custom-Header" => "1" }, permanent: false)
 
             @session.switch_to_window @session.windows.last
             @session.visit("/cuprite/headers")
@@ -586,8 +594,8 @@ module Capybara
 
           it "does not mix temporary headers with permanent ones when propagating to other windows" do
             @session.open_new_window
-            @driver.add_header("X-Custom-Header", "1", permanent: false)
-            @driver.add_header("Host", "foo.com")
+            @driver.browser.headers.add({ "X-Custom-Header" => "1" }, permanent: false)
+            @driver.browser.headers.add({ "Host" => "foo.com" })
 
             @session.switch_to_window @session.windows.last
             @session.visit("/cuprite/headers")
@@ -602,7 +610,7 @@ module Capybara
 
           it "does not propagate temporary headers to new windows" do
             @session.visit "/"
-            @driver.add_header("X-Custom-Header", "1", permanent: false)
+            @driver.browser.headers.add({ "X-Custom-Header" => "1" }, permanent: false)
             @session.open_new_window
 
             @session.switch_to_window @session.windows.last
@@ -1250,7 +1258,7 @@ module Capybara
           @driver.browser.network.authorize(user: "login", password: "pass") do |request, _index, _total|
             request.continue
           end
-          @driver.headers = { "Cuprite" => "true" }
+          @driver.browser.headers.set("Cuprite" => "true")
 
           @session.visit "/cuprite/basic_auth"
 

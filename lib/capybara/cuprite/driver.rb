@@ -200,22 +200,6 @@ module Capybara
         @options.merge!(proxy: { host: host, port: port, user: user, password: password, bypass: bypass })
       end
 
-      def headers
-        browser.headers.get
-      end
-
-      def headers=(headers)
-        browser.headers.set(headers)
-      end
-
-      def add_headers(headers)
-        browser.headers.add(headers)
-      end
-
-      def add_header(name, value, permanent: true)
-        browser.headers.add({ name => value }, permanent: permanent)
-      end
-
       def response_headers
         browser.network.response&.headers
       end

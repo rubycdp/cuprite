@@ -4,39 +4,24 @@ sidebar_position: 11
 
 # Headers
 
-Manipulate HTTP request headers. Headers apply to all subsequent HTTP requests,
-including assets, AJAX, etc. They are cleared at the end of every test.
-
-#### headers : `Hash`
-
-Returns current headers.
+Manipulate HTTP request headers with Ferrum's [headers](/docs/ferrum/headers).
+Headers apply to all subsequent HTTP requests, including assets, AJAX, etc.
+They are cleared at the end of every test.
 
 ```ruby
-page.driver.headers # => {}
+headers = page.driver.browser.headers
+headers.get # => {}
+headers.set("User-Agent" => "Cuprite")
+headers.add({ "Accept-Language" => "de" })
+headers.get # => { "User-Agent" => "Cuprite", "Accept-Language" => "de" }
 ```
 
-#### headers=(headers)
-
-Sets headers, overwriting already set ones.
+`set` overwrites already set headers, `add` merges into them. With
+`permanent: false` a `Referer` header is applied to the next navigation only:
 
 ```ruby
-page.driver.headers = { "User-Agent" => "Cuprite" }
+page.driver.browser.headers.add({ "Referer" => "https://example.com" }, permanent: false)
 ```
 
-#### add_headers(headers)
-
-Adds headers to already set ones.
-
-```ruby
-page.driver.add_headers("Referer" => "https://example.com")
-page.driver.headers # => { "User-Agent" => "Cuprite", "Referer" => "https://example.com" }
-```
-
-#### add_header(name, value, permanent: true)
-
-Adds a single header. With `permanent: false` a `Referer` header is applied to
-the next navigation only.
-
-```ruby
-page.driver.add_header("Referer", "https://example.com", permanent: false)
-```
+`page.driver.headers`, `headers=`, `add_headers` and `add_header` are
+deprecated in favor of these.

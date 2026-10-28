@@ -11,6 +11,7 @@
 - `Driver#render_base64`, use `page.driver.browser.screenshot` or `page.driver.browser.pdf` instead
 - `Driver#resize` and `Driver#resize_window`, use `page.current_window.resize_to` instead
 - `Driver#authorize` and `Driver#basic_authorize`, use `page.driver.browser.network.authorize` instead
+- `Driver#headers`, `headers=`, `add_headers` and `add_header`, use `page.driver.browser.headers` instead
 - `Driver#zoom_factor=` and `Driver#paper_size=`, pass `scale:`, `paper_width:` and `paper_height:` to
   `save_screenshot` instead
 
