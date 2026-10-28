@@ -21,13 +21,13 @@ it "does something useful" do
 end
 ```
 
-#### pause
+#### Pausing without DevTools
 
-Pauses the test until you press Enter or send `SIGCONT` to the process
-(`kill -CONT <pid>`). Useful together with `headless: false`.
+Run the test with `headless: false` and put a Ruby breakpoint where you want it
+to stop:
 
 ```ruby
-page.driver.pause
+binding.irb
 ```
 
 ## Headful mode

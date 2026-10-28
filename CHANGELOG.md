@@ -31,6 +31,7 @@
 - `Page#frame_name`, it was unused
 - `Browser#browser_error`, it was used only in specs
 - `Node#as_json` and `Node#to_json`, they were unused
+- `Driver#pause`, use `binding.irb` with `headless: false`, or `Driver#debug`
 
 
 ## [0.19](https://github.com/rubycdp/cuprite/compare/v0.18...v0.19) ##

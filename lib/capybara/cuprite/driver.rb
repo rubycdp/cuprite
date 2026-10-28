@@ -3,7 +3,6 @@
 require "uri"
 require "forwardable"
 
-# rubocop:disable-next Metrics/ClassLength
 module Capybara
   module Cuprite
     class Driver < Capybara::Driver::Base
@@ -294,42 +293,6 @@ module Capybara
 
       def debug(...)
         browser.debug(...)
-      end
-
-      def pause
-        # STDIN is not necessarily connected to a keyboard. It might even be closed.
-        # So we need a method other than keypress to continue.
-
-        # In jRuby - STDIN returns immediately from select
-        # see https://github.com/jruby/jruby/issues/1783
-        read, write = IO.pipe
-        thread = Thread.new do
-          IO.copy_stream($stdin, write)
-          write.close
-        end
-
-        warn "Cuprite execution paused. Press enter (or run 'kill -CONT #{Process.pid}') to continue."
-
-        signal = false
-        old_trap = trap("SIGCONT") do
-          signal = true
-          warn "\nSignal SIGCONT received"
-        end
-        keyboard = read.wait_readable(1) until keyboard || signal # wait for data on STDIN or signal SIGCONT received
-
-        unless signal
-          begin
-            input = read.read_nonblock(80) # clear out the read buffer
-            puts unless input&.end_with?("\n")
-          rescue EOFError, IO::WaitReadable
-            # Ignore problems reading from STDIN.
-          end
-        end
-      ensure
-        thread.kill
-        read.close
-        trap("SIGCONT", old_trap) # Restore the previous signal handler, if there was one.
-        warn "Continuing"
       end
 
       def wait?
