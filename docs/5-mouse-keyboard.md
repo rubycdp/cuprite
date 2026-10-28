@@ -6,22 +6,6 @@ sidebar_position: 5
 
 Besides the regular Capybara API, the driver exposes low-level helpers.
 
-#### click(x, y)
-
-Clicks a very specific area of the screen.
-
-```ruby
-page.driver.click(100, 200)
-```
-
-#### scroll_to(left, top)
-
-Scrolls the page to a given position.
-
-```ruby
-page.driver.scroll_to(0, 500)
-```
-
 #### send_keys(\*keys)
 
 Sends keys to the currently focused element.
@@ -47,7 +31,12 @@ For more control use [Ferrum's mouse and keyboard](/docs/ferrum/mouse-keyboard):
 
 ```ruby
 browser = page.driver.browser
+browser.mouse.click(x: 100, y: 200)
 browser.mouse.move(x: 123, y: 456).down.up
 browser.mouse.scroll_by(0, 400)
 browser.keyboard.type("text", :Enter)
 ```
+
+`page.driver.click(x, y)` is deprecated in favor of `browser.mouse.click`, and
+`page.driver.scroll_to(left, top)` in favor of Capybara's
+`page.scroll_to(left, top)`.

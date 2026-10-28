@@ -85,10 +85,6 @@ module Capybara
         browser.find(method, selector).map { |native| Node.new(self, native) }
       end
 
-      def click(x, y)
-        browser.mouse.click(x: x, y: y)
-      end
-
       def evaluate_script(script, *args)
         result = browser.evaluate(script, *native_args(args))
         unwrap_script_result(result)
@@ -175,10 +171,6 @@ module Capybara
         within_window(handle) do
           browser.resize(fullscreen: true)
         end
-      end
-
-      def scroll_to(left, top)
-        browser.mouse.scroll_to(left, top)
       end
 
       def set_proxy(host, port, user = nil, password = nil, bypass = nil)

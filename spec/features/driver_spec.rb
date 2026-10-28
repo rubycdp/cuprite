@@ -210,11 +210,18 @@ module Capybara
 
       it "allows the page to be scrolled" do
         @session.visit("/cuprite/scroll_long_page")
-        @driver.scroll_to(200, 500)
+        @session.scroll_to(200, 500)
 
         expect(
           @driver.evaluate_script("[window.scrollX, window.scrollY]")
         ).to eq([200, 500])
+      end
+
+      it "warns that scroll_to is deprecated" do
+        @session.visit("/cuprite/scroll_long_page")
+
+        expect { @driver.scroll_to(200, 500) }.to output(/scroll_to is deprecated/).to_stderr
+        expect(@driver.evaluate_script("[window.scrollX, window.scrollY]")).to eq([200, 500])
       end
 
       it "supports specifying viewport size with an option" do
@@ -626,7 +633,13 @@ module Capybara
 
       it "supports clicking precise coordinates" do
         @session.visit("/cuprite/click_coordinates")
-        @driver.click(100, 150)
+        @driver.browser.mouse.click(x: 100, y: 150)
+        expect(@driver.html).to include("x: 100, y: 150")
+      end
+
+      it "warns that click is deprecated" do
+        @session.visit("/cuprite/click_coordinates")
+        expect { @driver.click(100, 150) }.to output(/click is deprecated/).to_stderr
         expect(@driver.html).to include("x: 100, y: 150")
       end
 

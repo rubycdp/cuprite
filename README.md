@@ -130,8 +130,8 @@ opened where you can further experiment with the test.
 
 ## Clicking/Scrolling
 
-* `page.driver.click(x, y)` Click a very specific area of the screen.
-* `page.driver.scroll_to(left, top)` Scroll to a given position.
+* `page.driver.browser.mouse.click(x:, y:)` Click a very specific area of the screen.
+* `page.scroll_to(left, top)` Scroll to a given position.
 * `element.send_keys(*keys)` Send keys to a given node.
 
 

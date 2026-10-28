@@ -17,6 +17,8 @@
 - `Driver#cookies`, `set_cookie`, `remove_cookie` and `clear_cookies`, use `page.driver.browser.cookies` instead
 - `Driver#network_traffic`, `clear_network_traffic`, `wait_for_network_idle` and `clear_memory_cache`, use
   `page.driver.browser.network` instead. `network.traffic` includes blocked requests
+- `Driver#click`, use `page.driver.browser.mouse.click` instead
+- `Driver#scroll_to`, use `page.scroll_to` instead
 - `Driver#zoom_factor=` and `Driver#paper_size=`, pass `scale:`, `paper_width:` and `paper_height:` to
   `save_screenshot` instead
 

@@ -39,6 +39,16 @@ module Capybara
       end
       alias resize_window resize
 
+      def click(x, y)
+        warn "#{self.class}#click is deprecated, use page.driver.browser.mouse.click instead", uplevel: 1
+        browser.mouse.click(x: x, y: y)
+      end
+
+      def scroll_to(left, top)
+        warn "#{self.class}#scroll_to is deprecated, use page.scroll_to instead", uplevel: 1
+        browser.mouse.scroll_to(left, top)
+      end
+
       def authorize(user, password)
         warn "#{self.class}##{__callee__} is deprecated, use page.driver.browser.network.authorize instead", uplevel: 1
         browser.network.authorize(user: user, password: password) do |request, _index, _total|
