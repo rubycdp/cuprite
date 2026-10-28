@@ -204,28 +204,6 @@ module Capybara
         browser.network.response&.headers
       end
 
-      def cookies
-        browser.cookies.all
-      end
-
-      def set_cookie(name, value, options = {})
-        options = options.dup
-        options[:name]   ||= name
-        options[:value]  ||= value
-        options[:domain] ||= default_domain
-        browser.cookies.set(**options)
-      end
-
-      def remove_cookie(name, **options)
-        options[:domain] = default_domain if options.empty?
-        options = options.merge(name: name)
-        browser.cookies.remove(**options)
-      end
-
-      def clear_cookies
-        browser.cookies.clear
-      end
-
       def wait_for_network_idle(**options)
         browser.network.wait_for_idle(**options)
       end
@@ -278,14 +256,6 @@ module Capybara
 
       private
 
-      def default_domain
-        if @started
-          URI.parse(browser.current_url).host
-        else
-          URI.parse(default_cookie_host).host || "127.0.0.1"
-        end
-      end
-
       def native_args(args)
         args.map { |arg| arg.is_a?(Capybara::Cuprite::Node) ? arg.node : arg }
       end
@@ -300,14 +270,6 @@ module Capybara
             Capybara.default_wait_time
           end
         end
-      end
-
-      def default_cookie_host
-        if respond_to?(:session_options)
-          session_options.app_host
-        else
-          Capybara.app_host
-        end || ""
       end
 
       def unwrap_script_result(arg)

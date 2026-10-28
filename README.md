@@ -192,18 +192,16 @@ rescue.
 
 ## Manipulating cookies
 
-The following methods are used to inspect and manipulate cookies:
+Use Ferrum's cookies to inspect and manipulate cookies:
 
-* `page.driver.cookies` - a hash of cookies accessible to the current
-  page. The keys are cookie names. The values are `Ferrum::Cookies::Cookie` objects, with
-  the following methods: `name`, `value`, `domain`, `path`, `size`, `secure?`,
-  `httponly?`, `session?`, `expires`.
-* `page.driver.set_cookie(name, value, options = {})` - set a cookie.
-  The options hash can take the following keys: `:domain`, `:path`,
-  `:secure`, `:httponly`, `:expires`. `:expires` should be a
-  `Time` object.
-* `page.driver.remove_cookie(name)` - remove a cookie
-* `page.driver.clear_cookies` - clear all cookies
+```ruby
+cookies = page.driver.browser.cookies
+cookies.set(name: "stealth", value: "omg", domain: "127.0.0.1")
+cookies["stealth"].value # => "omg"
+cookies.all # => { "stealth" => #<Ferrum::Cookies::Cookie ...> }
+cookies.remove(name: "stealth", domain: "127.0.0.1")
+cookies.clear
+```
 
 
 ## Screenshot

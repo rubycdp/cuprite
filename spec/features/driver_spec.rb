@@ -976,7 +976,7 @@ module Capybara
         it "returns set cookies" do
           @session.visit("/set_cookie")
 
-          cookie = @driver.cookies["capybara"]
+          cookie = @driver.browser.cookies["capybara"]
           expect(cookie.name).to eq("capybara")
           expect(cookie.value).to eq("test_cookie")
           expect(cookie.domain).to eq("127.0.0.1")
@@ -989,13 +989,13 @@ module Capybara
         end
 
         it "can set cookies" do
-          @driver.set_cookie "capybara", "omg"
+          @driver.browser.cookies.set(name: "capybara", value: "omg", domain: "127.0.0.1")
           @session.visit("/get_cookie")
           expect(@driver.html).to include("omg")
         end
 
         it "can set cookies with custom settings" do
-          @driver.set_cookie "capybara", "omg", path: "/cuprite"
+          @driver.browser.cookies.set(name: "capybara", value: "omg", domain: "127.0.0.1", path: "/cuprite")
 
           @session.visit("/get_cookie")
           expect(@driver.html).to_not include("omg")
@@ -1003,7 +1003,7 @@ module Capybara
           @session.visit("/cuprite/get_cookie")
           expect(@driver.html).to include("omg")
 
-          expect(@driver.cookies["capybara"].path).to eq("/cuprite")
+          expect(@driver.browser.cookies["capybara"].path).to eq("/cuprite")
         end
 
         it "can remove a cookie" do
@@ -1012,7 +1012,7 @@ module Capybara
           @session.visit("/get_cookie")
           expect(@driver.html).to include("test_cookie")
 
-          @driver.remove_cookie "capybara"
+          @driver.browser.cookies.remove(name: "capybara", domain: "127.0.0.1")
 
           @session.visit("/get_cookie")
           expect(@driver.html).to_not include("test_cookie")
@@ -1024,7 +1024,7 @@ module Capybara
           @session.visit("/get_cookie")
           expect(@driver.html).to include("test_cookie")
 
-          @driver.clear_cookies
+          @driver.browser.cookies.clear
 
           @session.visit("/get_cookie")
           expect(@driver.html).to_not include("test_cookie")
@@ -1033,14 +1033,14 @@ module Capybara
         it "can set cookies with an expires time" do
           time = Time.at(Time.now.to_i + 10_000)
           @session.visit "/"
-          @driver.set_cookie "foo", "bar", expires: time
-          expect(@driver.cookies["foo"].expires).to eq(time)
+          @driver.browser.cookies.set(name: "foo", value: "bar", domain: "127.0.0.1", expires: time)
+          expect(@driver.browser.cookies["foo"].expires).to eq(time)
         end
 
         it "can set cookies for given domain" do
           port = @session.server.port
-          @driver.set_cookie "capybara", "127.0.0.1"
-          @driver.set_cookie "capybara", "localhost", domain: "localhost"
+          @driver.browser.cookies.set(name: "capybara", value: "127.0.0.1", domain: "127.0.0.1")
+          @driver.browser.cookies.set(name: "capybara", value: "localhost", domain: "localhost")
 
           @session.visit("http://localhost:#{port}/cuprite/get_cookie")
           expect(@driver.html).to include("localhost")
@@ -1049,11 +1049,20 @@ module Capybara
           expect(@driver.html).to include("127.0.0.1")
         end
 
+        it "warns that the cookie methods are deprecated" do
+          @session.visit("/set_cookie")
+
+          expect { @driver.cookies }.to output(/cookies is deprecated/).to_stderr
+          expect { @driver.remove_cookie("capybara") }.to output(/remove_cookie is deprecated/).to_stderr
+          expect { @driver.clear_cookies }.to output(/clear_cookies is deprecated/).to_stderr
+          expect(@driver.browser.cookies.all).to be_empty
+        end
+
         it "sets cookies correctly when Capybara.app_host is set" do
           old_app_host = Capybara.app_host
           begin
             Capybara.app_host = "http://localhost/cuprite"
-            @driver.set_cookie "capybara", "app_host"
+            expect { @driver.set_cookie "capybara", "app_host" }.to output(/set_cookie is deprecated/).to_stderr
 
             port = @session.server.port
             @session.visit("http://localhost:#{port}/cuprite/get_cookie")

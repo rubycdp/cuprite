@@ -66,6 +66,50 @@ module Capybara
         warn "#{self.class}#add_header is deprecated, use page.driver.browser.headers.add instead", uplevel: 1
         browser.headers.add({ name => value }, permanent: permanent)
       end
+
+      def cookies
+        warn "#{self.class}#cookies is deprecated, use page.driver.browser.cookies.all instead", uplevel: 1
+        browser.cookies.all
+      end
+
+      def set_cookie(name, value, options = {})
+        warn "#{self.class}#set_cookie is deprecated, use page.driver.browser.cookies.set instead", uplevel: 1
+        options = options.dup
+        options[:name]   ||= name
+        options[:value]  ||= value
+        options[:domain] ||= default_domain
+        browser.cookies.set(**options)
+      end
+
+      def remove_cookie(name, **options)
+        warn "#{self.class}#remove_cookie is deprecated, use page.driver.browser.cookies.remove instead", uplevel: 1
+        options[:domain] = default_domain if options.empty?
+        options = options.merge(name: name)
+        browser.cookies.remove(**options)
+      end
+
+      def clear_cookies
+        warn "#{self.class}#clear_cookies is deprecated, use page.driver.browser.cookies.clear instead", uplevel: 1
+        browser.cookies.clear
+      end
+
+      private
+
+      def default_domain
+        if @started
+          URI.parse(browser.current_url).host
+        else
+          URI.parse(default_cookie_host).host || "127.0.0.1"
+        end
+      end
+
+      def default_cookie_host
+        if respond_to?(:session_options)
+          session_options.app_host
+        else
+          Capybara.app_host
+        end || ""
+      end
     end
   end
 end
