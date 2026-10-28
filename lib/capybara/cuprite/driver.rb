@@ -21,7 +21,7 @@ module Capybara
       def_delegator :browser, :back, :go_back
       def_delegator :browser, :forward, :go_forward
 
-      attr_reader :app, :options, :screen_size
+      attr_reader :app, :options
 
       def initialize(app, options = {})
         @app     = app
@@ -81,10 +81,6 @@ module Capybara
         find(:css, selector)
       end
 
-      def find(method, selector)
-        browser.find(method, selector).map { |native| Node.new(self, native) }
-      end
-
       def evaluate_script(script, *args)
         result = browser.evaluate(script, *native_args(args))
         unwrap_script_result(result)
@@ -103,9 +99,9 @@ module Capybara
       def switch_to_frame(locator)
         handle = case locator
                  when Capybara::Node::Element
-                   locator.native.description["frameId"]
+                   locator.native.node.description["frameId"]
                  when Capybara::Cuprite::Node
-                   locator.description["frameId"]
+                   locator.node.description["frameId"]
                  when :parent, :top
                    locator
                  end
@@ -220,6 +216,12 @@ module Capybara
       end
 
       private
+
+      attr_reader :screen_size
+
+      def find(method, selector)
+        browser.find(method, selector).map { |native| Node.new(self, native) }
+      end
 
       def capybara_base_url
         session_options.app_host || session&.server&.base_url

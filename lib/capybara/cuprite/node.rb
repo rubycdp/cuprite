@@ -11,27 +11,13 @@ module Capybara
 
       delegate %i[description] => :node
       delegate %i[browser] => :driver
+      private :description
 
       DRAG_MODIFIER_ALIASES = { control: :ctrl, command: :meta, cmd: :meta }.freeze
 
       def initialize(driver, node)
         super(driver, self)
         @node = node
-      end
-
-      def command(name, *args)
-        raise ObsoleteNode.new(self, nil) unless node.evaluate("this.isConnected")
-
-        browser.send(name, node, *args)
-      rescue Ferrum::NodeNotFoundError => e
-        raise ObsoleteNode.new(self, e.response)
-      rescue Ferrum::BrowserError => e
-        case e.message
-        when "Cuprite.MouseEventFailed"
-          raise MouseEventFailed.new(self, e.response)
-        else
-          raise
-        end
       end
 
       def parents
@@ -265,6 +251,21 @@ module Capybara
       end
 
       private
+
+      def command(name, *args)
+        raise ObsoleteNode.new(self, nil) unless node.evaluate("this.isConnected")
+
+        browser.send(name, node, *args)
+      rescue Ferrum::NodeNotFoundError => e
+        raise ObsoleteNode.new(self, e.response)
+      rescue Ferrum::BrowserError => e
+        case e.message
+        when "Cuprite.MouseEventFailed"
+          raise MouseEventFailed.new(self, e.response)
+        else
+          raise
+        end
+      end
 
       def prepare_and_click(mode, name, keys, options)
         delay = options[:delay].to_i

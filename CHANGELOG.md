@@ -2,6 +2,8 @@
 
 ### Changed
 - `Browser#window_handle` is renamed to `Browser#current_window_handle`
+- `Driver#find`, `Driver#screen_size`, `Node#command` and `Node#description` are private, use `node.node.description`
+  for the latter
 - Ferrum's `base_url` follows `Capybara.app_host` (or Capybara's server) and the visited page, so
   `page.driver.browser.cookies` doesn't need `domain:`
 
