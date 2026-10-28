@@ -24,7 +24,7 @@ module Capybara
 
       delegate %i[send_keys select set hover trigger before_click switch_to_frame
                   find_modal accept_confirm dismiss_confirm accept_prompt
-                  dismiss_prompt reset_modals] => :page
+                  dismiss_prompt] => :page
 
       def initialize(options = nil)
         device = options&.dig(:emulate)

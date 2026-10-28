@@ -117,13 +117,6 @@ module Capybara
         modal_text
       end
 
-      def reset_modals
-        @accept_modal = []
-        @modal_response = nil
-        @modal_messages = []
-        @unhandled_modal_error = nil
-      end
-
       def before_click(node, name, _keys = [], offset = {})
         node.evaluate("_cuprite.scrollIntoViewport(this)")
 

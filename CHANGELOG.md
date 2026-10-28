@@ -40,6 +40,7 @@
 - `Driver#source`, it always raised `NotImplementedError`. Use `page.html` or `page.source` instead
 - `Capybara::Cuprite::Cookie`, it was never loaded. `Driver#cookies` returns `Ferrum::Cookies::Cookie` objects
 - `Page#frame_name`, it was unused
+- `Page#reset_modals` and `Browser#reset_modals`, they were unused
 - `Browser#browser_error`, it was used only in specs
 - `Node#as_json` and `Node#to_json`, they were unused
 - `Driver#pause`, use `binding.irb` with `headless: false`, or `Driver#debug`
