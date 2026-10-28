@@ -8,6 +8,7 @@
   `page.driver.browser.cookies` doesn't need `domain:`
 
 ### Deprecated
+- Deprecated methods print a warning and will be removed in 0.21
 - `Driver#body`, use `Driver#html` instead
 - `Driver#back` and `Driver#forward`, use `Driver#go_back` and `Driver#go_forward` instead
 - `Driver#window_handle`, use `Driver#current_window_handle` instead
