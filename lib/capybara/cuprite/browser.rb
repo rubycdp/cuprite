@@ -22,9 +22,7 @@ module Capybara
         }
       JS
 
-      delegate %i[send_keys select set hover trigger before_click switch_to_frame
-                  find_modal accept_confirm dismiss_confirm accept_prompt
-                  dismiss_prompt] => :page
+      delegate %i[send_keys select set hover trigger before_click] => :page
       private :send_keys, :select, :set, :hover, :trigger, :before_click
 
       def initialize(options = nil)

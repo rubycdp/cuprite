@@ -108,7 +108,7 @@ module Capybara
 
         raise ArgumentError, "Unable to switch to frame from #{locator.class}" unless handle
 
-        browser.switch_to_frame(handle)
+        browser.page.switch_to_frame(handle)
       end
 
       def open_new_window
@@ -192,27 +192,27 @@ module Capybara
       def accept_modal(type, options = {})
         case type
         when :alert, :confirm
-          browser.accept_confirm
+          browser.page.accept_confirm
         when :prompt
-          browser.accept_prompt(options[:with])
+          browser.page.accept_prompt(options[:with])
         end
 
         yield if block_given?
 
-        browser.find_modal(options)
+        browser.page.find_modal(options)
       end
 
       def dismiss_modal(type, options = {})
         case type
         when :confirm
-          browser.dismiss_confirm
+          browser.page.dismiss_confirm
         when :prompt
-          browser.dismiss_prompt
+          browser.page.dismiss_prompt
         end
 
         yield if block_given?
 
-        browser.find_modal(options)
+        browser.page.find_modal(options)
       end
 
       private
