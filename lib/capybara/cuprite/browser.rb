@@ -25,6 +25,7 @@ module Capybara
       delegate %i[send_keys select set hover trigger before_click switch_to_frame
                   find_modal accept_confirm dismiss_confirm accept_prompt
                   dismiss_prompt] => :page
+      private :send_keys, :select, :set, :hover, :trigger, :before_click
 
       def initialize(options = nil)
         device = options&.dig(:emulate)
@@ -110,16 +111,6 @@ module Capybara
         find_all(method, selector)
       end
 
-      def property(node, name)
-        node.property(name)
-      end
-
-      def find_within(node, method, selector)
-        resolved = page.command("DOM.resolveNode", nodeId: node.node_id)
-        object_id = resolved.dig("object", "objectId")
-        find_all(method, selector, { "objectId" => object_id })
-      end
-
       def current_window_handle
         page.target_id
       end
@@ -157,6 +148,18 @@ module Capybara
 
       def active_element
         evaluate("document.activeElement")
+      end
+
+      private
+
+      def property(node, name)
+        node.property(name)
+      end
+
+      def find_within(node, method, selector)
+        resolved = page.command("DOM.resolveNode", nodeId: node.node_id)
+        object_id = resolved.dig("object", "objectId")
+        find_all(method, selector, { "objectId" => object_id })
       end
 
       def drag(node, other, drop_modifiers, options = {})
@@ -268,8 +271,6 @@ module Capybara
       def all_text(node)
         node.text
       end
-
-      private
 
       def find_all(method, selector, within = nil)
         # Capybara appends its text-match hint as `(expr)[...]`, but with `exact_text: true` the hint

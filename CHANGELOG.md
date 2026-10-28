@@ -2,6 +2,8 @@
 
 ### Changed
 - `Browser#window_handle` is renamed to `Browser#current_window_handle`
+- Node helpers on `Capybara::Cuprite::Browser` (`value`, `set`, `select`, `visible_text`, `drag`, etc.) are private, use
+  Capybara's node API or `node.native.node` for Ferrum's
 - `Driver#find`, `Driver#screen_size`, `Node#command` and `Node#description` are private, use `node.node.description`
   for the latter
 - Ferrum's `base_url` follows `Capybara.app_host` (or Capybara's server) and the visited page, so
