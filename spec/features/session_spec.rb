@@ -1298,9 +1298,11 @@ describe Capybara::Session do
       )
     end
 
-    it "knows about its parents" do
+    it "warns that parents is deprecated" do
       @session.visit "/cuprite/simple"
-      parents = @session.find(:css, "#nav").native.parents
+      node = @session.find(:css, "#nav").native
+      parents = nil
+      expect { parents = node.parents }.to output(/parents is deprecated/).to_stderr
       expect(parents.map(&:tag_name)).to eq %w[li ul body html]
     end
 

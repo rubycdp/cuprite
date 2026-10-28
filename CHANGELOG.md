@@ -26,6 +26,7 @@
   `page.driver.browser` instead
 - `Driver#set_proxy`, pass the `:proxy` option to the driver instead
 - `Node#send_key`, use `Node#send_keys` instead
+- `Node#parents`, use Capybara's `ancestor` instead
 - `Driver#zoom_factor=` and `Driver#paper_size=`, pass `scale:`, `paper_width:` and `paper_height:` to
   `save_screenshot` instead
 

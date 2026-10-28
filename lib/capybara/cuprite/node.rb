@@ -22,6 +22,7 @@ module Capybara
       end
 
       def parents
+        Cuprite.deprecation_warning("#{self.class}#parents", "use Capybara's ancestor")
         command(:parents).map do |parent|
           self.class.new(driver, parent)
         end
