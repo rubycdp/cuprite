@@ -58,7 +58,8 @@ because Docker is involved. Prefer running the browser as a non-root user with
 a working sandbox when possible.
 
 Since Cuprite uses [Ferrum](https://github.com/rubycdp/ferrum#examples) there
-are many useful methods you can call even using this driver:
+are many useful methods you can call even using this driver.
+`page.driver.browser` is a `Ferrum::Browser`:
 
 ```ruby
 browser = page.driver.browser

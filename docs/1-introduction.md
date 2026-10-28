@@ -69,21 +69,42 @@ See [Docker](/docs/cuprite/docker).
 
 ## Ferrum under the hood
 
-Since Cuprite is built on top of Ferrum there are many useful methods you can
-call even using this driver. `page.driver.browser` is a `Ferrum::Browser`
-instance:
+`page.driver` is the Capybara driver. It implements what Capybara needs, plus a
+few things that depend on Capybara, like frames, windows, modals and
+screenshots saved to `Capybara.save_path`.
+
+`page.driver.browser` is a `Ferrum::Browser`, so everything in the
+[Ferrum documentation](/docs/ferrum/introduction) applies to it. Use it when
+Capybara has no API for what you need:
 
 ```ruby
 browser = page.driver.browser
+browser.headers.set("Accept-Language" => "de")
+browser.cookies.set(name: "stealth", value: "omg", domain: "127.0.0.1")
+browser.network.wait_for_idle
+browser.network.traffic.last.response.status # => 200
 browser.mouse.move(x: 123, y: 456).down.up
-browser.network.emulate_network_conditions(offline: true)
+browser.screenshot(format: :jpeg, quality: 60)
+browser.console.select(&:error?)
+browser.downloads.files
 ```
 
-See [Ferrum documentation](/docs/ferrum/introduction) for the full API.
+A few things to keep in mind:
+
+- It follows Capybara. Page methods such as `browser.evaluate`, `browser.css`
+  or `browser.current_url` run in the window and frame Capybara is switched to,
+  for example inside `within_window` or `within_frame`.
+- It's reset between tests. Capybara's reset disposes the browser context, so
+  headers, cookies, request interception, recorded traffic, console messages
+  and downloads are gone in the next test. Browser-wide settings such as
+  `browser.timeout = 10` stay.
+- It doesn't wait. Ferrum's finders return what's on the page right now, while
+  Capybara's retry up to `Capybara.default_max_wait_time`. Prefer Capybara's
+  finders and matchers in tests, and use `browser` for what Capybara can't do.
 
 ## Migrating from Selenium
 
 Check your code for `page.driver.browser.manage` calls, there's no `manage` in
-Cuprite. Use driver methods instead, for example
-[cookies](/docs/cuprite/cookies) or
-[window resizing](/docs/cuprite/windows-frames).
+Cuprite. Use Capybara's API where it has one, for example
+`page.current_window.resize_to`, and `page.driver.browser` for the rest, for
+example [cookies](/docs/ferrum/cookies).
