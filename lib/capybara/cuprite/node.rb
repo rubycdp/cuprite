@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "forwardable"
+require "capybara/cuprite/deprecations"
 
 module Capybara
   module Cuprite
@@ -223,7 +224,11 @@ module Capybara
 
         command(:send_keys, keys)
       end
-      alias send_key send_keys
+
+      def send_key(*keys)
+        Cuprite.deprecation_warning("#{self.class}#send_key", "use #send_keys")
+        send_keys(*keys)
+      end
 
       def path
         command(:path)

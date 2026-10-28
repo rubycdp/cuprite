@@ -1668,10 +1668,10 @@ module Capybara
           expect(input.value).to eq("cuprite")
         end
 
-        it "has an alias" do
+        it "warns that send_key is deprecated" do
           input = @session.find(:css, "#empty_input")
 
-          input.native.send_key("S")
+          expect { input.native.send_key("S") }.to output(/send_key is deprecated/).to_stderr
 
           expect(input.value).to eq("S")
         end
