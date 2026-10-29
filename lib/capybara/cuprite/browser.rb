@@ -107,10 +107,6 @@ module Capybara
         network.status
       end
 
-      def find(method, selector)
-        find_all(method, selector)
-      end
-
       def current_window_handle
         page.target_id
       end
@@ -122,16 +118,6 @@ module Capybara
 
       def window_handles
         targets.values.select(&:page?).map(&:id)
-      end
-
-      def within_window(locator = nil)
-        original = current_window_handle
-        raise Ferrum::NoSuchPageError unless window_handles.include?(locator)
-
-        switch_to_window(locator)
-        yield
-      ensure
-        switch_to_window(original)
       end
 
       def switch_to_window(target_id)
@@ -147,11 +133,11 @@ module Capybara
         targets.delete(target_id) # page.close is async, delete target asap
       end
 
-      def active_element
-        evaluate("document.activeElement")
-      end
-
       private
+
+      def find(method, selector)
+        find_all(method, selector)
+      end
 
       def evaluate_callback(script, wait, *args)
         evaluate(CALLBACK_JS.sub("SCRIPT") { script }, *args, timeout: wait)

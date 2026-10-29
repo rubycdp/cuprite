@@ -14,13 +14,12 @@ module Capybara
       include Deprecations
 
       delegate %i[quit current_url title
-                  window_handles current_window_handle close_window switch_to_window within_window
+                  window_handles current_window_handle close_window switch_to_window
                   refresh] => :browser
       delegate %i[send_keys] => :active_element
       def_delegator :browser, :body, :html
       def_delegator :browser, :back, :go_back
       def_delegator :browser, :forward, :go_forward
-      private :within_window
 
       attr_reader :app, :options
 
@@ -75,7 +74,7 @@ module Capybara
       end
 
       def active_element
-        Node.new(self, browser.active_element)
+        Node.new(self, browser.evaluate("document.activeElement"))
       end
 
       def find_xpath(selector)
@@ -225,7 +224,17 @@ module Capybara
       attr_reader :screen_size
 
       def find(method, selector)
-        browser.find(method, selector).map { |native| Node.new(self, native) }
+        browser.send(:find, method, selector).map { |native| Node.new(self, native) }
+      end
+
+      def within_window(handle)
+        original = browser.current_window_handle
+        raise Ferrum::NoSuchPageError unless browser.window_handles.include?(handle)
+
+        browser.switch_to_window(handle)
+        yield
+      ensure
+        browser.switch_to_window(original)
       end
 
       def capybara_base_url
