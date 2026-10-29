@@ -73,7 +73,6 @@ module Capybara
       end
 
       def attributes
-        Cuprite.deprecation_warning("#{self.class}#attributes", "use node.native.node.attribute")
         command(:attributes)
       end
 

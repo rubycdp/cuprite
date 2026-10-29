@@ -30,7 +30,7 @@
 - `Driver#restart` and `Node#browser`, use `page.driver.browser.restart` and `page.driver.browser` instead
 - `Node#send_key`, use `Node#send_keys` instead
 - `Node#parents`, use Capybara's `ancestor` instead
-- `Node#property` and `Node#attributes`, use `node.native.node.property` and `node.native.node.attribute` instead
+- `Node#property`, use `node.native.node.property` instead
 - `Driver#zoom_factor=` and `Driver#paper_size=`, pass `scale:`, `paper_width:` and `paper_height:` to
   `save_screenshot` instead
 
