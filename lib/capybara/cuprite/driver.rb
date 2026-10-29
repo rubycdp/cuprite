@@ -13,7 +13,7 @@ module Capybara
       extend Forwardable
       include Deprecations
 
-      delegate %i[restart quit status_code current_url title
+      delegate %i[quit status_code current_url title
                   window_handles current_window_handle close_window switch_to_window within_window
                   refresh] => :browser
       delegate %i[send_keys] => :active_element

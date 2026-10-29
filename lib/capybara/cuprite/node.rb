@@ -11,7 +11,6 @@ module Capybara
       extend Forwardable
 
       delegate %i[description] => :node
-      delegate %i[browser] => :driver
       private :description
 
       DRAG_MODIFIER_ALIASES = { control: :ctrl, command: :meta, cmd: :meta }.freeze
@@ -19,6 +18,11 @@ module Capybara
       def initialize(driver, node)
         super(driver, self)
         @node = node
+      end
+
+      def browser
+        Cuprite.deprecation_warning("#{self.class}#browser", "use page.driver.browser")
+        driver.browser
       end
 
       def parents
@@ -263,7 +267,7 @@ module Capybara
       def command(name, *args)
         raise ObsoleteNode.new(self, nil) unless node.evaluate("this.isConnected")
 
-        browser.send(name, node, *args)
+        driver.browser.send(name, node, *args)
       rescue Ferrum::NodeNotFoundError => e
         raise ObsoleteNode.new(self, e.response)
       rescue Ferrum::BrowserError => e

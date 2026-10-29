@@ -171,6 +171,17 @@ module Capybara
         expect(driver.options[:proxy]).to include(host: "127.0.0.1", port: 8080)
       end
 
+      it "warns that restart is deprecated" do
+        driver = Capybara::Cuprite::Driver.new(nil)
+        driver.visit(session_url("/"))
+
+        expect { driver.restart }.to output(/restart is deprecated/).to_stderr
+        driver.visit(session_url("/"))
+        expect(driver.html).to include("Hello world")
+      ensure
+        driver&.quit
+      end
+
       it "stops silently before visit call" do
         driver = Capybara::Cuprite::Driver.new(nil)
         expect { driver.quit }.not_to raise_error
@@ -771,7 +782,7 @@ module Capybara
 
         it "does not propagate a Javascript error to ruby if error raising disabled and client restarted" do
           driver = Capybara::Cuprite::Driver.new(@session.app, js_errors: false)
-          driver.restart
+          driver.browser.restart
           driver.visit session_url("/cuprite/js_error")
           driver.execute_script "setTimeout(function() { omg }, 0)"
           sleep 0.1
@@ -886,7 +897,7 @@ module Capybara
           @session.visit("/cuprite/with_js")
           expect(@driver.browser.network.traffic.length).to eq(4)
 
-          @driver.restart
+          @driver.browser.restart
 
           @session.visit("/cuprite/with_js")
           expect(@driver.browser.network.traffic.length).to eq(4)

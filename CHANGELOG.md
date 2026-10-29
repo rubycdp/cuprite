@@ -27,6 +27,7 @@
 - `Driver#wait_for_reload`, `timeout`, `timeout=`, `device_pixel_ratio` and `viewport_size`, use the same methods on
   `page.driver.browser` instead
 - `Driver#set_proxy`, pass the `:proxy` option to the driver instead
+- `Driver#restart` and `Node#browser`, use `page.driver.browser.restart` and `page.driver.browser` instead
 - `Node#send_key`, use `Node#send_keys` instead
 - `Node#parents`, use Capybara's `ancestor` instead
 - `Node#property` and `Node#attributes`, use `node.native.node.property` and `node.native.node.attribute` instead

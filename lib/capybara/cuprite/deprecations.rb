@@ -60,6 +60,11 @@ module Capybara
         @options.merge!(proxy: { host: host, port: port, user: user, password: password, bypass: bypass })
       end
 
+      def restart
+        Cuprite.deprecation_warning("#{self.class}#restart", "use page.driver.browser.restart")
+        browser.restart
+      end
+
       def wait_for_reload(timeout = 1)
         Cuprite.deprecation_warning("#{self.class}#wait_for_reload", "use page.driver.browser.wait_for_reload")
         browser.wait_for_reload(timeout)

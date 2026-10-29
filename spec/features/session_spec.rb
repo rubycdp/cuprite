@@ -1287,6 +1287,14 @@ describe Capybara::Session do
       expect(attributes).to eq("href" => "#", "id" => "my_link", "class" => "some_class", "data" => "rah!")
     end
 
+    it "warns that browser is deprecated" do
+      @session.visit "/cuprite/simple"
+      node = @session.find(:css, "#nav").native
+      browser = nil
+      expect { browser = node.browser }.to output(/browser is deprecated/).to_stderr
+      expect(browser).to be(@session.driver.browser)
+    end
+
     it "warns that parents is deprecated" do
       @session.visit "/cuprite/simple"
       node = @session.find(:css, "#nav").native
