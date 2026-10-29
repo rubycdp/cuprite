@@ -135,26 +135,6 @@ find("#box").rect # => {"x"=>8, "y"=>8, "width"=>100, "height"=>50, "top"=>8, "r
 
 Whether the element is outside the viewport or covered by another element.
 
-#### property(name)
-
-Returns a DOM property of the element, which reflects its current state, unlike
-the attribute from the HTML. `element[name]` already returns the property when
-it's a string, number or boolean.
-
-```ruby
-fill_in "Email", with: "user@example.com"
-find("#email").native.property("value") # => "user@example.com"
-find("#terms").native.property("checked") # => false
-```
-
-#### attributes : `Hash`
-
-Returns all attributes of the element.
-
-```ruby
-find("#main").native.attributes # => {"id"=>"main", "class"=>"container"}
-```
-
 #### path : `String`
 
 Returns the XPath of the element.

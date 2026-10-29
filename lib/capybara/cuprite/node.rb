@@ -55,6 +55,7 @@ module Capybara
       end
 
       def property(name)
+        Cuprite.deprecation_warning("#{self.class}#property", "use node.native.node.property")
         command(:property, name)
       end
 
@@ -67,13 +68,14 @@ module Capybara
           return command(:attribute, name) && command(:property, name)
         end
 
-        case (value = property(name))
+        case (value = command(:property, name))
         when String, Numeric, true, false then value
         else command(:attribute, name)
         end
       end
 
       def attributes
+        Cuprite.deprecation_warning("#{self.class}#attributes", "use node.native.node.attribute")
         command(:attributes)
       end
 

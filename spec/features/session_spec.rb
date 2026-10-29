@@ -1271,31 +1271,20 @@ describe Capybara::Session do
       end
     end
 
-    context "supports accessing element properties" do
-      before do
-        @session.visit "/cuprite/attributes_properties"
-      end
-
-      it "gets property innerHTML" do
-        inner_html = @session.find(:css, ".some_other_class").native.property("innerHTML")
-        expect(inner_html).to eq "<p>foobar</p>"
-      end
-
-      it "gets property outerHTML" do
-        outer_html = @session.find(:css, ".some_other_class").native.property("outerHTML")
-        expect(outer_html).to eq %(<div class="some_other_class"><p>foobar</p></div>)
-      end
-
-      it "gets non existent property" do
-        expect(@session.find(:css, ".some_other_class").native.property("does_not_exist")).to eq nil
-      end
+    it "warns that property is deprecated" do
+      @session.visit "/cuprite/attributes_properties"
+      node = @session.find(:css, ".some_other_class").native
+      inner_html = nil
+      expect { inner_html = node.property("innerHTML") }.to output(/property is deprecated/).to_stderr
+      expect(inner_html).to eq "<p>foobar</p>"
     end
 
-    it "allows access to element attributes" do
+    it "warns that attributes is deprecated" do
       @session.visit "/cuprite/attributes_properties"
-      expect(@session.find(:css, "#my_link").native.attributes).to eq(
-        "href" => "#", "id" => "my_link", "class" => "some_class", "data" => "rah!"
-      )
+      node = @session.find(:css, "#my_link").native
+      attributes = nil
+      expect { attributes = node.attributes }.to output(/attributes is deprecated/).to_stderr
+      expect(attributes).to eq("href" => "#", "id" => "my_link", "class" => "some_class", "data" => "rah!")
     end
 
     it "warns that parents is deprecated" do
