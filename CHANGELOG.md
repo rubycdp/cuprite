@@ -1,7 +1,6 @@
 ## [Unreleased](https://github.com/rubycdp/cuprite/compare/v0.19...main) ##
 
 ### Changed
-- `Browser#window_handle` is renamed to `Browser#current_window_handle`
 - Node helpers on `Capybara::Cuprite::Browser` (`value`, `set`, `select`, `visible_text`, `drag`, etc.) are private, use
   Capybara's node API or `node.native.node` for Ferrum's
 - `Driver#find`, `Driver#screen_size`, `Driver#within_window`, `Node#find`, `Node#command` and `Node#description` are
@@ -13,7 +12,7 @@
 - Deprecated methods print a warning and will be removed in 0.21
 - `Driver#body`, use `Driver#html` instead
 - `Driver#back` and `Driver#forward`, use `Driver#go_back` and `Driver#go_forward` instead
-- `Driver#window_handle`, use `Driver#current_window_handle` instead
+- `Driver#window_handle` and `Browser#window_handle`, use `current_window_handle` instead
 - `Driver#render`, use `Driver#save_screenshot` instead
 - `Driver#render_base64`, use `page.driver.browser.screenshot` or `page.driver.browser.pdf` instead
 - `Driver#resize` and `Driver#resize_window`, use `page.current_window.resize_to` instead

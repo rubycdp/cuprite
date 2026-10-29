@@ -113,6 +113,11 @@ module Capybara
         page.target_id
       end
 
+      def window_handle
+        Cuprite.deprecation_warning("#{self.class}#window_handle", "use #current_window_handle")
+        current_window_handle
+      end
+
       def window_handles
         targets.values.select(&:page?).map(&:id)
       end

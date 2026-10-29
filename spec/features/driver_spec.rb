@@ -182,6 +182,15 @@ module Capybara
         driver&.quit
       end
 
+      it "warns that browser window_handle is deprecated" do
+        @session.visit("/")
+        browser = @session.driver.browser
+        handle = nil
+
+        expect { handle = browser.window_handle }.to output(/window_handle is deprecated/).to_stderr
+        expect(handle).to eq(browser.current_window_handle)
+      end
+
       it "stops silently before visit call" do
         driver = Capybara::Cuprite::Driver.new(nil)
         expect { driver.quit }.not_to raise_error
