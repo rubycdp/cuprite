@@ -25,5 +25,5 @@ Gem::Specification.new do |s|
   s.required_ruby_version = ">= 3.2"
 
   s.add_dependency "capybara", "~> 3.0"
-  s.add_dependency "ferrum",   "~> 0.20.0"
+  s.add_dependency "ferrum",   "~> 0.20.1"
 end
