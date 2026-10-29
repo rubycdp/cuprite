@@ -1279,11 +1279,12 @@ describe Capybara::Session do
       expect(inner_html).to eq "<p>foobar</p>"
     end
 
-    it "allows access to element attributes" do
+    it "warns that attributes is deprecated" do
       @session.visit "/cuprite/attributes_properties"
-      expect(@session.find(:css, "#my_link").native.attributes).to eq(
-        "href" => "#", "id" => "my_link", "class" => "some_class", "data" => "rah!"
-      )
+      node = @session.find(:css, "#my_link").native
+      attributes = nil
+      expect { attributes = node.attributes }.to output(/attributes is deprecated/).to_stderr
+      expect(attributes).to eq("href" => "#", "id" => "my_link", "class" => "some_class", "data" => "rah!")
     end
 
     it "warns that browser is deprecated" do

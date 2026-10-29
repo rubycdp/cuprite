@@ -35,6 +35,7 @@
 - `Node#send_key`, use `Node#send_keys` instead
 - `Node#parents`, use Capybara's `ancestor` instead
 - `Node#property`, use `node.native.node.property` instead
+- `Node#attributes`
 
 ### Fixed
 - `Node#drag_to` with `drop_modifiers:` holds the modifiers while moving to the target and sends keydown and keyup for

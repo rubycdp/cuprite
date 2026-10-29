@@ -73,6 +73,7 @@ module Capybara
       end
 
       def attributes
+        Cuprite.deprecation_warning("#{self.class}#attributes")
         command(:attributes)
       end
 

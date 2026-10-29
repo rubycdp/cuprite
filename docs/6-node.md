@@ -135,14 +135,6 @@ find("#box").rect # => {"x"=>8, "y"=>8, "width"=>100, "height"=>50, "top"=>8, "r
 
 Whether the element is outside the viewport or covered by another element.
 
-#### attributes : `Hash`
-
-Returns all attributes of the element.
-
-```ruby
-find("#main").native.attributes # => {"id"=>"main", "class"=>"container"}
-```
-
 #### path : `String`
 
 Returns the XPath of the element.
