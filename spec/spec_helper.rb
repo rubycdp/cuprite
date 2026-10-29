@@ -29,6 +29,14 @@ Capybara.register_driver(:cuprite) do |app|
   options = {}
   options.merge!(logger: StringIO.new) if ENV["CI"]
   options.merge!(headless: false) if ENV["HEADLESS"] == "false"
+  options.merge!(reset: ENV["CUPRITE_RESET"].to_sym) if ENV["CUPRITE_RESET"]
+  Capybara::Cuprite::Driver.new(app, options)
+end
+
+Capybara.register_driver(:cuprite_soft_reset) do |app|
+  options = { reset: :soft }
+  options.merge!(logger: StringIO.new) if ENV["CI"]
+  options.merge!(headless: false) if ENV["HEADLESS"] == "false"
   Capybara::Cuprite::Driver.new(app, options)
 end
 
@@ -43,6 +51,7 @@ end
 module TestSessions
   Cuprite = Capybara::Session.new(:cuprite, TestApp)
   CupriteMobile = Capybara::Session.new(:cuprite_mobile, TestApp)
+  CupriteSoftReset = Capybara::Session.new(:cuprite_soft_reset, TestApp)
 end
 
 RSpec.configure do |config|

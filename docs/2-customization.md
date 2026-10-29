@@ -35,6 +35,8 @@ Cuprite-specific options are:
     by default. Kept across window resizes.
   * `:scale_factor` (Numeric) - Device scale factor (`window.devicePixelRatio`) to emulate, `0` (browser default)
     by default.
+  * `:reset` (Symbol) - How the browser is reset between tests, `:hard` (default) or `:soft`, see
+    [Soft reset](#soft-reset).
 
 Cuprite changes a few Ferrum defaults:
 
@@ -43,6 +45,27 @@ Cuprite changes a few Ferrum defaults:
 * `:browser_options` - `"remote-allow-origins" => "*"` is always added, so that
   [debug](/docs/cuprite/debugging) can open DevTools, and so is `"disable-web-security" => nil`, so that tests
   can reach into cross-origin frames.
+
+## Soft reset
+
+By default every test runs in a new browser context, so each one downloads all the assets again. With `reset: :soft`
+Cuprite keeps the context and its HTTP cache, and resets the rest:
+
+* opens a blank window and closes all the others, together with their session storage, request interception,
+  headers, authorization, network conditions, modal handlers and running scripts;
+* disposes any other browser context;
+* clears cookies;
+* clears local storage, IndexedDB, service workers, Cache Storage and file systems for every origin the test
+  requested, as recorded in the network traffic.
+
+If any step fails, Cuprite falls back to the full reset.
+
+```ruby
+Capybara::Cuprite::Driver.new(app, reset: :soft)
+```
+
+Origins are taken from `network.traffic`, so clearing it with `network.clear(:traffic)` in a test hides the origins
+requested before that from the reset.
 
 ## Examples
 

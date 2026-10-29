@@ -4,7 +4,7 @@ module Ferrum
   class Browser
     class Options
       attr_writer :window_size
-      attr_accessor :url_blacklist, :url_whitelist, :raise_on_unhandled_modal
+      attr_accessor :url_blacklist, :url_whitelist, :raise_on_unhandled_modal, :reset_mode
 
       def mobile
         @options.fetch(:mobile, false)

@@ -13,6 +13,18 @@ describe Capybara::Cuprite::Driver do
 
       expect(driver.browser.options.to_h[:browser_options]).to include("disable-web-security": nil)
     end
+
+    it "resets with a new browser context by default" do
+      driver = described_class.new(nil)
+
+      expect(driver.browser.options.reset_mode).to eq(:hard)
+    end
+
+    it "rejects an unknown reset mode" do
+      driver = described_class.new(nil, reset: :partial)
+
+      expect { driver.browser }.to raise_error(ArgumentError, /reset must be one of/)
+    end
   end
 
   describe "raise_on_unhandled_modal configuration" do

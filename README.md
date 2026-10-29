@@ -97,6 +97,8 @@ end
   * `:emulate` (Symbol) - device from Chrome DevTools' list to emulate, e.g. `:iphone_16`, `:pixel_9`, `:ipad_mini`
   * `:mobile` (Boolean) - emulate a mobile device: viewport meta tag and touch events
   * `:scale_factor` (Numeric) - device scale factor to emulate
+  * `:reset` (Symbol) - `:hard` (default) starts every test in a new browser context, `:soft` keeps the context and
+    its HTTP cache and clears cookies, storage and extra windows instead
 
 `emulate:` sets the device's `:window_size`, `:scale_factor`, `:mobile` and user agent, options passed explicitly
 take precedence:

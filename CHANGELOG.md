@@ -1,5 +1,9 @@
 ## [Unreleased](https://github.com/rubycdp/cuprite/compare/v0.19...main) ##
 
+### Added
+- `reset: :soft` driver option keeps the browser context and its HTTP cache between tests, clearing cookies, storage
+  and extra windows instead, so assets aren't downloaded again for every test [#128]
+
 ### Changed
 - Node helpers on `Capybara::Cuprite::Browser` (`value`, `set`, `select`, `visible_text`, `drag`, etc.) are private, use
   Capybara's node API or `node.native.node` for Ferrum's
