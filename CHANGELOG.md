@@ -45,8 +45,8 @@
 - `Capybara::Cuprite::Cookie`, it was never loaded. `Driver#cookies` returns `Ferrum::Cookies::Cookie` objects
 - `Page#frame_name`, it was unused
 - `Page#reset_modals` and `Browser#reset_modals`, they were unused
-- `Browser#switch_to_frame`, `find_modal`, `accept_confirm`, `dismiss_confirm`, `accept_prompt` and `dismiss_prompt`, they
-  were internal delegates to `Page`
+- `Browser#switch_to_frame`, `find_modal`, `accept_confirm`, `dismiss_confirm`, `accept_prompt` and `dismiss_prompt`,
+  they were internal delegates to `Page`
 - `Browser#browser_error`, it was used only in specs
 - `Node#as_json` and `Node#to_json`, they were unused
 - `Driver#pause`, use `binding.irb` with `headless: false`, or `Driver#debug`
