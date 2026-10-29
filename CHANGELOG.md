@@ -15,6 +15,8 @@
 - `Driver#window_handle` and `Browser#window_handle`, use `current_window_handle` instead
 - `Driver#render`, use `Driver#save_screenshot` instead
 - `Driver#render_base64`, use `page.driver.browser.screenshot` or `page.driver.browser.pdf` instead
+- `Driver#zoom_factor=` and `Driver#paper_size=`, pass `scale:`, `paper_width:` and `paper_height:` to
+  `save_screenshot` instead
 - `Driver#resize` and `Driver#resize_window`, use `page.current_window.resize_to` instead
 - `Driver#authorize` and `Driver#basic_authorize`, use `page.driver.browser.network.authorize` instead
 - `Driver#headers`, `headers=`, `add_headers` and `add_header`, use `page.driver.browser.headers` instead
@@ -30,8 +32,6 @@
 - `Node#send_key`, use `Node#send_keys` instead
 - `Node#parents`, use Capybara's `ancestor` instead
 - `Node#property`, use `node.native.node.property` instead
-- `Driver#zoom_factor=` and `Driver#paper_size=`, pass `scale:`, `paper_width:` and `paper_height:` to
-  `save_screenshot` instead
 
 ### Fixed
 - `Node#drag_to` with `drop_modifiers:` holds the modifiers while moving to the target and sends keydown and keyup for

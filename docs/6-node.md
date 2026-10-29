@@ -93,7 +93,7 @@ find("#item").drag_to(find("#list li", text: "Milk"), x: 0, y: 10) # drop on the
 Drags the element by a given offset. Accepts `:steps`, `:delay` and `:scroll`.
 
 ```ruby
-find("#slider").drag_by(100, 0)
+find("#slider").native.drag_by(100, 0)
 ```
 
 #### drop(\*args)
