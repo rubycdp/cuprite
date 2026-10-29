@@ -145,15 +145,15 @@ module Capybara
         targets.delete(target_id) # page.close is async, delete target asap
       end
 
-      def evaluate_async(script, wait, *args)
-        evaluate(CALLBACK_JS.sub("SCRIPT") { script }, *args, timeout: wait)
-      end
-
       def active_element
         evaluate("document.activeElement")
       end
 
       private
+
+      def evaluate_callback(script, wait, *args)
+        evaluate(CALLBACK_JS.sub("SCRIPT") { script }, *args, timeout: wait)
+      end
 
       def property(node, name)
         node.property(name)
@@ -195,7 +195,7 @@ module Capybara
 
       def drag_html5(node, other, drop_modifiers, delay, drop_offset = nil)
         keys = drop_modifiers.map(&:to_s)
-        evaluate_async(DRAG_HTML5_JS, timeout, node, other, (delay || 0.05) * 1000, keys, drop_offset)
+        evaluate_callback(DRAG_HTML5_JS, timeout, node, other, (delay || 0.05) * 1000, keys, drop_offset)
         mouse.up
       end
 

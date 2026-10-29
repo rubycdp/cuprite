@@ -88,7 +88,7 @@ module Capybara
       end
 
       def evaluate_async_script(script, *args)
-        result = browser.evaluate_async(script, session_wait_time, *native_args(args))
+        result = browser.send(:evaluate_callback, script, session_wait_time, *native_args(args))
         unwrap_script_result(result)
       end
 
