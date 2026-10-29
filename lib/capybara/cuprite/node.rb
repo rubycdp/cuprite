@@ -36,12 +36,6 @@ module Capybara
         find(:css, selector)
       end
 
-      def find(method, selector)
-        command(:find_within, method, selector).map do |node|
-          self.class.new(driver, node)
-        end
-      end
-
       def all_text
         filter_text(command(:all_text))
       end
@@ -259,6 +253,12 @@ module Capybara
       end
 
       private
+
+      def find(method, selector)
+        command(:find_within, method, selector).map do |node|
+          self.class.new(driver, node)
+        end
+      end
 
       def command(name, *args)
         raise ObsoleteNode.new(self, nil) unless node.evaluate("this.isConnected")

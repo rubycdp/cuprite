@@ -20,6 +20,7 @@ module Capybara
       def_delegator :browser, :body, :html
       def_delegator :browser, :back, :go_back
       def_delegator :browser, :forward, :go_forward
+      private :within_window
 
       attr_reader :app, :options
 
