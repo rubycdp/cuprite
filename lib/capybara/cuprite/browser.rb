@@ -1,11 +1,15 @@
 # frozen_string_literal: true
 
 require "forwardable"
+require "capybara/cuprite/browser/deprecations"
+require "capybara/cuprite/browser/extensions"
 
 module Capybara
   module Cuprite
     class Browser < Ferrum::Browser
       extend Forwardable
+      include Deprecations
+      include Extensions
 
       DRAG_HTML5_JS = File.read(File.expand_path("javascripts/drag.js", __dir__))
       CALLBACK_JS = <<~JS
@@ -67,53 +71,8 @@ module Capybara
         super
       end
 
-      def raise_on_unhandled_modal
-        @options.raise_on_unhandled_modal
-      end
-
-      def raise_on_unhandled_modal=(value)
-        @options.raise_on_unhandled_modal = value
-      end
-
-      def url_whitelist
-        @options.url_whitelist
-      end
-      alias url_allowlist url_whitelist
-
-      def url_whitelist=(patterns)
-        @options.url_whitelist = prepare_wildcards(patterns)
-        page.network.whitelist = @options.url_whitelist if @client && @options.url_whitelist.any?
-      end
-      alias url_allowlist= url_whitelist=
-
-      def url_blacklist
-        @options.url_blacklist
-      end
-      alias url_blocklist url_blacklist
-
-      def url_blacklist=(patterns)
-        @options.url_blacklist = prepare_wildcards(patterns)
-        page.network.blacklist = @options.url_blacklist if @client && @options.url_blacklist.any?
-      end
-      alias url_blocklist= url_blacklist=
-
-      def visit(*args)
-        Cuprite.deprecation_warning("#{self.class}#visit", "use #goto")
-        goto(*args)
-      end
-
-      def status_code
-        Cuprite.deprecation_warning("#{self.class}#status_code", "use #network.status")
-        network.status
-      end
-
       def current_window_handle
         page.target_id
-      end
-
-      def window_handle
-        Cuprite.deprecation_warning("#{self.class}#window_handle", "use #current_window_handle")
-        current_window_handle
       end
 
       def window_handles
@@ -187,21 +146,6 @@ module Capybara
         mouse.up
       end
 
-      def drag_by(node, dx, dy, steps, delay = nil, scroll = true)
-        x1, y1 = node.find_position
-
-        mouse.move(x: x1, y: y1)
-        mouse.down
-
-        sleep delay if delay
-
-        mouse.scroll_by(dx, dy) if scroll
-
-        x2, y2 = node.find_position
-        mouse.move(x: x2 + dx, y: y2 + dy, steps: steps)
-        mouse.up
-      end
-
       def drop(node, *args)
         if args[0].is_a?(String)
           execute("_cuprite.attachDropInput()")
@@ -218,21 +162,12 @@ module Capybara
         node.select_file(value)
       end
 
-      def parents(node)
-        node.evaluate("function() { return _cuprite.parents(this) }")
-      end
-
       def visible_text(node)
         node.evaluate("_cuprite.visibleText(this)")
       end
 
       def delete_text(node)
         node.evaluate("_cuprite.deleteText(this)")
-      end
-
-      def attributes(node)
-        value = node.evaluate("_cuprite.getAttributes(this)")
-        JSON.parse(value)
       end
 
       def attribute(node, name)
@@ -279,24 +214,6 @@ module Capybara
         raise InvalidSelector.new(e.response, method, selector) if e.class_name == "InvalidSelector"
 
         raise
-      end
-
-      def prepare_wildcards(patterns)
-        string_passed = false
-
-        Array(patterns).map do |pattern|
-          if pattern.is_a?(Regexp)
-            pattern
-          else
-            string_passed = true
-            pattern = pattern.gsub("*", ".*")
-            Regexp.new(pattern, Regexp::IGNORECASE)
-          end
-        end
-      ensure
-        if string_passed
-          warn "Passing strings to blacklist/whitelist is deprecated, pass regexp at #{caller(4..4).first}"
-        end
       end
 
       def window_target(target_id)

@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
-require "uri"
 require "forwardable"
-require "capybara/cuprite/deprecations"
+require "capybara/cuprite/driver/deprecations"
+require "capybara/cuprite/driver/extensions"
 
 module Capybara
   module Cuprite
@@ -12,6 +12,7 @@ module Capybara
 
       extend Forwardable
       include Deprecations
+      include Extensions
 
       delegate %i[quit current_url title
                   window_handles current_window_handle close_window switch_to_window
@@ -175,10 +176,6 @@ module Capybara
 
       def response_headers
         browser.network.response&.headers
-      end
-
-      def debug(...)
-        browser.debug(...)
       end
 
       def wait?

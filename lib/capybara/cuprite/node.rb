@@ -1,7 +1,8 @@
 # frozen_string_literal: true
 
 require "forwardable"
-require "capybara/cuprite/deprecations"
+require "capybara/cuprite/node/deprecations"
+require "capybara/cuprite/node/extensions"
 
 module Capybara
   module Cuprite
@@ -9,6 +10,8 @@ module Capybara
       attr_reader :node
 
       extend Forwardable
+      include Deprecations
+      include Extensions
 
       delegate %i[description] => :node
       private :description
@@ -18,18 +21,6 @@ module Capybara
       def initialize(driver, node)
         super(driver, self)
         @node = node
-      end
-
-      def browser
-        Cuprite.deprecation_warning("#{self.class}#browser", "use page.driver.browser")
-        driver.browser
-      end
-
-      def parents
-        Cuprite.deprecation_warning("#{self.class}#parents", "use Capybara's ancestor")
-        command(:parents).map do |parent|
-          self.class.new(driver, parent)
-        end
       end
 
       def find_xpath(selector)
@@ -52,11 +43,6 @@ module Capybara
                               .tr("\u00a0", " ")
       end
 
-      def property(name)
-        Cuprite.deprecation_warning("#{self.class}#property", "use node.native.node.property")
-        command(:property, name)
-      end
-
       def [](name)
         # Although the attribute matters, the property is consistent. Return that in
         # preference to the attribute for links and images.
@@ -70,11 +56,6 @@ module Capybara
         when String, Numeric, true, false then value
         else command(:attribute, name)
         end
-      end
-
-      def attributes
-        Cuprite.deprecation_warning("#{self.class}#attributes")
-        command(:attributes)
       end
 
       def value
@@ -179,13 +160,6 @@ module Capybara
         command(:drag, other.node, modifiers, options.slice(:steps, :delay, :scroll, :html5, :drop_offset))
       end
 
-      def drag_by(x, y, **options)
-        options[:steps] ||= 1
-        options[:scroll] = true unless options.key?(:scroll)
-
-        command(:drag_by, x, y, options[:steps], options[:delay], options[:scroll])
-      end
-
       def drop(...) = command(:drop, ...)
 
       def trigger(event)
@@ -224,11 +198,6 @@ module Capybara
         return if keys.empty?
 
         command(:send_keys, keys)
-      end
-
-      def send_key(*keys)
-        Cuprite.deprecation_warning("#{self.class}#send_key", "use #send_keys")
-        send_keys(*keys)
       end
 
       def path
