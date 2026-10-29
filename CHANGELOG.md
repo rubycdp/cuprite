@@ -39,6 +39,8 @@
 ### Fixed
 - `Node#drag_to` with `drop_modifiers:` holds the modifiers while moving to the target and sends keydown and keyup for
   them, like Selenium does. They used to be set only on mouseup [rubycdp/ferrum#581]
+- Resizing the window reset hover and pointer overrides passed with `--blink-settings`, so `@media (hover: hover)`
+  stopped matching on headless Linux [#282, rubycdp/ferrum#664]
 
 ### Removed
 - Ruby 3.1 support, Cuprite requires Ruby 3.2 or newer

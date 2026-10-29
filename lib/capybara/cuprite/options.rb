@@ -7,7 +7,7 @@ module Ferrum
       attr_accessor :url_blacklist, :url_whitelist, :raise_on_unhandled_modal
 
       def mobile
-        @options.fetch(:mobile, false)
+        @options.fetch(:mobile, nil)
       end
 
       def scale_factor

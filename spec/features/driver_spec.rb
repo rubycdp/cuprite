@@ -273,6 +273,22 @@ module Capybara
         driver&.quit
       end
 
+      it "keeps the pointer type set with --blink-settings after resizing the window" do
+        Capybara.register_driver :cuprite_with_blink_settings do |app|
+          Capybara::Cuprite::Driver.new(
+            app, browser_options: { "blink-settings" => "primaryPointerType=2,availablePointerTypes=2" }
+          )
+        end
+        session = Capybara::Session.new(:cuprite_with_blink_settings, TestApp)
+        session.visit("/")
+
+        expect do
+          session.current_window.resize_to(800, 600)
+        end.not_to(change { session.evaluate_script("matchMedia('(pointer: coarse)').matches") }.from(true))
+      ensure
+        session&.driver&.quit
+      end
+
       it "leaves the window size to the browser when the option is nil" do
         Capybara.register_driver :cuprite_without_window_size do |app|
           Capybara::Cuprite::Driver.new(app, window_size: nil)
