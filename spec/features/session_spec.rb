@@ -1471,7 +1471,7 @@ describe Capybara::Session do
           <<-RUBY
             require "capybara/cuprite"
             browser = Capybara::Cuprite::Browser.new
-            browser.visit("http://example.com")
+            browser.goto("http://example.com")
             puts "Please type enter"
             sleep 1
             browser.current_url

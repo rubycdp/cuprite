@@ -29,6 +29,7 @@
   `page.driver.browser` instead
 - `Driver#set_proxy`, pass the `:proxy` option to the driver instead
 - `Driver#restart` and `Node#browser`, use `page.driver.browser.restart` and `page.driver.browser` instead
+- `Browser#visit` and `Browser#status_code`, use `goto` and `network.status` instead
 - `Node#send_key`, use `Node#send_keys` instead
 - `Node#parents`, use Capybara's `ancestor` instead
 - `Node#property`, use `node.native.node.property` instead

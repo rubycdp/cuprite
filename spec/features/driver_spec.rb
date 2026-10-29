@@ -191,6 +191,15 @@ module Capybara
         expect(handle).to eq(browser.current_window_handle)
       end
 
+      it "warns that browser visit and status_code are deprecated" do
+        browser = @session.driver.browser
+        status = nil
+
+        expect { browser.visit(session_url("/")) }.to output(/visit is deprecated/).to_stderr
+        expect { status = browser.status_code }.to output(/status_code is deprecated/).to_stderr
+        expect(status).to eq(200)
+      end
+
       it "stops silently before visit call" do
         driver = Capybara::Cuprite::Driver.new(nil)
         expect { driver.quit }.not_to raise_error

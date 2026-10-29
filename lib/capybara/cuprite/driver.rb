@@ -13,7 +13,7 @@ module Capybara
       extend Forwardable
       include Deprecations
 
-      delegate %i[quit status_code current_url title
+      delegate %i[quit current_url title
                   window_handles current_window_handle close_window switch_to_window within_window
                   refresh] => :browser
       delegate %i[send_keys] => :active_element
@@ -59,7 +59,11 @@ module Capybara
       def visit(url)
         @started = true
         browser.base_url = url if url.match?(%r{\Ahttps?://})
-        browser.visit(url)
+        browser.goto(url)
+      end
+
+      def status_code
+        browser.network.status
       end
 
       def frame_url

@@ -98,10 +98,12 @@ module Capybara
       alias url_blocklist= url_blacklist=
 
       def visit(*args)
+        Cuprite.deprecation_warning("#{self.class}#visit", "use #goto")
         goto(*args)
       end
 
       def status_code
+        Cuprite.deprecation_warning("#{self.class}#status_code", "use #network.status")
         network.status
       end
 
