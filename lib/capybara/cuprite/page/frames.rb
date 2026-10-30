@@ -8,9 +8,7 @@ module Capybara
       module Frames
         extend Forwardable
 
-        delegate %i[at_css at_xpath css xpath
-                    current_url current_title body execution_id execution_id!
-                    evaluate execute] => :active_frame
+        delegate %i[at_css at_xpath css xpath body execution_id execution_id! evaluate execute] => :active_frame
 
         def initialize(...)
           @frame_stack = []
@@ -26,10 +24,6 @@ module Capybara
           else
             @frame_stack << handle
           end
-        end
-
-        def title
-          active_frame.current_title
         end
 
         private

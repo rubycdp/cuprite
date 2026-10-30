@@ -26,10 +26,9 @@ module Capybara
       extend Forwardable
       include Extensions
 
-      delegate %i[quit current_url title
-                  window_handles current_window_handle close_window switch_to_window
-                  refresh] => :browser
+      delegate %i[quit title window_handles current_window_handle close_window switch_to_window refresh] => :browser
       delegate %i[send_keys] => :active_element
+      def_delegator :browser, :url, :current_url
       def_delegator :browser, :body, :html
       def_delegator :browser, :back, :go_back
       def_delegator :browser, :forward, :go_forward
