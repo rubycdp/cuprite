@@ -78,7 +78,7 @@ module Capybara
             files = value.respond_to?(:to_ary) ? value.to_ary.map(&:to_s) : value.to_s
             command { node.select_file(files) }
           when "color"
-            node.evaluate("this.setAttribute('value', arguments[0])", value)
+            node.evaluate("this.setAttribute('value', value)", value: value)
             node.evaluate("this.dispatchEvent(new InputEvent('input'))")
             node.evaluate("this.dispatchEvent(new Event('change', { bubbles: true }))")
           when "date"
@@ -175,7 +175,7 @@ module Capybara
             js(:dropFile)
           else
             strings = args.flat_map { |arg| arg.map { |type, data| { "type" => type, "data" => data } } }
-            node.evaluate("_cuprite.dropString(arguments[0], this)", strings)
+            node.evaluate("_cuprite.dropString(strings, this)", strings: strings)
           end
         end
       end
@@ -200,7 +200,7 @@ module Capybara
       end
 
       def scroll_by(x, y)
-        node.evaluate("this.scrollBy(arguments[0], arguments[1])", x, y)
+        node.evaluate("this.scrollBy(x, y)", x: x, y: y)
       end
 
       def ==(other)
@@ -230,7 +230,7 @@ module Capybara
       end
 
       def shadow_root
-        root = driver.browser.evaluate("arguments[0].shadowRoot", node)
+        root = driver.browser.evaluate("node.shadowRoot", node: node)
         root && self.class.new(driver, root)
       end
 
@@ -357,7 +357,7 @@ module Capybara
       end
 
       def scroll_to_coords(x, y)
-        node.evaluate("this.scrollTo(arguments[0], arguments[1])", x, y)
+        node.evaluate("this.scrollTo(x, y)", x: x, y: y)
       end
     end
   end

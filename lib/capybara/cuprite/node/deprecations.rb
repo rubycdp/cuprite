@@ -13,7 +13,7 @@ module Capybara
 
         def parents
           Cuprite.deprecation_warning("#{self.class}#parents", "use Capybara's ancestor")
-          command { driver.browser.evaluate("_cuprite.parents(arguments[0])", node) }.map do |parent|
+          command { driver.browser.evaluate("_cuprite.parents(node)", node: node) }.map do |parent|
             self.class.new(driver, parent)
           end
         end
