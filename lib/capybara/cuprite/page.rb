@@ -12,7 +12,6 @@ module Capybara
 
     class Page < Ferrum::Page
       MODAL_WAIT = ENV.fetch("CUPRITE_MODAL_WAIT", 0.05).to_f
-      TRIGGER_CLICK_WAIT = ENV.fetch("CUPRITE_TRIGGER_CLICK_WAIT", 0.1).to_f
       EXTENSION_JS = File.read(Driver::EXTENSION).freeze
 
       extend Forwardable
@@ -47,36 +46,6 @@ module Capybara
 
       def set_viewport(width: 0, height: 0, scale_factor: @options.scale_factor, mobile: @options.mobile)
         super
-      end
-
-      def set(node, value)
-        node.evaluate("_cuprite.set(this, arguments[0])", value)
-      end
-
-      def select(node, value)
-        node.evaluate("_cuprite.select(this, #{value})")
-      end
-
-      def trigger(node, event)
-        script = %(_cuprite.trigger(this, "#{event}"))
-        return node.evaluate(script) unless event.to_s == "click" && TRIGGER_CLICK_WAIT.positive?
-
-        wait_for_navigation!(TRIGGER_CLICK_WAIT) { node.evaluate(script) }
-      end
-
-      def hover(node)
-        node.evaluate("_cuprite.scrollIntoViewport(this)")
-        x, y = find_position(node)
-        command("Input.dispatchMouseEvent", type: "mouseMoved", x: x, y: y)
-      end
-
-      def send_keys(node, keys)
-        unless node.evaluate(%(_cuprite.containsSelection(this) || _cuprite.hasFocus(this)))
-          before_click(node, "click")
-          node.click(mode: :left, keys: keys)
-        end
-
-        keyboard.type(keys)
       end
 
       def accept_confirm
@@ -115,20 +84,6 @@ module Capybara
         end
 
         modal_text
-      end
-
-      def before_click(node, name, _keys = [], offset = {})
-        node.evaluate("_cuprite.scrollIntoViewport(this)")
-
-        # If offset is given it may go outside of the element and likely error
-        # will be raised that we detected another element at this position.
-        return true if offset[:x] || offset[:y]
-
-        x, y = find_position(node, **offset)
-        node.evaluate("_cuprite.mouseEventTest(this, '#{name}', #{x}, #{y})")
-        true
-      rescue Ferrum::JavaScriptError => e
-        raise MouseEventFailed, e.message if e.class_name == "MouseEventFailed"
       end
 
       def switch_to_frame(handle)
@@ -208,14 +163,6 @@ module Capybara
 
           @unhandled_modal_error = unhandled_modal_error if unhandled_modal_error
         end
-      end
-
-      def find_position(node, **options)
-        node.find_position(**options)
-      rescue Ferrum::BrowserError => e
-        raise MouseEventFailed, "MouseEventFailed: click, none, 0, 0" if e.message == "Could not compute content quads."
-
-        raise
       end
 
       def active_frame

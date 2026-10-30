@@ -13,19 +13,19 @@ module Capybara
 
         def parents
           Cuprite.deprecation_warning("#{self.class}#parents", "use Capybara's ancestor")
-          command(:parents).map do |parent|
+          command { driver.browser.evaluate("_cuprite.parents(arguments[0])", node) }.map do |parent|
             self.class.new(driver, parent)
           end
         end
 
         def property(name)
           Cuprite.deprecation_warning("#{self.class}#property", "use node.native.node.property")
-          command(:property, name)
+          command { node.property(name) }
         end
 
         def attributes
           Cuprite.deprecation_warning("#{self.class}#attributes")
-          command(:attributes)
+          JSON.parse(command(:getAttributes))
         end
 
         def send_key(*keys)

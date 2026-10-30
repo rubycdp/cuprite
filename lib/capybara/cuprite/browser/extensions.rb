@@ -36,21 +36,6 @@ module Capybara
 
         private
 
-        def drag_by(node, dx, dy, steps, delay = nil, scroll = true)
-          x1, y1 = node.find_position
-
-          mouse.move(x: x1, y: y1)
-          mouse.down
-
-          sleep delay if delay
-
-          mouse.scroll_by(dx, dy) if scroll
-
-          x2, y2 = node.find_position
-          mouse.move(x: x2 + dx, y: y2 + dy, steps: steps)
-          mouse.up
-        end
-
         def prepare_wildcards(patterns)
           string_passed = false
 

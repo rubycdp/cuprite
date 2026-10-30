@@ -20,17 +20,6 @@ module Capybara
           Cuprite.deprecation_warning("#{self.class}#window_handle", "use #current_window_handle")
           current_window_handle
         end
-
-        private
-
-        def parents(node)
-          node.evaluate("function() { return _cuprite.parents(this) }")
-        end
-
-        def attributes(node)
-          value = node.evaluate("_cuprite.getAttributes(this)")
-          JSON.parse(value)
-        end
       end
     end
   end

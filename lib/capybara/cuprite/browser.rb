@@ -1,17 +1,15 @@
 # frozen_string_literal: true
 
-require "forwardable"
+require "capybara/cuprite/finder"
 require "capybara/cuprite/browser/deprecations"
 require "capybara/cuprite/browser/extensions"
 
 module Capybara
   module Cuprite
     class Browser < Ferrum::Browser
-      extend Forwardable
       include Deprecations
       include Extensions
 
-      DRAG_HTML5_JS = File.read(File.expand_path("javascripts/drag.js", __dir__))
       CALLBACK_JS = <<~JS
         function(...args) {
           return new Promise((resolve, reject) => {
@@ -25,9 +23,6 @@ module Capybara
           });
         }
       JS
-
-      delegate %i[send_keys select set hover trigger before_click] => :page
-      private :send_keys, :select, :set, :hover, :trigger, :before_click
 
       def initialize(options = nil)
         device = options&.dig(:emulate)
@@ -95,125 +90,11 @@ module Capybara
       private
 
       def find(method, selector)
-        find_all(method, selector)
+        Finder.find(self, method, selector)
       end
 
       def evaluate_callback(script, wait, *args)
         evaluate(CALLBACK_JS.sub("SCRIPT") { script }, *args, timeout: wait)
-      end
-
-      def property(node, name)
-        node.property(name)
-      end
-
-      def find_within(node, method, selector)
-        resolved = page.command("DOM.resolveNode", nodeId: node.node_id)
-        object_id = resolved.dig("object", "objectId")
-        find_all(method, selector, { "objectId" => object_id })
-      end
-
-      def drag(node, other, drop_modifiers, options = {})
-        steps = options.fetch(:steps, 1)
-        delay = options[:delay]
-        scroll = options.fetch(:scroll, true)
-        html5 = options[:html5]
-        drop_offset = options[:drop_offset]
-
-        execute("_cuprite.dragMousedownTracker()")
-
-        node.scroll_into_view if scroll
-        x1, y1 = node.find_position
-
-        mouse.move(x: x1, y: y1)
-        mouse.down
-        sleep delay if delay
-
-        html5 = !node.evaluate("_cuprite.legacyDragCheck(this)") if html5.nil?
-
-        if html5
-          drag_html5(node, other, drop_modifiers, delay, drop_offset)
-        else
-          other.scroll_into_view if scroll
-          x2, y2 = other.find_position(**drop_offset.to_h)
-
-          keyboard.hold(*drop_modifiers) { mouse.move(x: x2, y: y2, steps: steps).up }
-        end
-      end
-
-      def drag_html5(node, other, drop_modifiers, delay, drop_offset = nil)
-        keys = drop_modifiers.map(&:to_s)
-        evaluate_callback(DRAG_HTML5_JS, timeout, node, other, (delay || 0.05) * 1000, keys, drop_offset)
-        mouse.up
-      end
-
-      def drop(node, *args)
-        if args[0].is_a?(String)
-          execute("_cuprite.attachDropInput()")
-          input = find(:css, "#_cuprite_drop_file").first
-          select_file(input, args)
-          node.evaluate("_cuprite.dropFile(this)")
-        else
-          strings = args.flat_map { |arg| arg.map { |type, data| { "type" => type, "data" => data } } }
-          node.evaluate("_cuprite.dropString(#{strings.to_json}, this)")
-        end
-      end
-
-      def select_file(node, value)
-        node.select_file(value)
-      end
-
-      def visible_text(node)
-        node.evaluate("_cuprite.visibleText(this)")
-      end
-
-      def delete_text(node)
-        node.evaluate("_cuprite.deleteText(this)")
-      end
-
-      def attribute(node, name)
-        node.evaluate(%(_cuprite.getAttribute(this, "#{name}")))
-      end
-
-      def value(node)
-        node.evaluate("_cuprite.value(this)")
-      end
-
-      def visible?(node)
-        node.evaluate("_cuprite.isVisible(this)")
-      end
-
-      def disabled?(node)
-        node.evaluate("_cuprite.isDisabled(this)")
-      end
-
-      def path(node)
-        node.evaluate("_cuprite.path(this)")
-      end
-
-      def obscured?(node)
-        node.evaluate("_cuprite.isObscured(this)")
-      end
-
-      def all_text(node)
-        node.text
-      end
-
-      def find_all(method, selector, within = nil)
-        # Capybara appends its text-match hint as `(expr)[...]`, but with `exact_text: true` the hint
-        # is empty and the result `(expr)[]` is invalid XPath. An empty predicate is never valid, so
-        # dropping it can't change a valid selector. Remove once teamcapybara/capybara#2860 is released.
-        selector = selector.delete_suffix("[]") if method == :xpath
-        nodes = if within
-                  evaluate("_cuprite.find(arguments[0], arguments[1], arguments[2])", method, selector, within)
-                else
-                  evaluate("_cuprite.find(arguments[0], arguments[1])", method, selector)
-                end
-
-        nodes.select(&:node?)
-      rescue Ferrum::JavaScriptError => e
-        raise InvalidSelector.new(e.response, method, selector) if e.class_name == "InvalidSelector"
-
-        raise
       end
 
       def window_target(target_id)
