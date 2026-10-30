@@ -7,7 +7,12 @@
   `active_element` and `within_window`
 - `Driver#find`, `Driver#screen_size`, `Driver#within_window`, `Node#find` and `Node#command` are private
 - Ferrum's `base_url` follows `Capybara.app_host` (or Capybara's server) and the visited page, so
-  `page.driver.browser.cookies` doesn't need `domain:`
+  `page.driver.browser.cookies` doesn't need `domain:`. A `:base_url` option is replaced on `visit` and restored on
+  `reset!`
+- Requires Ferrum 0.20.1, see its [changelog](https://github.com/rubycdp/ferrum/blob/main/CHANGELOG.md).
+  `page.driver.browser.evaluate_on_new_document` applies to the current page only and is gone after `reset!`, use the
+  `:extensions` option or `browser.add_extension`. Scripts passed to `evaluate_script` and `execute_script` may warn
+  about what changes in Ferrum 0.21, set `FERRUM_JS_API=new` to run them that way now
 
 ### Deprecated
 - Deprecated methods print a warning and will be removed in 0.21
