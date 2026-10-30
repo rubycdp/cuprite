@@ -5,8 +5,7 @@
   Capybara's node API or `node.native.node` for Ferrum's
 - `Browser#find` is private, `Browser#active_element` and `Browser#within_window` are removed, use Capybara's
   `active_element` and `within_window`
-- `Driver#find`, `Driver#screen_size`, `Driver#within_window`, `Node#find`, `Node#command` and `Node#description` are
-  private, use `node.node.description` for the latter
+- `Driver#find`, `Driver#screen_size`, `Driver#within_window`, `Node#find` and `Node#command` are private
 - Ferrum's `base_url` follows `Capybara.app_host` (or Capybara's server) and the visited page, so
   `page.driver.browser.cookies` doesn't need `domain:`
 
@@ -36,6 +35,7 @@
 - `Node#parents`, use Capybara's `ancestor` instead
 - `Node#property`, use `node.native.node.property` instead
 - `Node#attributes`
+- `Node#description`, use `node.native.node.description` instead
 
 ### Fixed
 - `Node#drag_to` with `drop_modifiers:` holds the modifiers while moving to the target and sends keydown and keyup for

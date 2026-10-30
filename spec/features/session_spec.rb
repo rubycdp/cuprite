@@ -1303,6 +1303,14 @@ describe Capybara::Session do
       expect(parents.map(&:tag_name)).to eq %w[li ul body html]
     end
 
+    it "warns that description is deprecated" do
+      @session.visit "/cuprite/simple"
+      node = @session.find(:css, "#nav").native
+      description = nil
+      expect { description = node.description }.to output(/description is deprecated/).to_stderr
+      expect(description["nodeName"]).to eq "A"
+    end
+
     context "SVG tests" do
       before do
         @session.visit "/cuprite/svg_test"

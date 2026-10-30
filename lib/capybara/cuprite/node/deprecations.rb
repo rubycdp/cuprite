@@ -28,6 +28,11 @@ module Capybara
           JSON.parse(command(:getAttributes))
         end
 
+        def description
+          Cuprite.deprecation_warning("#{self.class}#description", "use node.native.node.description")
+          node.description
+        end
+
         def send_key(*keys)
           Cuprite.deprecation_warning("#{self.class}#send_key", "use #send_keys")
           send_keys(*keys)

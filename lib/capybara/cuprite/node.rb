@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-require "forwardable"
 require "capybara/cuprite/finder"
 require "capybara/cuprite/node/deprecations"
 require "capybara/cuprite/node/extensions"
@@ -10,12 +9,8 @@ module Capybara
     class Node < Capybara::Driver::Node
       attr_reader :node
 
-      extend Forwardable
       include Deprecations
       include Extensions
-
-      delegate %i[description] => :node
-      private :description
 
       DRAG_MODIFIER_ALIASES = { control: :ctrl, command: :meta, cmd: :meta }.freeze
       DRAG_HTML5_JS = File.read(File.expand_path("javascripts/drag.js", __dir__))
@@ -117,7 +112,7 @@ module Capybara
       end
 
       def tag_name
-        @tag_name ||= description["shadowRootType"] ? "ShadowRoot" : description["nodeName"].downcase
+        @tag_name ||= node.description["shadowRootType"] ? "ShadowRoot" : node.description["nodeName"].downcase
       end
 
       def visible?
