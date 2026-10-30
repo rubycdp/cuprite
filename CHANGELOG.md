@@ -7,6 +7,9 @@
   `current_title` deprecated in Ferrum 0.21 [rubycdp/ferrum#687]
 - `:js_errors` is handled by Cuprite instead of being passed to Ferrum, which deprecates it. Behavior is the same
   [rubycdp/ferrum#688]
+- `:pending_connection_errors` is handled by Cuprite instead of being passed to Ferrum, which deprecates it. `visit`
+  raises `Capybara::Cuprite::PendingConnectionsError`, a subclass of Ferrum's, and rescuing Ferrum's warns
+  [rubycdp/ferrum#689]
 
 ### Fixed
 
