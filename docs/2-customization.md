@@ -13,12 +13,14 @@ end
 ```
 
 Cuprite accepts all [Ferrum options](/docs/ferrum/customization), such as
-`:headless`, `:timeout`, `:js_errors`, `:browser_path`, `:browser_options`,
+`:headless`, `:timeout`, `:browser_path`, `:browser_options`,
 `:url`, `:proxy`, `:dockerize` and others.
 
 Cuprite-specific options are:
 
 * options `Hash`
+  * `:js_errors` (Boolean) - Re-raise JavaScript errors from the page as `Ferrum::JavaScriptError` in Ruby, `false`
+    by default. See [JavaScript errors](/docs/cuprite/javascript#javascript-errors).
   * `:screen_size` (Array) - Size used by `maximize_window`, `[1366, 768]` by default.
   * `:raise_on_unhandled_modal` (Boolean) - What to do when a JavaScript dialog is opened but not handled by
     `accept_*`/`dismiss_*`. When `false` (default) a warning is printed, when `true`
