@@ -230,16 +230,12 @@ module Capybara
       end
 
       def shadow_root
-        root = driver.evaluate_script <<~JS, self
-          arguments[0].shadowRoot
-        JS
-        root && self.class.new(driver, root.node)
+        root = driver.browser.evaluate("arguments[0].shadowRoot", node)
+        root && self.class.new(driver, root)
       end
 
       def rect
-        driver.evaluate_script <<~JS, self
-          arguments[0].getBoundingClientRect().toJSON()
-        JS
+        node.evaluate("this.getBoundingClientRect().toJSON()")
       end
 
       def inspect
