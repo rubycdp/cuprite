@@ -78,7 +78,7 @@ module Capybara
             files = value.respond_to?(:to_ary) ? value.to_ary.map(&:to_s) : value.to_s
             command { node.select_file(files) }
           when "color"
-            node.evaluate("this.setAttribute('value', '#{value}')")
+            node.evaluate("this.setAttribute('value', arguments[0])", value)
             node.evaluate("this.dispatchEvent(new InputEvent('input'))")
             node.evaluate("this.dispatchEvent(new Event('change', { bubbles: true }))")
           when "date"
