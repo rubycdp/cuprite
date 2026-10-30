@@ -91,9 +91,9 @@ browser.downloads.files
 
 A few things to keep in mind:
 
-- It follows Capybara. Page methods such as `browser.evaluate`, `browser.css`
-  or `browser.current_url` run in the window and frame Capybara is switched to,
-  for example inside `within_window` or `within_frame`.
+- It follows Capybara. Page methods such as `browser.evaluate` or `browser.css`
+  run in the window and frame Capybara is switched to, for example inside
+  `within_window` or `within_frame`.
 - It's reset between tests. Capybara's reset disposes the browser context, so
   headers, cookies, request interception, recorded traffic, console messages
   and downloads are gone in the next test. Browser-wide settings such as

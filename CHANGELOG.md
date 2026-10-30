@@ -3,6 +3,8 @@
 ### Added
 
 ### Changed
+- `Driver#current_url` and `Driver#title` read Ferrum's `url` and `title` of the window, not `current_url` and
+  `current_title` deprecated in Ferrum 0.21 [rubycdp/ferrum#687]
 
 ### Fixed
 

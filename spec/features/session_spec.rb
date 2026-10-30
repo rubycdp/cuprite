@@ -1443,7 +1443,7 @@ describe Capybara::Session do
             browser.goto("http://example.com")
             puts "Please type enter"
             sleep 1
-            browser.current_url
+            browser.url
           RUBY
         end
 
