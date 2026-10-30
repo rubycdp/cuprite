@@ -11,6 +11,16 @@ module Capybara
       include Frames
       include Modals
 
+      def go_to(url = nil)
+        frame_id = super
+        return frame_id if frame_id || !@options.raise_on_pending_connections
+
+        pendings = network.traffic.select(&:pending?).map(&:url).compact
+        raise PendingConnectionsError.new(combine_url!(url), pendings)
+      end
+      alias goto go_to
+      alias go go_to
+
       def set_viewport(width: 0, height: 0, scale_factor: @options.scale_factor, mobile: @options.mobile)
         super
       end

@@ -21,6 +21,8 @@ Cuprite-specific options are:
 * options `Hash`
   * `:js_errors` (Boolean) - Re-raise JavaScript errors from the page as `Ferrum::JavaScriptError` in Ruby, `false`
     by default. See [JavaScript errors](/docs/cuprite/javascript#javascript-errors).
+  * `:pending_connection_errors` (Boolean) - Raise `Capybara::Cuprite::PendingConnectionsError` from
+    `visit`, naming the requests still pending, when the page doesn't load in time, `true` by default.
   * `:screen_size` (Array) - Size used by `maximize_window`, `[1366, 768]` by default.
   * `:raise_on_unhandled_modal` (Boolean) - What to do when a JavaScript dialog is opened but not handled by
     `accept_*`/`dismiss_*`. When `false` (default) a warning is printed, when `true`
@@ -41,7 +43,6 @@ Cuprite-specific options are:
 Cuprite changes a few Ferrum defaults:
 
 * `:save_path` - defaults to `Capybara.save_path` if it's set.
-* `:pending_connection_errors` - `true` by default.
 * `:browser_options` - `"remote-allow-origins" => "*"` is always added, so that
   [debug](/docs/cuprite/debugging) can open DevTools, and so is `"disable-web-security" => nil`, so that tests
   can reach into cross-origin frames.
