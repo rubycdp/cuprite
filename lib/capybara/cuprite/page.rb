@@ -5,12 +5,6 @@ require "capybara/cuprite/page/modals"
 
 module Capybara
   module Cuprite
-    class ClosedPage
-      def closed?
-        true
-      end
-    end
-
     class Page < Ferrum::Page
       EXTENSION_JS = File.read(Driver::EXTENSION).freeze
 
@@ -19,10 +13,6 @@ module Capybara
 
       def set_viewport(width: 0, height: 0, scale_factor: @options.scale_factor, mobile: @options.mobile)
         super
-      end
-
-      def closed?
-        false
       end
 
       private

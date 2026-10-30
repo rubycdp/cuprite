@@ -29,7 +29,7 @@ module Capybara
       end
 
       def page
-        raise Ferrum::NoSuchPageError if @page&.closed?
+        raise Ferrum::NoSuchPageError if @page_closed
 
         @page ||= attach_page
       end
@@ -38,12 +38,12 @@ module Capybara
         super
       ensure
         @options.reset_window_size
-        @page = nil
+        forget_page
       end
 
       def quit
         super
-        @page = nil
+        forget_page
       end
 
       def resize(**options)
@@ -59,20 +59,33 @@ module Capybara
         targets.values.select(&:page?).map(&:id)
       end
 
+      def open_new_window
+        attach_page(default_context.create_target.id)
+      end
+
       def switch_to_window(target_id)
         target = window_target(target_id)
+        forget_page
         @page = attach_page(target.id)
         @page.activate
       end
 
       def close_window(target_id)
         target = window_target(target_id)
-        @page = ClosedPage.new if @page.target_id == target.id
+        if @page&.target_id == target.id
+          forget_page
+          @page_closed = true
+        end
         target.page.close
         targets.delete(target_id) # page.close is async, delete target asap
       end
 
       private
+
+      def forget_page
+        @page = nil
+        @page_closed = false
+      end
 
       def window_target(target_id)
         target = targets[target_id]
