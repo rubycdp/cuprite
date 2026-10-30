@@ -107,6 +107,7 @@ module Capybara
             response = params["defaultPrompt"]
           end
           options.merge!(promptText: response) if response
+          # Skips #command so a pending error isn't raised on the dispatcher thread.
           client.command("Page.handleJavaScriptDialog", timeout: timeout, **options)
 
           @unhandled_modal_error = unhandled_modal_error if unhandled_modal_error
