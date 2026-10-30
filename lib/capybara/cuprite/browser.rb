@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-require "capybara/cuprite/finder"
 require "capybara/cuprite/browser/deprecations"
 require "capybara/cuprite/browser/extensions"
 
@@ -9,20 +8,6 @@ module Capybara
     class Browser < Ferrum::Browser
       include Deprecations
       include Extensions
-
-      CALLBACK_JS = <<~JS
-        function(...args) {
-          return new Promise((resolve, reject) => {
-            try {
-              (function() {
-                SCRIPT
-              }).apply(this, [...args, resolve]);
-            } catch (error) {
-              reject(error);
-            }
-          });
-        }
-      JS
 
       def initialize(options = nil)
         device = options&.dig(:emulate)
@@ -88,14 +73,6 @@ module Capybara
       end
 
       private
-
-      def find(method, selector)
-        Finder.find(self, method, selector)
-      end
-
-      def evaluate_callback(script, wait, *args)
-        evaluate(CALLBACK_JS.sub("SCRIPT") { script }, *args, timeout: wait)
-      end
 
       def window_target(target_id)
         target = targets[target_id]

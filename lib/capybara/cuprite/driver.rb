@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "forwardable"
+require "capybara/cuprite/finder"
 require "capybara/cuprite/driver/deprecations"
 require "capybara/cuprite/driver/extensions"
 
@@ -9,6 +10,19 @@ module Capybara
     class Driver < Capybara::Driver::Base
       DEFAULT_MAXIMIZE_SCREEN_SIZE = [1366, 768].freeze
       EXTENSION = File.expand_path("javascripts/index.js", __dir__)
+      CALLBACK_JS = <<~JS
+        function(...args) {
+          return new Promise((resolve, reject) => {
+            try {
+              (function() {
+                SCRIPT
+              }).apply(this, [...args, resolve]);
+            } catch (error) {
+              reject(error);
+            }
+          });
+        }
+      JS
 
       extend Forwardable
       include Deprecations
@@ -92,7 +106,7 @@ module Capybara
       end
 
       def evaluate_async_script(script, *args)
-        result = browser.send(:evaluate_callback, script, session_wait_time, *native_args(args))
+        result = browser.evaluate(CALLBACK_JS.sub("SCRIPT") { script }, *native_args(args), timeout: session_wait_time)
         unwrap_script_result(result)
       end
 
@@ -221,7 +235,7 @@ module Capybara
       attr_reader :screen_size
 
       def find(method, selector)
-        browser.send(:find, method, selector).map { |native| Node.new(self, native) }
+        Finder.find(browser, method, selector).map { |native| Node.new(self, native) }
       end
 
       def within_window(handle)
