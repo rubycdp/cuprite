@@ -1,4 +1,15 @@
-## [Unreleased](https://github.com/rubycdp/cuprite/compare/v0.19...main) ##
+## [Unreleased](https://github.com/rubycdp/cuprite/compare/v0.20...main) ##
+
+### Added
+
+### Changed
+
+### Fixed
+
+### Removed
+
+
+## [0.20](https://github.com/rubycdp/cuprite/compare/v0.19...v0.20) ##
 
 ### Changed
 - Node helpers on `Capybara::Cuprite::Browser` (`value`, `set`, `select`, `visible_text`, `drag`, etc.) are private, use
