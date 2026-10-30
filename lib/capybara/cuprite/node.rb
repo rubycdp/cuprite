@@ -260,13 +260,6 @@ module Capybara
         block_given? ? yield : js(function, *args)
       rescue Ferrum::NodeNotFoundError => e
         raise ObsoleteNode.new(self, e.response)
-      rescue Ferrum::BrowserError => e
-        case e.message
-        when "Cuprite.MouseEventFailed"
-          raise MouseEventFailed.new(self, e.response)
-        else
-          raise
-        end
       end
 
       def prepare_and_click(mode, name, keys, options)
@@ -292,6 +285,8 @@ module Capybara
         js(:mouseEventTest, name.to_s, x, y)
       rescue Ferrum::JavaScriptError => e
         raise MouseEventFailed, e.message if e.class_name == "MouseEventFailed"
+
+        raise
       end
 
       def find_position(**options)
