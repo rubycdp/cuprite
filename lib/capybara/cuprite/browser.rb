@@ -10,8 +10,9 @@ module Capybara
       def initialize(options = nil)
         device = options&.dig(:emulate)
         options = Devices.fetch(device).except(:user_agent).merge(options) if device
-        super
+        super(options&.except(:js_errors))
 
+        @options.raise_on_js_errors = options&.dig(:js_errors)
         @options.raise_on_unhandled_modal = options&.dig(:raise_on_unhandled_modal)
         @options.url_blacklist = prepare_wildcards(options&.dig(:url_blacklist))
         @options.url_whitelist = prepare_wildcards(options&.dig(:url_whitelist))

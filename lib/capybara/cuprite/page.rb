@@ -17,6 +17,15 @@ module Capybara
 
       private
 
+      def subscribe
+        super
+        return unless @options.raise_on_js_errors
+
+        on("Runtime.exceptionThrown") do |params|
+          Thread.main.raise Ferrum::JavaScriptError, params["exceptionDetails"]
+        end
+      end
+
       def prepare_page
         super
         execute(EXTENSION_JS)
