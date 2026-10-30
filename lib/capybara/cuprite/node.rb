@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 require "capybara/cuprite/finder"
-require "capybara/cuprite/node/deprecations"
 require "capybara/cuprite/node/extensions"
 
 module Capybara
@@ -9,7 +8,6 @@ module Capybara
     class Node < Capybara::Driver::Node
       attr_reader :node
 
-      include Deprecations
       include Extensions
 
       DRAG_MODIFIER_ALIASES = { control: :ctrl, command: :meta, cmd: :meta }.freeze

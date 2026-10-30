@@ -22,6 +22,3 @@ cookies.clear
 
 Cookie objects have `name`, `value`, `domain`, `path`, `size`, `secure?`,
 `httponly?`, `session?`, `samesite` and `expires` methods.
-
-`page.driver.cookies`, `set_cookie`, `remove_cookie` and `clear_cookies` are
-deprecated in favor of these.

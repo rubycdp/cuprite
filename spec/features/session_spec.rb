@@ -1271,46 +1271,6 @@ describe Capybara::Session do
       end
     end
 
-    it "warns that property is deprecated" do
-      @session.visit "/cuprite/attributes_properties"
-      node = @session.find(:css, ".some_other_class").native
-      inner_html = nil
-      expect { inner_html = node.property("innerHTML") }.to output(/property is deprecated/).to_stderr
-      expect(inner_html).to eq "<p>foobar</p>"
-    end
-
-    it "warns that attributes is deprecated" do
-      @session.visit "/cuprite/attributes_properties"
-      node = @session.find(:css, "#my_link").native
-      attributes = nil
-      expect { attributes = node.attributes }.to output(/attributes is deprecated/).to_stderr
-      expect(attributes).to eq("href" => "#", "id" => "my_link", "class" => "some_class", "data" => "rah!")
-    end
-
-    it "warns that browser is deprecated" do
-      @session.visit "/cuprite/simple"
-      node = @session.find(:css, "#nav").native
-      browser = nil
-      expect { browser = node.browser }.to output(/browser is deprecated/).to_stderr
-      expect(browser).to be(@session.driver.browser)
-    end
-
-    it "warns that parents is deprecated" do
-      @session.visit "/cuprite/simple"
-      node = @session.find(:css, "#nav").native
-      parents = nil
-      expect { parents = node.parents }.to output(/parents is deprecated/).to_stderr
-      expect(parents.map(&:tag_name)).to eq %w[li ul body html]
-    end
-
-    it "warns that description is deprecated" do
-      @session.visit "/cuprite/simple"
-      node = @session.find(:css, "#nav").native
-      description = nil
-      expect { description = node.description }.to output(/description is deprecated/).to_stderr
-      expect(description["nodeName"]).to eq "A"
-    end
-
     context "SVG tests" do
       before do
         @session.visit "/cuprite/svg_test"

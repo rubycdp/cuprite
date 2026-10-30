@@ -20,6 +20,3 @@ block into `&:continue`, which raises `ArgumentError` because Ferrum passes
 three.
 
 Credentials are cleared at the end of every test.
-
-`page.driver.authorize(user, password)` and `page.driver.basic_authorize` are
-deprecated in favor of it.

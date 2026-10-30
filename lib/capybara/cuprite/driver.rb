@@ -2,7 +2,6 @@
 
 require "forwardable"
 require "capybara/cuprite/finder"
-require "capybara/cuprite/driver/deprecations"
 require "capybara/cuprite/driver/extensions"
 
 module Capybara
@@ -25,7 +24,6 @@ module Capybara
       JS
 
       extend Forwardable
-      include Deprecations
       include Extensions
 
       delegate %i[quit current_url title
@@ -139,8 +137,6 @@ module Capybara
       end
 
       def reset!
-        @zoom_factor = nil
-        @paper_size = nil
         browser.url_blacklist = @options[:url_blacklist]
         browser.url_whitelist = @options[:url_whitelist]
         browser.raise_on_unhandled_modal = @options.fetch(:raise_on_unhandled_modal, false)
@@ -152,11 +148,7 @@ module Capybara
       end
 
       def save_screenshot(path, options = {})
-        options[:scale] = @zoom_factor if @zoom_factor
-
         if File.extname(path) == ".pdf"
-          options[:paperWidth] = @paper_size[:width].to_f if @paper_size
-          options[:paperHeight] = @paper_size[:height].to_f if @paper_size
           browser.pdf(path: path, **options)
         else
           browser.screenshot(path: path, **options)

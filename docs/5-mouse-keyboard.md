@@ -36,7 +36,3 @@ browser.mouse.move(x: 123, y: 456).down.up
 browser.mouse.scroll_by(0, 400)
 browser.keyboard.type("text", :Enter)
 ```
-
-`page.driver.click(x, y)` is deprecated in favor of `browser.mouse.click`, and
-`page.driver.scroll_to(left, top)` in favor of Capybara's
-`page.scroll_to(left, top)`.

@@ -23,6 +23,4 @@ applied, so configure the proxy on the remote browser itself. The `user` and
 The `bypass` option is a list of hosts that skip the proxy, so don't pass the
 host you want to go through it.
 
-`page.driver.set_proxy` is deprecated in favor of the `:proxy` option.
-
 See Ferrum's [Proxy](/docs/ferrum/proxy) for more details.

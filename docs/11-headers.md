@@ -22,6 +22,3 @@ headers.get # => { "User-Agent" => "Cuprite", "Accept-Language" => "de" }
 ```ruby
 page.driver.browser.headers.add({ "Referer" => "https://example.com" }, permanent: false)
 ```
-
-`page.driver.headers`, `headers=`, `add_headers` and `add_header` are
-deprecated in favor of these.

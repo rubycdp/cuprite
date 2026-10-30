@@ -1,12 +1,10 @@
 # frozen_string_literal: true
 
-require "capybara/cuprite/browser/deprecations"
 require "capybara/cuprite/browser/extensions"
 
 module Capybara
   module Cuprite
     class Browser < Ferrum::Browser
-      include Deprecations
       include Extensions
 
       def initialize(options = nil)

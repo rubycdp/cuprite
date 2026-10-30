@@ -31,6 +31,3 @@ page.driver.browser.screenshot(format: :png, full: true)
 page.driver.browser.screenshot(format: :jpeg, quality: 60)
 page.driver.browser.pdf(paper_width: 8.5, paper_height: 11)
 ```
-
-`page.driver.render_base64`, `page.driver.zoom_factor=` and `page.driver.paper_size=`
-are deprecated in favor of the calls and options above.

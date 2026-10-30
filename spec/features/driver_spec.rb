@@ -164,42 +164,6 @@ module Capybara
         expect(driver.html).to include("Hello world")
       end
 
-      it "warns that set_proxy is deprecated" do
-        driver = Capybara::Cuprite::Driver.new(nil)
-
-        expect { driver.set_proxy("127.0.0.1", 8080) }.to output(/set_proxy is deprecated/).to_stderr
-        expect(driver.options[:proxy]).to include(host: "127.0.0.1", port: 8080)
-      end
-
-      it "warns that restart is deprecated" do
-        driver = Capybara::Cuprite::Driver.new(nil)
-        driver.visit(session_url("/"))
-
-        expect { driver.restart }.to output(/restart is deprecated/).to_stderr
-        driver.visit(session_url("/"))
-        expect(driver.html).to include("Hello world")
-      ensure
-        driver&.quit
-      end
-
-      it "warns that browser window_handle is deprecated" do
-        @session.visit("/")
-        browser = @session.driver.browser
-        handle = nil
-
-        expect { handle = browser.window_handle }.to output(/window_handle is deprecated/).to_stderr
-        expect(handle).to eq(browser.current_window_handle)
-      end
-
-      it "warns that browser visit and status_code are deprecated" do
-        browser = @session.driver.browser
-        status = nil
-
-        expect { browser.visit(session_url("/")) }.to output(/visit is deprecated/).to_stderr
-        expect { status = browser.status_code }.to output(/status_code is deprecated/).to_stderr
-        expect(status).to eq(200)
-      end
-
       it "stops silently before visit call" do
         driver = Capybara::Cuprite::Driver.new(nil)
         expect { driver.quit }.not_to raise_error
@@ -251,13 +215,6 @@ module Capybara
         expect(
           @driver.evaluate_script("[window.scrollX, window.scrollY]")
         ).to eq([200, 500])
-      end
-
-      it "warns that scroll_to is deprecated" do
-        @session.visit("/cuprite/scroll_long_page")
-
-        expect { @driver.scroll_to(200, 500) }.to output(/scroll_to is deprecated/).to_stderr
-        expect(@driver.evaluate_script("[window.scrollX, window.scrollY]")).to eq([200, 500])
       end
 
       it "supports specifying viewport size with an option" do
@@ -489,39 +446,6 @@ module Capybara
         include_examples "render screen"
       end
 
-      describe "#render_base64" do
-        let(:file) { "#{PROJECT_ROOT}/spec/tmp/screenshot.#{format}" }
-
-        def create_screenshot(file, *args)
-          image = nil
-          expect { image = @driver.render_base64(format, *args) }.to output(/render_base64 is deprecated/).to_stderr
-          File.binwrite(file, Base64.decode64(image))
-        end
-
-        it "supports rendering the page in base64" do
-          @session.visit("/")
-
-          screenshot = nil
-          expect { screenshot = @driver.render_base64 }.to output(/render_base64 is deprecated/).to_stderr
-
-          expect(screenshot.length).to be > 100
-        end
-
-        context "png" do
-          let(:format) { :png }
-          after { FileUtils.rm_f(file) }
-
-          include_examples "render screen"
-        end
-
-        context "jpeg" do
-          let(:format) { :jpeg }
-          after { FileUtils.rm_f(file) }
-
-          include_examples "render screen"
-        end
-      end
-
       context "setting headers" do
         it "allows headers to be set" do
           @driver.browser.headers.set(
@@ -537,14 +461,6 @@ module Capybara
           expect(@driver.browser.headers.get).to eq({})
           @driver.browser.headers.set("User-Agent" => "Browser", "Host" => "foo.com")
           expect(@driver.browser.headers.get).to eq("User-Agent" => "Browser", "Host" => "foo.com")
-        end
-
-        it "warns that the header methods are deprecated" do
-          expect { @driver.headers = { "DV" => "hello" } }.to output(/headers= is deprecated/).to_stderr
-          expect { @driver.add_headers("A" => "a") }.to output(/add_headers is deprecated/).to_stderr
-          expect { @driver.add_header("B", "b") }.to output(/add_header is deprecated/).to_stderr
-          expect { @driver.headers }.to output(/headers is deprecated/).to_stderr
-          expect(@driver.browser.headers.get).to eq("DV" => "hello", "A" => "a", "B" => "b")
         end
 
         it "supports User-Agent" do
@@ -687,22 +603,6 @@ module Capybara
         @session.visit("/cuprite/click_coordinates")
         @driver.browser.mouse.click(x: 100, y: 150)
         expect(@driver.html).to include("x: 100, y: 150")
-      end
-
-      it "warns that click is deprecated" do
-        @session.visit("/cuprite/click_coordinates")
-        expect { @driver.click(100, 150) }.to output(/click is deprecated/).to_stderr
-        expect(@driver.html).to include("x: 100, y: 150")
-      end
-
-      it "warns that the browser delegates are deprecated" do
-        @session.visit("/")
-
-        expect { @driver.timeout }.to output(/timeout is deprecated/).to_stderr
-        expect { @driver.timeout = @driver.browser.timeout }.to output(/timeout= is deprecated/).to_stderr
-        expect { @driver.device_pixel_ratio }.to output(/device_pixel_ratio is deprecated/).to_stderr
-        expect { @driver.viewport_size }.to output(/viewport_size is deprecated/).to_stderr
-        expect { @driver.wait_for_reload(0.01) }.to output(/wait_for_reload is deprecated/).to_stderr
       end
 
       it "supports clicking overlayed elements" do
@@ -958,17 +858,6 @@ module Capybara
           expect(@driver.browser.network.traffic.select(&:blocked?).length).to eq(0)
         end
 
-        it "warns that the network methods are deprecated" do
-          @driver.browser.url_blacklist = /unwanted/
-          @session.visit "/cuprite/url_blacklist"
-
-          expect { @driver.network_traffic }.to output(/network_traffic is deprecated/).to_stderr
-          expect { @driver.wait_for_network_idle }.to output(/wait_for_network_idle is deprecated/).to_stderr
-          expect { @driver.clear_memory_cache }.to output(/clear_memory_cache is deprecated/).to_stderr
-          expect { @driver.clear_network_traffic }.to output(/clear_network_traffic is deprecated/).to_stderr
-          expect(@driver.browser.network.traffic).to be_empty
-        end
-
         it "counts network traffic for each loaded resource" do
           @session.visit("/cuprite/with_js")
           responses = @driver.browser.network.traffic.map(&:response)
@@ -1161,32 +1050,6 @@ module Capybara
           expect(@driver.html).not_to include("app_host")
         ensure
           Capybara.app_host = old_app_host
-        end
-
-        it "warns that the cookie methods are deprecated" do
-          @session.visit("/set_cookie")
-
-          expect { @driver.cookies }.to output(/cookies is deprecated/).to_stderr
-          expect { @driver.remove_cookie("capybara") }.to output(/remove_cookie is deprecated/).to_stderr
-          expect { @driver.clear_cookies }.to output(/clear_cookies is deprecated/).to_stderr
-          expect(@driver.browser.cookies.all).to be_empty
-        end
-
-        it "sets cookies correctly when Capybara.app_host is set" do
-          old_app_host = Capybara.app_host
-          begin
-            Capybara.app_host = "http://localhost/cuprite"
-            expect { @driver.set_cookie "capybara", "app_host" }.to output(/set_cookie is deprecated/).to_stderr
-
-            port = @session.server.port
-            @session.visit("http://localhost:#{port}/cuprite/get_cookie")
-            expect(@driver.html).to include("app_host")
-
-            @session.visit("http://127.0.0.1:#{port}/cuprite/get_cookie")
-            expect(@driver.html).not_to include("app_host")
-          ensure
-            Capybara.app_host = old_app_host
-          end
         end
       end
 
@@ -1398,15 +1261,6 @@ module Capybara
 
           expect(@session.status_code).to eq(401)
           expect(@session).not_to have_content("Welcome, authenticated client")
-        end
-
-        it "warns that authorize and basic_authorize are deprecated" do
-          expect { @driver.authorize("login", "pass") }.to output(/authorize is deprecated/).to_stderr
-          expect { @driver.basic_authorize("login", "pass") }.to output(/basic_authorize is deprecated/).to_stderr
-
-          @session.visit "/cuprite/basic_auth"
-
-          expect(@session).to have_content("Welcome, authenticated client")
         end
 
         it "allows on POST request" do
@@ -1711,14 +1565,6 @@ module Capybara
           input.native.send_keys("curp", %i[Shift Left Left], "prite")
 
           expect(input.value).to eq("cuprite")
-        end
-
-        it "warns that send_key is deprecated" do
-          input = @session.find(:css, "#empty_input")
-
-          expect { input.native.send_key("S") }.to output(/send_key is deprecated/).to_stderr
-
-          expect(input.value).to eq("S")
         end
 
         it "generates correct events with keyCodes for modified puncation" do

@@ -7,6 +7,7 @@
 ### Fixed
 
 ### Removed
+- Methods deprecated in 0.20, see its Deprecated section for replacements
 
 
 ## [0.20](https://github.com/rubycdp/cuprite/compare/v0.19...v0.20) ##

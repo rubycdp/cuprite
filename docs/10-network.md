@@ -46,10 +46,6 @@ Clears the browser cache.
 page.driver.browser.network.clear(:cache)
 ```
 
-`page.driver.network_traffic`, `clear_network_traffic`, `wait_for_network_idle`
-and `clear_memory_cache` are deprecated in favor of these. Note that
-`network_traffic` left out blocked requests by default, `traffic` doesn't.
-
 #### wait_for_reload(timeout = 1)
 
 Ferrum's `browser.wait_for_reload`, unlike `network.wait_for_idle`, waits until
@@ -62,8 +58,6 @@ return before the page even started to reload.
 find(".suggestion").click
 page.driver.browser.wait_for_reload
 ```
-
-`page.driver.wait_for_reload` is deprecated in favor of it.
 
 #### status_code : `Integer`
 
