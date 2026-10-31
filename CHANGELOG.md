@@ -12,6 +12,8 @@
   [rubycdp/ferrum#689]
 
 ### Fixed
+- `Driver#reset!` and `Driver#quit` don't launch Chrome when no browser has started, so a failed launch doesn't
+  launch again during teardown
 
 ### Removed
 - Methods deprecated in 0.20, see its Deprecated section for replacements
