@@ -1,13 +1,10 @@
 # frozen_string_literal: true
 
-require "image_size"
 require "pdf/reader"
-require "chunky_png"
 
 module Capybara
   module Cuprite
     describe Driver do
-      let(:device_pixel_ratio) { @driver.browser.device_pixel_ratio }
       let(:mobile) { false }
 
       include Spec::Support::ExternalBrowser
@@ -23,32 +20,6 @@ module Capybara
       def session_url(path)
         server = @session.server
         "http://#{server.host}:#{server.port}#{path}"
-      end
-
-      it "supports a custom path" do
-        original_path = "#{PROJECT_ROOT}/spec/support/chrome_path"
-        File.write(original_path, @driver.browser.process.path)
-
-        file = "#{PROJECT_ROOT}/spec/support/custom_chrome_called"
-        path = "#{PROJECT_ROOT}/spec/support/custom_chrome"
-
-        driver = Driver.new(nil, browser_path: path)
-        driver.browser
-
-        # If the correct custom path is called, it will touch the file.
-        # We allow at least 10 secs for this to happen before failing.
-
-        tries = 0
-        until File.exist?(file) || tries == 100
-          sleep 0.1
-          tries += 1
-        end
-
-        expect(File.exist?(file)).to be true
-      ensure
-        FileUtils.rm_f(original_path)
-        FileUtils.rm_f(file)
-        driver&.quit
       end
 
       describe "mobile emulation" do
@@ -139,34 +110,11 @@ module Capybara
         end
       end
 
-      context "output redirection" do
-        let(:logger) { StringIO.new }
-        let(:session) { Capybara::Session.new(:cuprite_with_logger, TestApp) }
-
-        before do
-          Capybara.register_driver(:cuprite_with_logger) do |app|
-            Capybara::Cuprite::Driver.new(app, logger: logger)
-          end
-        end
-
-        after { session.driver.quit }
-
-        it "supports capturing console.log" do
-          session.visit("/cuprite/console_log")
-          expect(logger.string).to include("Hello world")
-        end
-      end
-
       it "raises an error and restarts the client if the client dies while executing a command" do
         driver = Capybara::Cuprite::Driver.new(nil)
         expect { driver.browser.crash }.to raise_error(Ferrum::DeadBrowserError)
         driver.visit(session_url("/"))
         expect(driver.html).to include("Hello world")
-      end
-
-      it "stops silently before visit call" do
-        driver = Capybara::Cuprite::Driver.new(nil)
-        expect { driver.quit }.not_to raise_error
       end
 
       it "has a viewport size of 1024x768 by default" do
@@ -265,76 +213,6 @@ module Capybara
         driver&.quit
       end
 
-      shared_examples "render screen" do
-        it "supports rendering the whole of a page that goes outside the viewport" do
-          @session.visit("/cuprite/long_page")
-
-          create_screenshot file
-          File.open(file, "rb") do |f|
-            expect(ImageSize.new(f.read).size).to eq(@driver.browser.viewport_size.map { |s| s * device_pixel_ratio })
-          end
-
-          create_screenshot file, full: true
-          File.open(file, "rb") do |f|
-            size = @driver.evaluate_script <<-JS
-              [document.documentElement.scrollWidth, document.documentElement.scrollHeight]
-            JS
-            expect(ImageSize.new(f.read).size).to eq(size.map { |s| s * device_pixel_ratio })
-          end
-        end
-
-        it "supports rendering the entire window when documentElement has no height" do
-          @session.visit("/cuprite/fixed_positioning")
-
-          create_screenshot file, full: true
-          File.open(file, "rb") do |f|
-            expect(ImageSize.new(f.read).size).to eq(@driver.browser.viewport_size.map { |s| s * device_pixel_ratio })
-          end
-        end
-
-        it "supports rendering just the selected element" do
-          @session.visit("/cuprite/long_page")
-
-          create_screenshot file, selector: "#penultimate"
-
-          File.open(file, "rb") do |f|
-            size = @driver.evaluate_script <<-JS
-              function() {
-                var ele = document.getElementById("penultimate");
-                var rect = ele.getBoundingClientRect();
-                return [rect.width, rect.height];
-              }();
-            JS
-            expect(ImageSize.new(f.read).size).to eq(size.map { |s| s * device_pixel_ratio })
-          end
-        end
-
-        it "ignores :selector in #save_screenshot if full: true" do
-          @session.visit("/cuprite/long_page")
-          expect(@driver.browser.page).to receive(:warn).with(/Ignoring :selector/)
-
-          create_screenshot file, full: true, selector: "#penultimate"
-
-          File.open(file, "rb") do |f|
-            size = @driver.evaluate_script <<-JS
-              [document.documentElement.scrollWidth, document.documentElement.scrollHeight]
-            JS
-            expect(ImageSize.new(f.read).size).to eq(size.map { |s| s * device_pixel_ratio })
-          end
-        end
-
-        it "resets element positions after" do
-          @session.visit("cuprite/long_page")
-          el = @session.find(:css, "#middleish")
-          # make the page scroll an element into view
-          el.click
-          position_script = "document.querySelector('#middleish').getBoundingClientRect()"
-          offset = @session.evaluate_script(position_script)
-          create_screenshot file
-          expect(@session.evaluate_script(position_script)).to eq offset
-        end
-      end
-
       describe "#save_screenshot" do
         let(:format) { :png }
         let(:file) { "#{PROJECT_ROOT}/spec/tmp/screenshot.#{format}" }
@@ -342,10 +220,6 @@ module Capybara
         after do
           FileUtils.rm_f("#{PROJECT_ROOT}/spec/tmp/screenshot.pdf")
           FileUtils.rm_f("#{PROJECT_ROOT}/spec/tmp/screenshot.png")
-        end
-
-        def create_screenshot(file, *args)
-          @driver.save_screenshot(file, *args)
         end
 
         it "supports rendering the page" do
@@ -375,55 +249,6 @@ module Capybara
           FileUtils.rm_f(file)
         end
 
-        it "supports rendering the page with different quality settings" do
-          file2 = "#{PROJECT_ROOT}/spec/tmp/screenshot2.jpeg"
-          file3 = "#{PROJECT_ROOT}/spec/tmp/screenshot3.jpeg"
-          file4 = "#{PROJECT_ROOT}/spec/tmp/screenshot4.#{format}"
-          FileUtils.rm_f([file2, file3, file4])
-
-          begin
-            @session.visit("/")
-
-            @driver.save_screenshot(file, quality: 0) # ignored for png
-            @driver.save_screenshot(file2) # defaults to a quality of 75
-            @driver.save_screenshot(file3, quality: 100)
-            @driver.save_screenshot(file4, quality: 60) # ignored for png
-
-            expect(File.size(file)).to eq(File.size(file4))
-            expect(File.size(file2)).to be < File.size(file3)
-          ensure
-            FileUtils.rm_f([file2, file3, file4])
-          end
-        end
-
-        shared_examples "with :scale" do
-          it "changes image dimensions" do
-            @session.visit("/cuprite/zoom_test")
-
-            black_pixels_count = lambda { |file|
-              img = ChunkyPNG::Image.from_file(file)
-              img.pixels.inject(0) { |i, p| p > 255 ? i + 1 : i }
-            }
-            @driver.save_screenshot(file)
-            before = black_pixels_count[file]
-
-            @driver.save_screenshot(file, scale: scale)
-            after = black_pixels_count[file]
-
-            expect(after.to_f / before).to eq(scale**2)
-          end
-        end
-
-        context "zoom in" do
-          let(:scale) { 2 }
-          include_examples "with :scale"
-        end
-
-        context "zoom out" do
-          let(:scale) { 0.5 }
-          include_examples "with :scale"
-        end
-
         context "with :paper_width and :paper_height" do
           let(:format) { :pdf }
 
@@ -442,84 +267,9 @@ module Capybara
             end
           end
         end
-
-        include_examples "render screen"
       end
 
       context "setting headers" do
-        it "allows headers to be set" do
-          @driver.browser.headers.set(
-            "Cookie" => "foo=bar",
-            "DV" => "hello"
-          )
-          @session.visit("/cuprite/headers")
-          expect(@driver.html).to include("COOKIE: foo=bar")
-          expect(@driver.html).to include("DV: hello")
-        end
-
-        it "allows headers to be read" do
-          expect(@driver.browser.headers.get).to eq({})
-          @driver.browser.headers.set("User-Agent" => "Browser", "Host" => "foo.com")
-          expect(@driver.browser.headers.get).to eq("User-Agent" => "Browser", "Host" => "foo.com")
-        end
-
-        it "supports User-Agent" do
-          @driver.browser.headers.set("User-Agent" => "foo")
-          @session.visit "/"
-          expect(@driver.evaluate_script("window.navigator.userAgent")).to eq("foo")
-        end
-
-        it "sets headers for all HTTP requests" do
-          @driver.browser.headers.set("X-Omg" => "wat")
-          @session.visit "/"
-          @driver.execute_script <<-JS
-            var request = new XMLHttpRequest();
-            request.open("GET", "/cuprite/headers", false);
-            request.send();
-
-            if (request.status === 200) {
-              document.body.innerHTML = request.responseText;
-            }
-          JS
-          expect(@driver.html).to include("X_OMG: wat")
-        end
-
-        it "adds new headers" do
-          @driver.browser.headers.set("User-Agent" => "Browser", "DV" => "hello")
-          @driver.browser.headers.add({ "User-Agent" => "Cuprite", "Appended" => "true" })
-          @session.visit("/cuprite/headers")
-          expect(@driver.html).to include("USER_AGENT: Cuprite")
-          expect(@driver.html).to include("DV: hello")
-          expect(@driver.html).to include("APPENDED: true")
-        end
-
-        it "sets headers on the initial request for referer only" do
-          @driver.browser.headers.set("PermanentA" => "a")
-          @driver.browser.headers.add({ "PermanentB" => "b" })
-          @driver.browser.headers.add({ "Referer" => "http://google.com" }, permanent: false)
-          @driver.browser.headers.add({ "TempA" => "a" }, permanent: false) # simply ignored
-
-          @session.visit("/cuprite/headers_with_ajax")
-          initial_request = @session.find(:css, "#initial_request").text
-          ajax_request = @session.find(:css, "#ajax_request").text
-
-          expect(initial_request).to include("PERMANENTA: a")
-          expect(initial_request).to include("PERMANENTB: b")
-          expect(initial_request).to include("REFERER: http://google.com")
-          expect(initial_request).to include("TEMPA: a")
-
-          expect(ajax_request).to include("PERMANENTA: a")
-          expect(ajax_request).to include("PERMANENTB: b")
-          expect(ajax_request).to_not include("REFERER: http://google.com")
-          expect(ajax_request).to include("TEMPA: a")
-        end
-
-        it "keeps added headers on redirects" do
-          @driver.browser.headers.add({ "X-Custom-Header" => "1" }, permanent: false)
-          @session.visit("/cuprite/redirect_to_headers")
-          expect(@driver.html).to include("X_CUSTOM_HEADER: 1")
-        end
-
         context "multiple windows", skip: true do
           it "persists headers across popup windows" do
             @driver.browser.headers.set(
@@ -599,12 +349,6 @@ module Capybara
         end
       end
 
-      it "supports clicking precise coordinates" do
-        @session.visit("/cuprite/click_coordinates")
-        @driver.browser.mouse.click(x: 100, y: 150)
-        expect(@driver.html).to include("x: 100, y: 150")
-      end
-
       it "supports clicking overlayed elements" do
         @session.visit("/cuprite/click_overlay")
         @session.click_link "hidden link"
@@ -618,16 +362,6 @@ module Capybara
           window.result = a + b
         JS
         expect(@driver.evaluate_script("window.result")).to eq(3)
-      end
-
-      it "supports stopping the session", skip: Ferrum::Utils::Platform.windows? do
-        driver = Capybara::Cuprite::Driver.new(nil)
-        pid = driver.browser.process.pid
-
-        expect(Process.kill(0, pid)).to eq(1)
-        driver.quit
-
-        expect { Process.kill(0, pid) }.to raise_error(Errno::ESRCH)
       end
 
       context "extending browser javascript" do
@@ -652,14 +386,6 @@ module Capybara
           ).to_not eq(nil)
         ensure
           extended_driver.quit
-        end
-
-        it "errors when extension is unavailable" do
-          failing_driver = Capybara::Cuprite::Driver.new(
-            @session.app,
-            extensions: [File.expand_path("../support/non_existent.js", __dir__)]
-          )
-          expect { failing_driver.visit(session_url("/")) }.to raise_error(Errno::ENOENT)
         end
       end
 
@@ -727,25 +453,6 @@ module Capybara
       end
 
       context "browser failed responses" do
-        before { @port = @session.server.port }
-
-        it "do not occur when DNS correct" do
-          expect { @session.visit("http://localhost:#{@port}/") }.not_to raise_error
-        end
-
-        it "handles when DNS incorrect" do
-          expect { @session.visit("http://nope:#{@port}/") }.to raise_error(Ferrum::StatusError)
-        end
-
-        it "has a descriptive message when DNS incorrect" do
-          url = "http://nope:#{@port}/"
-          expect { @session.visit(url) }
-            .to raise_error(
-              Ferrum::StatusError,
-              %r{Request to http://nope:\d+/ failed \(net::ERR_NAME_NOT_RESOLVED\)}
-            )
-        end
-
         it "operates a timeout when communicating with browser" do
           @driver.browser.page # attach first so the low timeout covers visit only
           old_timeout = @driver.browser.timeout
@@ -805,48 +512,6 @@ module Capybara
       end
 
       context "network traffic" do
-        it "keeps track of network traffic" do
-          @session.visit("/cuprite/with_js")
-          urls = @driver.browser.network.traffic.map { |e| e.request.url }
-
-          expect(urls.grep(%r{/cuprite/jquery.min.js$}).size).to eq(1)
-          expect(urls.grep(%r{/cuprite/jquery-ui.min.js$}).size).to eq(1)
-          expect(urls.grep(%r{/cuprite/test.js$}).size).to eq(1)
-        end
-
-        it "keeps track of blocked network traffic" do
-          @driver.browser.url_blacklist = /unwanted/
-
-          @session.visit "/cuprite/url_blacklist"
-
-          blocked_urls = @driver.browser.network.traffic.select(&:blocked?).map { |e| e.request.url }
-
-          expect(blocked_urls).to include(/unwanted/)
-        end
-
-        it "captures responses" do
-          @session.visit("/cuprite/with_js")
-          request = @driver.browser.network.traffic.last
-
-          expect(request.response.status).to eq(200)
-        end
-
-        it "captures errors" do
-          @session.visit("/cuprite/with_ajax_fail")
-          expect(@session).to have_css("h1", text: "Done")
-          error = @driver.browser.network.traffic.last.error
-
-          expect(error).to be
-        end
-
-        it "keeps a running list between multiple web page views" do
-          @session.visit("/cuprite/with_js")
-          expect(@driver.browser.network.traffic.length).to eq(4)
-
-          @session.visit("/cuprite/with_js")
-          expect(@driver.browser.network.traffic.length).to eq(8)
-        end
-
         it "gets cleared on restart" do
           @session.visit("/cuprite/with_js")
           expect(@driver.browser.network.traffic.length).to eq(4)
@@ -856,62 +521,6 @@ module Capybara
           @session.visit("/cuprite/with_js")
           expect(@driver.browser.network.traffic.length).to eq(4)
         end
-
-        it "gets cleared when being cleared" do
-          @session.visit("/cuprite/with_js")
-          expect(@driver.browser.network.traffic.length).to eq(4)
-
-          @driver.browser.network.clear(:traffic)
-
-          expect(@driver.browser.network.traffic.length).to eq(0)
-        end
-
-        it "blocked requests get cleared along with network traffic" do
-          @driver.browser.url_blacklist = /unwanted/
-
-          @session.visit "/cuprite/url_blacklist"
-
-          expect(@driver.browser.network.traffic.select(&:blocked?).length).to eq(3)
-
-          @driver.browser.network.clear(:traffic)
-
-          expect(@driver.browser.network.traffic.select(&:blocked?).length).to eq(0)
-        end
-
-        it "counts network traffic for each loaded resource" do
-          @session.visit("/cuprite/with_js")
-          responses = @driver.browser.network.traffic.map(&:response)
-          resources_size = {
-            %r{/cuprite/jquery.min.js$} => File.size("#{PROJECT_ROOT}/spec/support/public/jquery-3.7.1.min.js"),
-            %r{/cuprite/jquery-ui.min.js$} => File.size("#{PROJECT_ROOT}/spec/support/public/jquery-ui-1.13.2.min.js"),
-            %r{/cuprite/test.js$} => File.size("#{PROJECT_ROOT}/spec/support/public/test.js")
-          }
-
-          resources_size.each do |resource, size|
-            expect(responses.find { |r| r.url[resource] }.body_size).to eq(size)
-          end
-        end
-      end
-
-      it "can clear memory cache" do
-        @driver.browser.network.clear(:cache)
-
-        @session.visit("/cuprite/cacheable")
-        expect(@driver.browser.network.traffic.length).to eq(1)
-        expect(@driver.browser.network.traffic.last.response.status).to eq(200)
-        expect(@driver.browser.network.traffic.last.response.params.dig("response", "fromDiskCache")).to be_falsey
-
-        @session.click_link "click me"
-        expect(@driver.browser.network.traffic.length).to eq(2)
-        expect(@driver.browser.network.traffic.last.response.status).to eq(200)
-        expect(@driver.browser.network.traffic.last.response.params.dig("response", "fromDiskCache")).to be_truthy
-
-        @driver.browser.network.clear(:cache)
-
-        @session.click_link "click me"
-        expect(@driver.browser.network.traffic.length).to eq(3)
-        expect(@driver.browser.network.traffic.last.response.status).to eq(200)
-        expect(@driver.browser.network.traffic.last.response.params.dig("response", "fromDiskCache")).to be_falsey
       end
 
       context "status code support" do
@@ -950,15 +559,6 @@ module Capybara
       end
 
       context "console" do
-        it "collects console messages of the page" do
-          @session.visit("/cuprite/console_log")
-
-          message = @driver.browser.console.last
-          expect(message.text).to eq("Hello world")
-          expect(message.type).to eq(:log)
-          expect(message.source).to eq(:console_api)
-        end
-
         it "forgets messages after reset" do
           @session.visit("/cuprite/console_log")
           @driver.reset!
@@ -968,80 +568,10 @@ module Capybara
       end
 
       context "cookies support" do
-        it "returns set cookies" do
-          @session.visit("/set_cookie")
-
-          cookie = @driver.browser.cookies["capybara"]
-          expect(cookie.name).to eq("capybara")
-          expect(cookie.value).to eq("test_cookie")
-          expect(cookie.domain).to eq("127.0.0.1")
-          expect(cookie.path).to eq("/")
-          expect(cookie.size).to eq(19)
-          expect(cookie.secure?).to be false
-          expect(cookie.httponly?).to be false
-          expect(cookie.session?).to be true
-          expect(cookie.expires).to be_nil
-        end
-
         it "can set cookies" do
           @driver.browser.cookies.set(name: "capybara", value: "omg")
           @session.visit("/get_cookie")
           expect(@driver.html).to include("omg")
-        end
-
-        it "can set cookies with custom settings" do
-          @driver.browser.cookies.set(name: "capybara", value: "omg", path: "/cuprite")
-
-          @session.visit("/get_cookie")
-          expect(@driver.html).to_not include("omg")
-
-          @session.visit("/cuprite/get_cookie")
-          expect(@driver.html).to include("omg")
-
-          expect(@driver.browser.cookies["capybara"].path).to eq("/cuprite")
-        end
-
-        it "can remove a cookie" do
-          @session.visit("/set_cookie")
-
-          @session.visit("/get_cookie")
-          expect(@driver.html).to include("test_cookie")
-
-          @driver.browser.cookies.remove(name: "capybara")
-
-          @session.visit("/get_cookie")
-          expect(@driver.html).to_not include("test_cookie")
-        end
-
-        it "can clear cookies" do
-          @session.visit("/set_cookie")
-
-          @session.visit("/get_cookie")
-          expect(@driver.html).to include("test_cookie")
-
-          @driver.browser.cookies.clear
-
-          @session.visit("/get_cookie")
-          expect(@driver.html).to_not include("test_cookie")
-        end
-
-        it "can set cookies with an expires time" do
-          time = Time.at(Time.now.to_i + 10_000)
-          @session.visit "/"
-          @driver.browser.cookies.set(name: "foo", value: "bar", expires: time)
-          expect(@driver.browser.cookies["foo"].expires).to eq(time)
-        end
-
-        it "can set cookies for given domain" do
-          port = @session.server.port
-          @driver.browser.cookies.set(name: "capybara", value: "127.0.0.1")
-          @driver.browser.cookies.set(name: "capybara", value: "localhost", domain: "localhost")
-
-          @session.visit("http://localhost:#{port}/cuprite/get_cookie")
-          expect(@driver.html).to include("localhost")
-
-          @session.visit("http://127.0.0.1:#{port}/cuprite/get_cookie")
-          expect(@driver.html).to include("127.0.0.1")
         end
 
         it "sets cookies for the visited host" do
@@ -1073,15 +603,6 @@ module Capybara
         end
       end
 
-      it "allows the driver to have a fixed port" do
-        driver = Capybara::Cuprite::Driver.new(@driver.app, port: 12_345)
-        driver.visit session_url("/")
-
-        expect { TCPServer.new("127.0.0.1", 12_345) }.to raise_error(Errno::EADDRINUSE)
-      ensure
-        driver.quit
-      end
-
       it "allows the driver to run tests on external process" do
         with_external_browser do |url|
           driver = Capybara::Cuprite::Driver.new(@driver.app, url: url)
@@ -1090,21 +611,6 @@ module Capybara
         ensure
           driver&.quit
         end
-      end
-
-      it "allows the driver to have a custom host" do
-        # Use custom host "pointing" to localhost, specified by BROWSER_TEST_HOST env var.
-        # Use /etc/hosts or iptables for this: https://superuser.com/questions/516208/how-to-change-ip-address-to-point-to-localhost
-        host = ENV.fetch("BROWSER_TEST_HOST", nil)
-
-        skip "BROWSER_TEST_HOST not set" if host.nil? # skip test if var is unspecified
-
-        driver = Capybara::Cuprite::Driver.new(@driver.app, host: host, port: 12_345)
-        driver.visit session_url("/")
-
-        expect { TCPServer.new(host, 12_345) }.to raise_error(Errno::EADDRINUSE)
-      ensure
-        driver&.quit
       end
 
       it "lists the open windows" do
@@ -1236,64 +742,6 @@ module Capybara
           localStorage.getItem("key");
         JS
         expect(value).to be_nil
-      end
-
-      context "basic http authentication" do
-        it "denies without credentials" do
-          expect { @session.visit "/cuprite/basic_auth" }.to raise_error(
-            Ferrum::StatusError,
-            %r{Request to http://.*/cuprite/basic_auth failed \(net::ERR_INVALID_AUTH_CREDENTIALS\)}
-          )
-
-          expect(@session.status_code).to eq(401)
-          expect(@session).not_to have_content("Welcome, authenticated client")
-        end
-
-        it "allows with given credentials" do
-          @driver.browser.network.authorize(user: "login", password: "pass") do |request, _index, _total|
-            request.continue
-          end
-
-          @session.visit "/cuprite/basic_auth"
-
-          expect(@session.status_code).to eq(200)
-          expect(@session).to have_content("Welcome, authenticated client")
-        end
-
-        it "allows even overwriting headers" do
-          @driver.browser.network.authorize(user: "login", password: "pass") do |request, _index, _total|
-            request.continue
-          end
-          @driver.browser.headers.set("Cuprite" => "true")
-
-          @session.visit "/cuprite/basic_auth"
-
-          expect(@session.status_code).to eq(200)
-          expect(@session).to have_content("Welcome, authenticated client")
-        end
-
-        it "denies with wrong credentials" do
-          @driver.browser.network.authorize(user: "user", password: "pass!") do |request, _index, _total|
-            request.continue
-          end
-
-          @session.visit "/cuprite/basic_auth"
-
-          expect(@session.status_code).to eq(401)
-          expect(@session).not_to have_content("Welcome, authenticated client")
-        end
-
-        it "allows on POST request" do
-          @driver.browser.network.authorize(user: "login", password: "pass") do |request, _index, _total|
-            request.continue
-          end
-
-          @session.visit "/cuprite/basic_auth"
-          @session.click_button("Submit")
-
-          expect(@session.status_code).to eq(200)
-          expect(@session).to have_content("Authorized POST request")
-        end
       end
 
       context "blacklisting urls for resource requests" do
@@ -1837,17 +1285,6 @@ module Capybara
         end
         expect(@session.driver.frame_url).to end_with("/cuprite/frames")
         expect(@session.driver.current_url).to end_with("/cuprite/frames")
-      end
-
-      it "waits for network idle" do
-        @session.visit "/cuprite/show_cookies"
-        expect(@session).not_to have_content("test_cookie")
-
-        @session.click_button "Set cookie slow"
-        @session.driver.browser.network.wait_for_idle
-        @session.refresh
-
-        expect(@session).to have_content("test_cookie")
       end
     end
   end

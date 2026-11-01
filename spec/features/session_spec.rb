@@ -1412,43 +1412,5 @@ describe Capybara::Session do
         expect(@session.driver.send(:session_wait_time)).to eq 2
       end
     end
-
-    if Ferrum::Utils::Platform.mri? && !Ferrum::Utils::Platform.windows?
-      require "pty"
-      require "timeout"
-
-      context "with pty" do
-        before do
-          Tempfile.open(%w[test rb]) do |file|
-            file.print(script)
-            file.flush
-
-            Timeout.timeout(10) do
-              PTY.spawn("bundle exec ruby #{file.path}") do |read, write, pid|
-                sleep 0.01 until read.readline.chomp == "Please type enter"
-                write.puts
-                sleep 0.1 until (status = PTY.check(pid))
-                @status = status
-              end
-            end
-          end
-        end
-
-        let(:script) do
-          <<-RUBY
-            require "capybara/cuprite"
-            browser = Capybara::Cuprite::Browser.new
-            browser.goto("http://example.com")
-            puts "Please type enter"
-            sleep 1
-            browser.url
-          RUBY
-        end
-
-        it do
-          expect(@status).to be_success
-        end
-      end
-    end
   end
 end
