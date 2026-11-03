@@ -26,7 +26,7 @@ module Capybara
       extend Forwardable
       include Extensions
 
-      delegate %i[quit title window_handles current_window_handle close_window switch_to_window refresh] => :browser
+      delegate %i[title window_handles current_window_handle close_window switch_to_window refresh] => :browser
       delegate %i[send_keys] => :active_element
       def_delegator :browser, :url, :current_url
       def_delegator :browser, :body, :html
@@ -133,7 +133,13 @@ module Capybara
         Ferrum::NoSuchPageError
       end
 
+      def quit
+        @browser&.quit
+      end
+
       def reset!
+        return unless @browser
+
         browser.url_blacklist = @options[:url_blacklist]
         browser.url_whitelist = @options[:url_whitelist]
         browser.raise_on_unhandled_modal = @options.fetch(:raise_on_unhandled_modal, false)
