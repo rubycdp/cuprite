@@ -36,6 +36,8 @@ module Capybara
         @options[:save_path] ||= File.expand_path(Capybara.save_path) if Capybara.save_path
 
         @options[:pending_connection_errors] = true unless @options.key?(:pending_connection_errors)
+        @options[:url_blacklist] = @options.delete(:url_blocklist) if @options.key?(:url_blocklist)
+        @options[:url_whitelist] = @options.delete(:url_allowlist) if @options.key?(:url_allowlist)
 
         # It's set for debug() to make devtools tab open correctly.
         @options[:browser_options] ||= {}

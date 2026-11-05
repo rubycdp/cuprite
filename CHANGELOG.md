@@ -1,6 +1,7 @@
 ## [Unreleased](https://github.com/rubycdp/ferrum/compare/v0.18...main) ##
 
 ### Added
+- `:url_blocklist` and `:url_allowlist` driver options as aliases for `:url_blacklist` and `:url_whitelist` [#330]
 
 ### Changed
 
