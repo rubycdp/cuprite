@@ -12,6 +12,8 @@
   [rubycdp/ferrum#689]
 
 ### Fixed
+- A click on a node the page removes before the hit test raises `ObsoleteNode`, which Capybara retries, instead of
+  `Ferrum::JavaScriptError: node.getRootNode(...).elementFromPoint is not a function` [#359]
 
 ### Removed
 - Methods deprecated in 0.20, see its Deprecated section for replacements
