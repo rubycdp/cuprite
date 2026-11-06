@@ -12,6 +12,8 @@
   [rubycdp/ferrum#689]
 
 ### Fixed
+- `scroll_to` with an element or a location waits for the scroll like `scroll_to(x, y)` and `scroll_by` already do,
+  instead of making Ferrum warn that the script returns a promise [#362]
 
 ### Removed
 - Methods deprecated in 0.20, see its Deprecated section for replacements

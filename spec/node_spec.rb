@@ -1201,5 +1201,32 @@ describe Capybara::Cuprite::Node do
         @driver.evaluate_script("[window.scrollX, window.scrollY]")
       ).to eq([200, 500])
     end
+
+    context "when Ferrum raises on deprecations" do
+      around do |example|
+        previous = ENV.fetch("FERRUM_DEPRECATION_WARNINGS", nil)
+        ENV["FERRUM_DEPRECATION_WARNINGS"] = "raise"
+        example.run
+      ensure
+        ENV["FERRUM_DEPRECATION_WARNINGS"] = previous
+      end
+
+      it "scrolls an element to the bottom of the window" do
+        @session.visit("/cuprite/scroll_long_page")
+        element = @session.find(:css, "#middleish")
+        @session.scroll_to(element, align: :bottom)
+
+        bottom = element.evaluate_script("this.getBoundingClientRect().bottom")
+        expect(bottom).to be_within(1).of(@driver.evaluate_script("window.innerHeight"))
+      end
+
+      it "scrolls the window to the bottom" do
+        @session.visit("/cuprite/scroll_long_page")
+        @session.scroll_to(:bottom)
+
+        max_scroll = @driver.evaluate_script("document.documentElement.scrollHeight - window.innerHeight")
+        expect(@driver.evaluate_script("window.scrollY")).to be_within(0.5).of(max_scroll)
+      end
+    end
   end
 end
