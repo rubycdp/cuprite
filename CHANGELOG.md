@@ -1,4 +1,4 @@
-## [Unreleased](https://github.com/rubycdp/cuprite/compare/v0.20...main) ##
+## [Unreleased](https://github.com/rubycdp/cuprite/compare/v0.20.1...main) ##
 
 ### Added
 
@@ -7,6 +7,13 @@
 ### Fixed
 
 ### Removed
+
+
+## [0.20.1](https://github.com/rubycdp/cuprite/compare/v0.20...v0.20.1) ##
+
+### Fixed
+- `scroll_to` with an element or a location waits for the scroll like `scroll_to(x, y)` and `scroll_by` already do,
+  instead of making Ferrum warn that the script returns a promise [#362]
 
 
 ## [0.20](https://github.com/rubycdp/cuprite/compare/v0.19...v0.20) ##
