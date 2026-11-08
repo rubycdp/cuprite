@@ -8,6 +8,7 @@ require "capybara/cuprite/driver"
 require "capybara/cuprite/browser"
 require "capybara/cuprite/page"
 require "capybara/cuprite/options"
+require "capybara/cuprite/devices"
 require "capybara/cuprite/node"
 require "capybara/cuprite/errors"
 

@@ -1,232 +1,53 @@
 # frozen_string_literal: true
 
-require "forwardable"
+require "capybara/cuprite/page/frames"
+require "capybara/cuprite/page/modals"
 
 module Capybara
   module Cuprite
-    class ClosedPage
-      def closed?
-        true
-      end
-    end
-
     class Page < Ferrum::Page
-      MODAL_WAIT = ENV.fetch("CUPRITE_MODAL_WAIT", 0.05).to_f
-      TRIGGER_CLICK_WAIT = ENV.fetch("CUPRITE_TRIGGER_CLICK_WAIT", 0.1).to_f
+      EXTENSION_JS = File.read(Driver::EXTENSION).freeze
 
-      extend Forwardable
+      include Frames
+      include Modals
 
-      delegate %i[at_css at_xpath css xpath
-                  current_url current_title body execution_id execution_id!
-                  evaluate evaluate_on evaluate_async execute] => :active_frame
+      def go_to(url = nil)
+        frame_id = super
+        return frame_id if frame_id || !@options.raise_on_pending_connections
 
-      def initialize(...)
-        @frame_stack = []
-        @accept_modal = []
-        @modal_messages = []
-        @modal_response = nil
-        @unhandled_modal_error = nil
+        pendings = network.traffic.select(&:pending?).map(&:url).compact
+        raise PendingConnectionsError.new(combine_url!(url), pendings)
+      end
+      alias goto go_to
+      alias go go_to
+
+      def set_viewport(width: 0, height: 0, scale_factor: @options.scale_factor, mobile: @options.mobile)
         super
-      end
-
-      # Keep a handle to Ferrum's own implementation before overriding it
-      # below, so answering a dialog (see `handle_javascript_dialog`) can
-      # bypass our override.
-      alias ferrum_command command
-
-      # The `Page.javascriptDialogOpening` event is handled on Ferrum's
-      # background CDP dispatcher thread, so raising there wouldn't reach
-      # the caller and would permanently kill that thread instead. The
-      # dialog is always accepted immediately from that thread, and the
-      # error (if any) is stashed here to be raised from the main thread
-      # the next time it makes a command round trip.
-      def command(...)
-        raise_pending_unhandled_modal_error! { super }
-      end
-
-      def set(node, value)
-        object_id = command("DOM.resolveNode", nodeId: node.node_id).dig("object", "objectId")
-        evaluate("_cuprite.set(arguments[0], arguments[1])", { "objectId" => object_id }, value)
-      end
-
-      def select(node, value)
-        evaluate_on(node: node, expression: "_cuprite.select(this, #{value})")
-      end
-
-      def trigger(node, event)
-        options = {}
-        options.merge!(wait: TRIGGER_CLICK_WAIT) if event.to_s == "click" && TRIGGER_CLICK_WAIT.positive?
-        evaluate_on(node: node, expression: %(_cuprite.trigger(this, "#{event}")), **options)
-      end
-
-      def hover(node)
-        evaluate_on(node: node, expression: "_cuprite.scrollIntoViewport(this)")
-        x, y = find_position(node)
-        command("Input.dispatchMouseEvent", type: "mouseMoved", x: x, y: y)
-      end
-
-      def send_keys(node, keys)
-        unless evaluate_on(node: node, expression: %(_cuprite.containsSelection(this)))
-          before_click(node, "click")
-          node.click(mode: :left, keys: keys)
-        end
-
-        keyboard.type(keys)
-      end
-
-      def accept_confirm
-        @accept_modal << true
-      end
-
-      def dismiss_confirm
-        @accept_modal << false
-      end
-
-      def accept_prompt(modal_response)
-        @accept_modal << true
-        @modal_response = modal_response
-      end
-
-      def dismiss_prompt
-        @accept_modal << false
-      end
-
-      def find_modal(options)
-        start = Ferrum::Utils::ElapsedTime.monotonic_time
-        expect_text = options[:text]
-        expect_regexp = expect_text.is_a?(Regexp) ? expect_text : Regexp.escape(expect_text.to_s)
-        not_found_msg = "Unable to find modal dialog"
-        not_found_msg += " with #{expect_text}" if expect_text
-        wait = options.fetch(:wait, timeout)
-
-        begin
-          modal_text = @modal_messages.shift
-          raise Capybara::ModalNotFound if modal_text.nil? || (expect_text && !modal_text.match(expect_regexp))
-        rescue Capybara::ModalNotFound => e
-          raise e, not_found_msg if Ferrum::Utils::ElapsedTime.timeout?(start, wait)
-
-          sleep(MODAL_WAIT)
-          retry
-        end
-
-        modal_text
-      end
-
-      def reset_modals
-        @accept_modal = []
-        @modal_response = nil
-        @modal_messages = []
-        @unhandled_modal_error = nil
-      end
-
-      def before_click(node, name, _keys = [], offset = {})
-        evaluate_on(node: node, expression: "_cuprite.scrollIntoViewport(this)")
-
-        # If offset is given it may go outside of the element and likely error
-        # will be raised that we detected another element at this position.
-        return true if offset[:x] || offset[:y]
-
-        x, y = find_position(node, **offset)
-        evaluate_on(node: node, expression: "_cuprite.mouseEventTest(this, '#{name}', #{x}, #{y})")
-        true
-      rescue Ferrum::JavaScriptError => e
-        raise MouseEventFailed, e.message if e.class_name == "MouseEventFailed"
-      end
-
-      def switch_to_frame(handle)
-        case handle
-        when :parent
-          @frame_stack.pop
-        when :top
-          @frame_stack = []
-        else
-          @frame_stack << handle
-        end
-      end
-
-      def frame_name
-        evaluate("window.name")
-      end
-
-      def title
-        active_frame.current_title
-      end
-
-      def closed?
-        false
       end
 
       private
 
-      def raise_pending_unhandled_modal_error!
-        error = @unhandled_modal_error
-        @unhandled_modal_error = nil
-        raise error if error
+      def subscribe
+        super
+        return unless @options.raise_on_js_errors
 
-        yield
-      ensure
-        error = @unhandled_modal_error
-        @unhandled_modal_error = nil
-        raise error if error
+        on("Runtime.exceptionThrown") do |params|
+          Thread.main.raise Ferrum::JavaScriptError, params["exceptionDetails"]
+        end
       end
 
       def prepare_page
         super
+        execute(EXTENSION_JS)
 
         width, height = @options.window_size
-        resize(width: width, height: height)
+        width && height ? resize(width: width, height: height) : set_viewport
+        command("Network.setUserAgentOverride", userAgent: default_user_agent) if @options.device_user_agent
 
         if @options.url_blacklist.any?
           network.blacklist = @options.url_blacklist
         elsif @options.url_whitelist.any?
           network.whitelist = @options.url_whitelist
-        end
-
-        on("Page.javascriptDialogOpening") do |params|
-          accept_modal = @accept_modal.last
-          unhandled_modal_error = nil
-
-          if [true, false].include?(accept_modal)
-            @accept_modal.pop
-            @modal_messages << params["message"]
-            options = { accept: accept_modal }
-            response = @modal_response || params["defaultPrompt"]
-          else
-            with_text = params["message"] ? "with text `#{params['message']}` " : ""
-            message = "Modal window #{with_text}has been opened, but you didn't wrap " \
-                      "your code into (`accept_prompt` | `dismiss_prompt` | " \
-                      "`accept_confirm` | `dismiss_confirm` | `accept_alert`), " \
-                      "accepting by default"
-
-            if @options.raise_on_unhandled_modal
-              unhandled_modal_error = UnhandledModalError.new(message)
-            else
-              warn message
-            end
-
-            options = { accept: true }
-            response = params["defaultPrompt"]
-          end
-          options.merge!(promptText: response) if response
-          ferrum_command("Page.handleJavaScriptDialog", **options)
-
-          @unhandled_modal_error = unhandled_modal_error if unhandled_modal_error
-        end
-      end
-
-      def find_position(node, **options)
-        node.find_position(**options)
-      rescue Ferrum::BrowserError => e
-        raise MouseEventFailed, "MouseEventFailed: click, none, 0, 0" if e.message == "Could not compute content quads."
-
-        raise
-      end
-
-      def active_frame
-        if @frame_stack.empty?
-          main_frame
-        else
-          @frames[@frame_stack.last]
         end
       end
     end

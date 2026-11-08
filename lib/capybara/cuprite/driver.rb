@@ -1,27 +1,39 @@
 # frozen_string_literal: true
 
-require "uri"
 require "forwardable"
+require "capybara/cuprite/finder"
+require "capybara/cuprite/driver/extensions"
 
-# rubocop:disable-next Metrics/ClassLength
 module Capybara
   module Cuprite
     class Driver < Capybara::Driver::Base
       DEFAULT_MAXIMIZE_SCREEN_SIZE = [1366, 768].freeze
       EXTENSION = File.expand_path("javascripts/index.js", __dir__)
+      CALLBACK_JS = <<~JS
+        function(...args) {
+          return new Promise((resolve, reject) => {
+            try {
+              (function() {
+                SCRIPT
+              }).apply(this, [...args, resolve]);
+            } catch (error) {
+              reject(error);
+            }
+          });
+        }
+      JS
 
       extend Forwardable
+      include Extensions
 
-      delegate %i[restart quit status_code timeout timeout= current_url title body
-                  window_handles close_window switch_to_window within_window window_handle
-                  back forward refresh wait_for_reload viewport_size device_pixel_ratio] => :browser
+      delegate %i[title window_handles current_window_handle close_window switch_to_window refresh] => :browser
       delegate %i[send_keys] => :active_element
-      alias html body
-      alias current_window_handle window_handle
-      alias go_back back
-      alias go_forward forward
+      def_delegator :browser, :url, :current_url
+      def_delegator :browser, :body, :html
+      def_delegator :browser, :back, :go_back
+      def_delegator :browser, :forward, :go_forward
 
-      attr_reader :app, :options, :screen_size
+      attr_reader :app, :options
 
       def initialize(app, options = {})
         @app     = app
@@ -35,7 +47,6 @@ module Capybara
         @screen_size ||= DEFAULT_MAXIMIZE_SCREEN_SIZE
         @options[:save_path] ||= File.expand_path(Capybara.save_path) if Capybara.save_path
 
-        @options[:pending_connection_errors] = true unless @options.key?(:pending_connection_errors)
         @options[:url_blacklist] = @options.delete(:url_blocklist) if @options.key?(:url_blocklist)
         @options[:url_whitelist] = @options.delete(:url_allowlist) if @options.key?(:url_allowlist)
 
@@ -44,6 +55,7 @@ module Capybara
         unless @options[:browser_options][:"remote-allow-origins"]
           @options[:browser_options].merge!("remote-allow-origins": "*")
         end
+        @options[:browser_options] = { "disable-web-security": nil }.merge(@options[:browser_options])
 
         super()
       end
@@ -53,20 +65,21 @@ module Capybara
       end
 
       def browser
-        @browser ||= Browser.new(@options)
+        @browser ||= Browser.new({ base_url: capybara_base_url }.compact.merge(@options))
       end
 
       def visit(url)
         @started = true
-        browser.visit(url)
+        browser.base_url = url if url.match?(%r{\Ahttps?://})
+        browser.goto(url)
+      end
+
+      def status_code
+        browser.network.status
       end
 
       def frame_url
         evaluate_script("window.location.href")
-      end
-
-      def source
-        browser.source.to_s
       end
 
       def frame_title
@@ -74,7 +87,7 @@ module Capybara
       end
 
       def active_element
-        Node.new(self, browser.active_element)
+        Node.new(self, browser.evaluate("document.activeElement"))
       end
 
       def find_xpath(selector)
@@ -85,21 +98,13 @@ module Capybara
         find(:css, selector)
       end
 
-      def find(method, selector)
-        browser.find(method, selector).map { |native| Node.new(self, native) }
-      end
-
-      def click(x, y)
-        browser.mouse.click(x: x, y: y)
-      end
-
       def evaluate_script(script, *args)
         result = browser.evaluate(script, *native_args(args))
         unwrap_script_result(result)
       end
 
       def evaluate_async_script(script, *args)
-        result = browser.evaluate_async(script, session_wait_time, *native_args(args))
+        result = browser.evaluate(CALLBACK_JS.sub("SCRIPT") { script }, *native_args(args), timeout: session_wait_time)
         unwrap_script_result(result)
       end
 
@@ -111,77 +116,54 @@ module Capybara
       def switch_to_frame(locator)
         handle = case locator
                  when Capybara::Node::Element
-                   locator.native.description["frameId"]
+                   locator.native.node.description["frameId"]
                  when Capybara::Cuprite::Node
-                   locator.description["frameId"]
+                   locator.node.description["frameId"]
                  when :parent, :top
                    locator
                  end
 
         raise ArgumentError, "Unable to switch to frame from #{locator.class}" unless handle
 
-        browser.switch_to_frame(handle)
+        browser.page.switch_to_frame(handle)
       end
 
       def open_new_window
-        target = browser.default_context.create_target
-        target.maybe_sleep_if_new_window
-        target.page = Page.new(target.client, context_id: target.context_id, target_id: target.id)
-        target.page
+        browser.open_new_window
       end
 
       def no_such_window_error
         Ferrum::NoSuchPageError
       end
 
+      def quit
+        @browser&.quit
+      end
+
       def reset!
-        @zoom_factor = nil
-        @paper_size = nil
+        return unless @browser
+
         browser.url_blacklist = @options[:url_blacklist]
         browser.url_whitelist = @options[:url_whitelist]
         browser.raise_on_unhandled_modal = @options.fetch(:raise_on_unhandled_modal, false)
         browser.reset
+        base_url = @options[:base_url] || capybara_base_url
+        browser.base_url = base_url if base_url
       ensure
         @started = false
       end
 
       def save_screenshot(path, options = {})
-        options[:scale] = @zoom_factor if @zoom_factor
-
-        if pdf?(path, options)
-          options[:paperWidth] = @paper_size[:width].to_f if @paper_size
-          options[:paperHeight] = @paper_size[:height].to_f if @paper_size
+        if File.extname(path) == ".pdf"
           browser.pdf(path: path, **options)
         else
           browser.screenshot(path: path, **options)
         end
       end
-      alias render save_screenshot
-
-      def render_base64(format = :png, options = {})
-        if pdf?(nil, options)
-          options[:paperWidth] = @paper_size[:width].to_f if @paper_size
-          options[:paperHeight] = @paper_size[:height].to_f if @paper_size
-          browser.pdf(encoding: :base64, **options)
-        else
-          browser.screenshot(format: format, encoding: :base64, **options)
-        end
-      end
-
-      def zoom_factor=(value)
-        @zoom_factor = value.to_f
-      end
-
-      attr_writer :paper_size
-
-      def resize(width, height)
-        browser.resize(width: width, height: height)
-      end
-      alias resize_window resize
 
       def resize_window_to(handle, width, height)
         within_window(handle) do
-          resize(width, height)
+          browser.resize(width: width, height: height)
         end
       end
 
@@ -201,127 +183,8 @@ module Capybara
         end
       end
 
-      def scroll_to(left, top)
-        browser.mouse.scroll_to(left, top)
-      end
-
-      def network_traffic(type = nil)
-        traffic = browser.network.traffic
-
-        case type.to_s
-        when "all"
-          traffic
-        when "blocked"
-          traffic.select(&:blocked?)
-        else
-          # when request isn't blocked
-          traffic.reject(&:blocked?)
-        end
-      end
-
-      def clear_network_traffic
-        browser.network.clear(:traffic)
-      end
-
-      def set_proxy(host, port, user = nil, password = nil, bypass = nil)
-        @options.merge!(proxy: { host: host, port: port, user: user, password: password, bypass: bypass })
-      end
-
-      def headers
-        browser.headers.get
-      end
-
-      def headers=(headers)
-        browser.headers.set(headers)
-      end
-
-      def add_headers(headers)
-        browser.headers.add(headers)
-      end
-
-      def add_header(name, value, permanent: true)
-        browser.headers.add({ name => value }, permanent: permanent)
-      end
-
       def response_headers
         browser.network.response&.headers
-      end
-
-      def cookies
-        browser.cookies.all
-      end
-
-      def set_cookie(name, value, options = {})
-        options = options.dup
-        options[:name]   ||= name
-        options[:value]  ||= value
-        options[:domain] ||= default_domain
-        browser.cookies.set(**options)
-      end
-
-      def remove_cookie(name, **options)
-        options[:domain] = default_domain if options.empty?
-        options = options.merge(name: name)
-        browser.cookies.remove(**options)
-      end
-
-      def clear_cookies
-        browser.cookies.clear
-      end
-
-      def wait_for_network_idle(**options)
-        browser.network.wait_for_idle(**options)
-      end
-
-      def clear_memory_cache
-        browser.network.clear(:cache)
-      end
-
-      def basic_authorize(user, password)
-        browser.network.authorize(user: user, password: password) do |request, _index, _total|
-          request.continue
-        end
-      end
-      alias authorize basic_authorize
-
-      def debug(...)
-        browser.debug(...)
-      end
-
-      def pause
-        # STDIN is not necessarily connected to a keyboard. It might even be closed.
-        # So we need a method other than keypress to continue.
-
-        # In jRuby - STDIN returns immediately from select
-        # see https://github.com/jruby/jruby/issues/1783
-        read, write = IO.pipe
-        thread = Thread.new do
-          IO.copy_stream($stdin, write)
-          write.close
-        end
-
-        warn "Cuprite execution paused. Press enter (or run 'kill -CONT #{Process.pid}') to continue."
-
-        signal = false
-        old_trap = trap("SIGCONT") do
-          signal = true
-          warn "\nSignal SIGCONT received"
-        end
-        keyboard = read.wait_readable(1) until keyboard || signal # wait for data on STDIN or signal SIGCONT received
-
-        unless signal
-          begin
-            input = read.read_nonblock(80) # clear out the read buffer
-            puts unless input&.end_with?("\n")
-          rescue EOFError, IO::WaitReadable
-            # Ignore problems reading from STDIN.
-          end
-        end
-      ensure
-        thread.kill
-        read.close
-        trap("SIGCONT", old_trap) # Restore the previous signal handler, if there was one.
-        warn "Continuing"
       end
 
       def wait?
@@ -339,37 +202,49 @@ module Capybara
       def accept_modal(type, options = {})
         case type
         when :alert, :confirm
-          browser.accept_confirm
+          browser.page.accept_confirm
         when :prompt
-          browser.accept_prompt(options[:with])
+          browser.page.accept_prompt(options[:with])
         end
 
         yield if block_given?
 
-        browser.find_modal(options)
+        browser.page.find_modal(options)
       end
 
       def dismiss_modal(type, options = {})
         case type
         when :confirm
-          browser.dismiss_confirm
+          browser.page.dismiss_confirm
         when :prompt
-          browser.dismiss_prompt
+          browser.page.dismiss_prompt
         end
 
         yield if block_given?
 
-        browser.find_modal(options)
+        browser.page.find_modal(options)
       end
 
       private
 
-      def default_domain
-        if @started
-          URI.parse(browser.current_url).host
-        else
-          URI.parse(default_cookie_host).host || "127.0.0.1"
-        end
+      attr_reader :screen_size
+
+      def find(method, selector)
+        Finder.find(browser, method, selector).map { |native| Node.new(self, native) }
+      end
+
+      def within_window(handle)
+        original = browser.current_window_handle
+        raise Ferrum::NoSuchPageError unless browser.window_handles.include?(handle)
+
+        browser.switch_to_window(handle)
+        yield
+      ensure
+        browser.switch_to_window(original)
+      end
+
+      def capybara_base_url
+        session_options.app_host || session&.server&.base_url
       end
 
       def native_args(args)
@@ -388,14 +263,6 @@ module Capybara
         end
       end
 
-      def default_cookie_host
-        if respond_to?(:session_options)
-          session_options.app_host
-        else
-          Capybara.app_host
-        end || ""
-      end
-
       def unwrap_script_result(arg)
         case arg
         when Array
@@ -407,11 +274,6 @@ module Capybara
         else
           arg
         end
-      end
-
-      def pdf?(path, options)
-        (path && File.extname(path).delete(".") == "pdf") ||
-          options[:format].to_s == "pdf"
       end
     end
   end

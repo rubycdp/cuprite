@@ -1,5 +1,5 @@
 AllCops:
-  TargetRubyVersion: 3.1
+  TargetRubyVersion: 3.2
   NewCops: enable
   SuggestExtensions: false
 
@@ -21,6 +21,9 @@ Style/OptionalBooleanParameter:
 
 Style/StringLiterals:
   EnforcedStyle: double_quotes
+
+Style/ArgumentsForwarding:
+  UseAnonymousForwarding: false
 
 Style/MultilineBlockChain:
   Exclude:
@@ -55,7 +58,14 @@ Metrics/ModuleLength:
   Max: 602
 
 Metrics/PerceivedComplexity:
-  Max: 14
+  Max: 15
 
 plugins:
   - rubocop-rake
+
+Naming/VariableNumber:
+  CheckSymbols: false
+
+Layout/LineLength:
+  Exclude:
+    - lib/capybara/cuprite/devices.rb

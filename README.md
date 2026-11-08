@@ -1,11 +1,20 @@
 # Cuprite - Headless Chrome driver for Capybara
 
+## [Documentation](https://docs.rubycdp.com/docs/cuprite/introduction)
+
+<img align="right"
+     width="160" height="160"
+     alt="Cuprite logo"
+     src="https://raw.githubusercontent.com/rubycdp/cuprite/main/logo.svg?sanitize=true">
+
 Cuprite is a pure Ruby driver (read as _no_ Selenium/WebDriver/ChromeDriver
 dependency) for [Capybara](https://github.com/teamcapybara/capybara). It allows
 you to run Capybara tests on a headless Chrome or Chromium. Under the hood it
 uses [Ferrum](https://github.com/rubycdp/ferrum#index) which is high-level API
 to the browser by CDP protocol.
 
+
+<br clear="right">
 
 ## Install
 
@@ -49,7 +58,8 @@ because Docker is involved. Prefer running the browser as a non-root user with
 a working sandbox when possible.
 
 Since Cuprite uses [Ferrum](https://github.com/rubycdp/ferrum#examples) there
-are many useful methods you can call even using this driver:
+are many useful methods you can call even using this driver.
+`page.driver.browser` is a `Ferrum::Browser`:
 
 ```ruby
 browser = page.driver.browser
@@ -84,7 +94,18 @@ end
     timer) only surfaces on whatever command runs next.
   * `:url_blocklist` (Array) - array of regexes to match against requested URLs, alias `:url_blacklist`
   * `:url_allowlist` (Array) - array of regexes to match against requested URLs, alias `:url_whitelist`
+  * `:emulate` (Symbol) - device from Chrome DevTools' list to emulate, e.g. `:iphone_16`, `:pixel_9`, `:ipad_mini`
+  * `:mobile` (Boolean) - emulate a mobile device: viewport meta tag and touch events
+  * `:scale_factor` (Numeric) - device scale factor to emulate
 
+`emulate:` sets the device's `:window_size`, `:scale_factor`, `:mobile` and user agent, options passed explicitly
+take precedence:
+
+```ruby
+Capybara.register_driver(:cuprite) do |app|
+  Capybara::Cuprite::Driver.new(app, emulate: :iphone_14)
+end
+```
 
 ## Debugging
 
@@ -109,35 +130,35 @@ opened where you can further experiment with the test.
 
 ## Clicking/Scrolling
 
-* `page.driver.click(x, y)` Click a very specific area of the screen.
-* `page.driver.scroll_to(left, top)` Scroll to a given position.
+* `page.driver.browser.mouse.click(x:, y:)` Click a very specific area of the screen.
+* `page.scroll_to(left, top)` Scroll to a given position.
 * `element.send_keys(*keys)` Send keys to a given node.
 
 
 ## Request headers
 
-Manipulate HTTP request headers like a boss:
+Manipulate HTTP request headers with Ferrum:
 
 ``` ruby
-page.driver.headers # => {}
-page.driver.headers = { "User-Agent" => "Cuprite" }
-page.driver.add_headers("Referer" => "https://example.com")
-page.driver.headers # => { "User-Agent" => "Cuprite", "Referer" => "https://example.com" }
+page.driver.browser.headers.get # => {}
+page.driver.browser.headers.set("User-Agent" => "Cuprite")
+page.driver.browser.headers.add({ "Referer" => "https://example.com" })
+page.driver.browser.headers.get # => { "User-Agent" => "Cuprite", "Referer" => "https://example.com" }
 ```
 
-Notice that `headers=` will overwrite already set headers. You should use
-`add_headers` if you want to add a few more. These headers will apply to all
-subsequent HTTP requests (including requests for assets, AJAX, etc). They will
-be automatically cleared at the end of the test.
+Notice that `set` will overwrite already set headers. You should use `add` if
+you want to add a few more. These headers will apply to all subsequent HTTP
+requests (including requests for assets, AJAX, etc). They will be automatically
+cleared at the end of the test.
 
 
 ## Network traffic
 
-* `page.driver.network_traffic` allows you to inspect network traffic (i.e., loaded resources) on the current page. It returns an array of `Ferrum::Network::Exchange` objects, each representing a network request/response exchange. You can query both the request and response details of each exchange.
+* `page.driver.browser.network.traffic` allows you to inspect network traffic (i.e., loaded resources) on the current page. It returns an array of `Ferrum::Network::Exchange` objects, each representing a network request/response exchange. You can query both the request and response details of each exchange.
 
 ```ruby
 # Retrieve all network exchanges
-network_traffic = page.driver.network_traffic
+network_traffic = page.driver.browser.network.traffic
 
 # Access the first exchange
 first_exchange = network_traffic.first
@@ -146,22 +167,22 @@ first_exchange = network_traffic.first
 response = first_exchange.response
 ```
 
-* `page.driver.wait_for_network_idle` Natively waits for network idle and if
-there are no active connections returns or raises `TimeoutError` error. Accepts
-the same options as
+* `page.driver.browser.network.wait_for_idle` Natively waits for network idle
+and returns `false` if there are still active connections after timeout.
+Accepts the same options as
 [`wait_for_idle`](https://github.com/rubycdp/ferrum#wait_for_idleoptions)
 
 ```ruby
-page.driver.wait_for_network_idle
+page.driver.browser.network.wait_for_idle
 page.driver.refresh
 ```
 
 Please note that network traffic is not cleared when you visit new page. You can
-manually clear the network traffic by calling `page.driver.clear_network_traffic`
-or `page.driver.reset`
+manually clear the network traffic by calling
+`page.driver.browser.network.clear(:traffic)` or `page.driver.reset!`
 
-* `page.driver.wait_for_reload` unlike `wait_for_network_idle` will wait until
-the whole page is reloaded or raise a timeout error. It's useful when you know
+* `page.driver.browser.wait_for_reload` unlike `network.wait_for_idle` will wait until
+the whole page is reloaded or the timeout passes. It's useful when you know
 that for example after clicking autocomplete suggestion you expect page to be
 reloaded, you have a few choices - put sleep or wait for network idle, but both
 are bad. Sleep makes you wait longer or less than needed, network idle can
@@ -171,34 +192,45 @@ rescue.
 
 ## Manipulating cookies
 
-The following methods are used to inspect and manipulate cookies:
+Use Ferrum's cookies to inspect and manipulate cookies:
 
-* `page.driver.cookies` - a hash of cookies accessible to the current
-  page. The keys are cookie names. The values are `Cookie` objects, with
-  the following methods: `name`, `value`, `domain`, `path`, `size`, `secure?`,
-  `httponly?`, `session?`, `expires`.
-* `page.driver.set_cookie(name, value, options = {})` - set a cookie.
-  The options hash can take the following keys: `:domain`, `:path`,
-  `:secure`, `:httponly`, `:expires`. `:expires` should be a
-  `Time` object.
-* `page.driver.remove_cookie(name)` - remove a cookie
-* `page.driver.clear_cookies` - clear all cookies
+```ruby
+cookies = page.driver.browser.cookies
+cookies.set(name: "stealth", value: "omg")
+cookies["stealth"].value # => "omg"
+cookies.all # => { "stealth" => #<Ferrum::Cookies::Cookie ...> }
+cookies.remove(name: "stealth")
+cookies.clear
+```
 
 
 ## Screenshot
 
-Besides capybara screenshot method you can get image as Base64:
+Besides capybara screenshot method you can get image or PDF as Base64 with Ferrum:
 
-* `page.driver.render_base64(format, options)`
+```ruby
+page.driver.browser.screenshot(format: :jpeg, full: true)
+page.driver.browser.pdf(paper_width: 6, paper_height: 12)
+```
 
 
 ## Authorization
 
-* `page.driver.basic_authorize(user, password)`
+* `page.driver.browser.network.authorize(user:, password:) { |request, _index, _total| request.continue }`
 
 ## Proxy
 
-* `page.driver.set_proxy(ip, port, user, password)`
+```ruby
+Capybara::Cuprite::Driver.new(app, proxy: { host: "127.0.0.1", port: 8080, user: "user", password: "password" })
+```
+
+The proxy is passed to Chrome as a command-line flag when the browser starts.
+
+When connecting to a remote browser with the `:url` option (browserless, Selenoid, etc.), Cuprite doesn't launch
+Chrome and the proxy flag is never applied, so configure the proxy on the remote browser itself. The `user` and
+`password` are still used to answer the proxy's authentication challenge.
+
+The `bypass` option is a list of hosts that skip the proxy, so don't pass the host you want to go through it.
 
 
 ## URL Blocklisting & Allowlisting

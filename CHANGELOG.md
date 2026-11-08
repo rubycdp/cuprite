@@ -1,17 +1,123 @@
-## [Unreleased](https://github.com/rubycdp/ferrum/compare/v0.18...main) ##
+## [Unreleased](https://github.com/rubycdp/cuprite/compare/v0.20...main) ##
 
 ### Added
 - `:url_blocklist` and `:url_allowlist` driver options as aliases for `:url_blacklist` and `:url_whitelist` [#330]
 
 ### Changed
+- `Driver#current_url` and `Driver#title` read Ferrum's `url` and `title` of the window, not `current_url` and
+  `current_title` deprecated in Ferrum 0.21 [rubycdp/ferrum#687]
+- `:js_errors` is handled by Cuprite instead of being passed to Ferrum, which deprecates it. Behavior is the same
+  [rubycdp/ferrum#688]
+- `:pending_connection_errors` is handled by Cuprite instead of being passed to Ferrum, which deprecates it. `visit`
+  raises `Capybara::Cuprite::PendingConnectionsError`, a subclass of Ferrum's, and rescuing Ferrum's warns
+  [rubycdp/ferrum#689]
 
 ### Fixed
+- `Driver#reset!` and `Driver#quit` don't launch Chrome when no browser has started, so a failed launch doesn't
+  launch again during teardown
+
+### Removed
+- Methods deprecated in 0.20, see its Deprecated section for replacements
+
+
+## [0.20](https://github.com/rubycdp/cuprite/compare/v0.19...v0.20) ##
+
+### Changed
+- Node helpers on `Capybara::Cuprite::Browser` (`value`, `set`, `select`, `visible_text`, `drag`, etc.) are private, use
+  Capybara's node API or `node.native.node` for Ferrum's
+- `Browser#find` is private, `Browser#active_element` and `Browser#within_window` are removed, use Capybara's
+  `active_element` and `within_window`
+- `Driver#find`, `Driver#screen_size`, `Driver#within_window`, `Node#find` and `Node#command` are private
+- Ferrum's `base_url` follows `Capybara.app_host` (or Capybara's server) and the visited page, so
+  `page.driver.browser.cookies` doesn't need `domain:`. A `:base_url` option is replaced on `visit` and restored on
+  `reset!`
+- Requires Ferrum 0.20.1, see its [changelog](https://github.com/rubycdp/ferrum/blob/main/CHANGELOG.md).
+  `page.driver.browser.evaluate_on_new_document` applies to the current page only and is gone after `reset!`, use the
+  `:extensions` option or `browser.add_extension`. Scripts passed to `evaluate_script` and `execute_script` may warn
+  about what changes in Ferrum 0.21, set `FERRUM_JS_API=new` to run them that way now
+
+### Deprecated
+- Deprecated methods print a warning and will be removed in 0.21
+- `Driver#body`, use `Driver#html` instead
+- `Driver#back` and `Driver#forward`, use `Driver#go_back` and `Driver#go_forward` instead
+- `Driver#window_handle` and `Browser#window_handle`, use `current_window_handle` instead
+- `Driver#render`, use `Driver#save_screenshot` instead
+- `Driver#render_base64`, use `page.driver.browser.screenshot` or `page.driver.browser.pdf` instead
+- `Driver#zoom_factor=` and `Driver#paper_size=`, pass `scale:`, `paper_width:` and `paper_height:` to
+  `save_screenshot` instead
+- `Driver#resize` and `Driver#resize_window`, use `page.current_window.resize_to` instead
+- `Driver#authorize` and `Driver#basic_authorize`, use `page.driver.browser.network.authorize` instead
+- `Driver#headers`, `headers=`, `add_headers` and `add_header`, use `page.driver.browser.headers` instead
+- `Driver#cookies`, `set_cookie`, `remove_cookie` and `clear_cookies`, use `page.driver.browser.cookies` instead
+- `Driver#network_traffic`, `clear_network_traffic`, `wait_for_network_idle` and `clear_memory_cache`, use
+  `page.driver.browser.network` instead. `network.traffic` includes blocked requests
+- `Driver#click`, use `page.driver.browser.mouse.click` instead
+- `Driver#scroll_to`, use `page.scroll_to` instead
+- `Driver#wait_for_reload`, `timeout`, `timeout=`, `device_pixel_ratio` and `viewport_size`, use the same methods on
+  `page.driver.browser` instead
+- `Driver#set_proxy`, pass the `:proxy` option to the driver instead
+- `Driver#restart` and `Node#browser`, use `page.driver.browser.restart` and `page.driver.browser` instead
+- `Browser#visit` and `Browser#status_code`, use `goto` and `network.status` instead
+- `Node#send_key`, use `Node#send_keys` instead
+- `Node#parents`, use Capybara's `ancestor` instead
+- `Node#property`, use `node.native.node.property` instead
+- `Node#attributes`
+- `Node#description`, use `node.native.node.description` instead
+
+### Fixed
+- `Node#drag_to` with `drop_modifiers:` holds the modifiers while moving to the target and sends keydown and keyup for
+  them, like Selenium does. They used to be set only on mouseup [rubycdp/ferrum#581]
+- Resizing the window reset hover and pointer overrides passed with `--blink-settings`, so `@media (hover: hover)`
+  stopped matching on headless Linux [#282, rubycdp/ferrum#664]
+
+### Removed
+- Ruby 3.1 support, Cuprite requires Ruby 3.2 or newer
+- `format: :pdf` in `Driver#save_screenshot`, broken since Ferrum 0.6. A `.pdf` path renders a PDF
+- `Driver#source`, it always raised `NotImplementedError`. Use `page.html` or `page.source` instead
+- `Capybara::Cuprite::Cookie`, it was never loaded. `Driver#cookies` returns `Ferrum::Cookies::Cookie` objects
+- `Page#frame_name`, it was unused
+- `Page#reset_modals` and `Browser#reset_modals`, they were unused
+- `Browser#switch_to_frame`, `find_modal`, `accept_confirm`, `dismiss_confirm`, `accept_prompt` and `dismiss_prompt`,
+  they were internal delegates to `Page`
+- `Browser#browser_error`, it was used only in specs
+- `Node#as_json` and `Node#to_json`, they were unused
+- `Driver#pause`, use `binding.irb` with `headless: false`, or `Driver#debug`
+
+
+## [0.19](https://github.com/rubycdp/cuprite/compare/v0.18...v0.19) ##
+
+### Added
+- `:emulate` driver option to emulate a device listed in Chrome DevTools with its user agent, e.g.
+  `emulate: :iphone_14`, along with `:mobile` and `:scale_factor` options it sets, kept across window resizes [#216]
+- `Node#drag_to` accepts `x:` and `y:` to drop at an offset from the target, measured from its center or top left like
+  `click`, so drop targets that tell the upper half from the lower one can be driven [#325]
+
+### Changed
+- Ferrum is bumped to `~> 0.19.1`
+- `--disable-web-security` is added to the browser options, since Ferrum dropped it from its defaults. Tests keep
+  reaching into cross-origin frames, e.g. `current_url` within a frame from another origin [rubycdp/ferrum#472]
+- Change `Node#send_keys` to avoid triggering `click` on an already focused element. `send_keys(:tab)` without an
+  element no longer clicks the middle of the page first, so Tab moves focus from the start of the page, and Capybara's
+  `#active_element` and `focused:` specs run in the suite [#327]
+
+### Fixed
+- `Node#drag_to` fired `dragleave` right before `drop` on an HTML5 drop target, which browsers never do, so libraries such
+  as Pragmatic drag and drop dropped onto nothing. A drag now ends with `drop` if the target accepted it, otherwise
+  with `dragleave` [#325]
+- `window_size: nil` raised `Ferrum::BrowserError: Invalid parameters` on every page instead of leaving the window
+  size to Chrome, so `start-maximized` couldn't be used [#278]
 - `Driver#reset!` kept the page it had cached when the browser failed to reset, so every later example raised
   `Session with given id not found` or `Browser is dead or given window is closed` instead of starting on a fresh
   page [#274], [rubycdp/ferrum#641]
-
-### Removed
-
+- `Node#visible?` reported an open popover or modal dialog as hidden when an ancestor had `opacity: 0` [#328]
+- `Driver#window_handles` listed the web workers a page spawned as windows, so `window_opened_by` raised
+  `opened 2 windows instead of 1` [#326]
+- `Node#select_option` and `Node#unselect_option` didn't fire the `input` event on the select [#223]
+- `Node#trigger` silently dispatched nothing for events other than mouse, focus and `submit`, such as `input`,
+  `change` or custom events [#197]
+- `Node#set` with an empty string cleared a text field without firing the `input` event [#164]
+- Finders with `exact_text: true` raised `InvalidSelector` because Capybara appended an empty `[]` predicate to the
+  XPath [#256]
 
 ## [0.18](https://github.com/rubycdp/cuprite/compare/v0.17...v0.18) ##
 

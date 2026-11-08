@@ -7,6 +7,7 @@ PROJECT_ROOT = File.expand_path("..", __dir__)
 %w[/lib /spec].each { |p| $LOAD_PATH.unshift(p) }
 
 require "fileutils"
+require "logger"
 require "shellwords"
 
 require "capybara/spec/spec_helper"
@@ -14,6 +15,8 @@ require "capybara/cuprite"
 
 require "support/test_app"
 require "support/external_browser"
+
+TestApp.use(Rack::CommonLogger, Logger.new("/tmp/cuprite/test_app.log")) if ENV["CI"]
 
 puts ""
 command = Ferrum::Browser::Command.build(Ferrum::Browser::Options.new, nil)
@@ -29,8 +32,17 @@ Capybara.register_driver(:cuprite) do |app|
   Capybara::Cuprite::Driver.new(app, options)
 end
 
+Capybara.register_driver(:cuprite_mobile) do |app|
+  options = { emulate: :iphone_14 }
+  options.merge!(inspector: true) if ENV["INSPECTOR"]
+  options.merge!(logger: StringIO.new) if ENV["CI"]
+  options.merge!(headless: false) if ENV["HEADLESS"] == "false"
+  Capybara::Cuprite::Driver.new(app, options)
+end
+
 module TestSessions
   Cuprite = Capybara::Session.new(:cuprite, TestApp)
+  CupriteMobile = Capybara::Session.new(:cuprite_mobile, TestApp)
 end
 
 RSpec.configure do |config|
@@ -49,9 +61,15 @@ RSpec.configure do |config|
       node #set should submit single text input forms if ended with
     REGEXP
 
+    browser_behavior = <<~REGEXP.split("\n").map { |s| Regexp.quote(s.strip) }.join("|")
+      #drag_to HTML5 should preserve clientX/Y from last dragover event
+    REGEXP
+
     metadata[:skip] = true if metadata[:full_description].match(/#{regexes}/)
     metadata[:skip] = "Intentionally skipped" if metadata[:full_description].match(/#{intentional_skip}/)
-    metadata[:skip] = true if metadata[:requires]&.include?(:active_element)
+    if metadata[:full_description].match(/#{browser_behavior}/)
+      metadata[:skip] = "Expects behavior browsers don't have, e.g. dragleave together with drop"
+    end
   end
 
   config.around do |example|

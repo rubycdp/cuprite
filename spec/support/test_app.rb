@@ -11,20 +11,6 @@ class TestApp
 
   set :erb, layout: File.read("#{CUPRITE_VIEWS}/layout.erb")
 
-  helpers do
-    def requires_credentials(login, password)
-      return if authorized?(login, password)
-
-      headers["WWW-Authenticate"] = %(Basic realm="Restricted Area")
-      halt 401, "Not authorized\n"
-    end
-
-    def authorized?(login, password)
-      @auth ||= Rack::Auth::Basic::Request.new(request.env)
-      @auth.provided? && @auth.basic? && @auth.credentials && (@auth.credentials == [login, password])
-    end
-  end
-
   get "/cuprite/test.js" do
     content_type :js
     File.read("#{CUPRITE_PUBLIC}/test.js")
@@ -49,27 +35,12 @@ class TestApp
     render_view "with_different_resources"
   end
 
-  get "/cuprite/redirect_to_headers" do
-    redirect "/cuprite/headers"
-  end
-
   get "/cuprite/redirect" do
     redirect "/cuprite/with_different_resources"
   end
 
   get "/cuprite/get_cookie" do
     request.cookies["capybara"]
-  end
-
-  get "/cuprite/show_cookies" do
-    render_view "show_cookies"
-  end
-
-  get "/cuprite/set_cookie_slow" do
-    sleep 1
-    cookie_value = "test_cookie"
-    response.set_cookie("stealth", cookie_value)
-    render_string("Cookie set to #{cookie_value}")
   end
 
   get "/cuprite/slow" do
@@ -82,20 +53,9 @@ class TestApp
     render_string("really slow page")
   end
 
-  get "/cuprite/basic_auth" do
-    requires_credentials("login", "pass")
-    render_view :basic_auth
-  end
-
-  post "/cuprite/post_basic_auth" do
-    requires_credentials("login", "pass")
-    render_string("Authorized POST request")
-  end
-
-  get "/cuprite/cacheable" do
-    cache_control :public, max_age: 60
-    etag "deadbeef"
-    render_string("Cacheable request <a href='/cuprite/cacheable'>click me</a>")
+  get "/cuprite/attachment.txt" do
+    attachment "attachment.txt"
+    "attachment contents"
   end
 
   get "/cuprite/:view" do |view|

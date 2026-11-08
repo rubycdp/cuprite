@@ -52,6 +52,37 @@ module Capybara
       end
     end
 
+    FERRUM_PENDING_CONNECTIONS_ERROR = Ferrum.const_defined?(:PendingConnectionsError, false)
+
+    class PendingConnectionsError < (FERRUM_PENDING_CONNECTIONS_ERROR ? Ferrum::PendingConnectionsError : Ferrum::StatusError)
+      attr_reader :url, :pendings
+
+      def initialize(url, pendings = [])
+        super(url)
+        @url = url
+        @pendings = pendings
+      end
+
+      def message
+        message = "Request to #{@url} reached server, but there are still pending connections"
+        @pendings.empty? ? message : "#{message}: #{@pendings.join(', ')}"
+      end
+    end
+
+    module DeprecatedPendingConnectionsError
+      def ===(other)
+        matched = super
+        if matched && equal?(Ferrum::PendingConnectionsError) && other.is_a?(Cuprite::PendingConnectionsError)
+          warn "Ferrum::PendingConnectionsError is deprecated, use Capybara::Cuprite::PendingConnectionsError",
+               uplevel: 1
+        end
+        matched
+      end
+    end
+
+    Ferrum::PendingConnectionsError.singleton_class.prepend(DeprecatedPendingConnectionsError) if
+      FERRUM_PENDING_CONNECTIONS_ERROR
+
     class ObsoleteNode < ClientError
       attr_reader :node
 

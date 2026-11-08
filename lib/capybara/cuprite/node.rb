@@ -1,43 +1,22 @@
 # frozen_string_literal: true
 
-require "forwardable"
+require "capybara/cuprite/finder"
+require "capybara/cuprite/node/extensions"
 
 module Capybara
   module Cuprite
     class Node < Capybara::Driver::Node
       attr_reader :node
 
-      extend Forwardable
-
-      delegate %i[description] => :node
-      delegate %i[browser] => :driver
+      include Extensions
 
       DRAG_MODIFIER_ALIASES = { control: :ctrl, command: :meta, cmd: :meta }.freeze
+      DRAG_HTML5_JS = File.read(File.expand_path("javascripts/drag.js", __dir__))
+      TRIGGER_CLICK_WAIT = ENV.fetch("CUPRITE_TRIGGER_CLICK_WAIT", 0.1).to_f
 
       def initialize(driver, node)
         super(driver, self)
         @node = node
-      end
-
-      def command(name, *args)
-        raise ObsoleteNode.new(self, nil) unless node.evaluate("this.isConnected")
-
-        browser.send(name, node, *args)
-      rescue Ferrum::NodeNotFoundError => e
-        raise ObsoleteNode.new(self, e.response)
-      rescue Ferrum::BrowserError => e
-        case e.message
-        when "Cuprite.MouseEventFailed"
-          raise MouseEventFailed.new(self, e.response)
-        else
-          raise
-        end
-      end
-
-      def parents
-        command(:parents).map do |parent|
-          self.class.new(driver, parent)
-        end
       end
 
       def find_xpath(selector)
@@ -48,26 +27,16 @@ module Capybara
         find(:css, selector)
       end
 
-      def find(method, selector)
-        command(:find_within, method, selector).map do |node|
-          self.class.new(driver, node)
-        end
-      end
-
       def all_text
-        filter_text(command(:all_text))
+        filter_text(command { node.text })
       end
 
       def visible_text
-        command(:visible_text).to_s
-                              .gsub(/\A[[:space:]&&[^\u00a0]]+/, "")
-                              .gsub(/[[:space:]&&[^\u00a0]]+\z/, "")
-                              .gsub(/\n+/, "\n")
-                              .tr("\u00a0", " ")
-      end
-
-      def property(name)
-        command(:property, name)
+        command(:visibleText).to_s
+                             .gsub(/\A[[:space:]&&[^\u00a0]]+/, "")
+                             .gsub(/[[:space:]&&[^\u00a0]]+\z/, "")
+                             .gsub(/\n+/, "\n")
+                             .tr("\u00a0", " ")
       end
 
       def [](name)
@@ -76,17 +45,13 @@ module Capybara
         if (tag_name == "img" && name == "src") ||
            (tag_name == "a" && name == "href")
           # if attribute exists get the property
-          return command(:attribute, name) && command(:property, name)
+          return command(:getAttribute, name) && command { node.property(name) }
         end
 
-        value = property(name)
-        value = command(:attribute, name) if value.nil? || value.is_a?(Hash)
-
-        value
-      end
-
-      def attributes
-        command(:attributes)
+        case (value = command { node.property(name) })
+        when String, Numeric, true, false then value
+        else command(:getAttribute, name)
+        end
       end
 
       def value
@@ -104,9 +69,9 @@ module Capybara
             click if value != checked?
           when "file"
             files = value.respond_to?(:to_ary) ? value.to_ary.map(&:to_s) : value.to_s
-            command(:select_file, files)
+            command { node.select_file(files) }
           when "color"
-            node.evaluate("this.setAttribute('value', '#{value}')")
+            node.evaluate("this.setAttribute('value', value)", value: value)
             node.evaluate("this.dispatchEvent(new InputEvent('input'))")
             node.evaluate("this.dispatchEvent(new Event('change', { bubbles: true }))")
           when "date"
@@ -130,7 +95,7 @@ module Capybara
         elsif tag_name == "textarea"
           command(:set, value.to_s)
         elsif self[:isContentEditable]
-          command(:delete_text)
+          command(:deleteText)
           click.type(value.to_s)
         end
       end
@@ -145,11 +110,11 @@ module Capybara
       end
 
       def tag_name
-        @tag_name ||= description["shadowRootType"] ? "ShadowRoot" : description["nodeName"].downcase
+        @tag_name ||= node.description["shadowRootType"] ? "ShadowRoot" : node.description["nodeName"].downcase
       end
 
       def visible?
-        command(:visible?)
+        command(:isVisible)
       end
 
       def checked?
@@ -161,7 +126,7 @@ module Capybara
       end
 
       def disabled?
-        command(:disabled?)
+        command(:isDisabled)
       end
 
       def click(keys = [], **options)
@@ -177,28 +142,43 @@ module Capybara
       end
 
       def hover
-        command(:hover)
+        command do
+          js(:scrollIntoViewport)
+          x, y = find_position
+          driver.browser.page.command("Input.dispatchMouseEvent", type: "mouseMoved", x: x, y: y)
+        end
       end
 
       def drag_to(other, **options)
+        raise ArgumentError, "You must specify both x: and y: for a drop offset" if options[:x].nil? ^ options[:y].nil?
+
         options[:steps] ||= 1
         options[:scroll] = true unless options.key?(:scroll)
+        options[:drop_offset] = drop_offset(*options.values_at(:x, :y, :offset))
         modifiers = Array(options[:drop_modifiers]).map { |m| DRAG_MODIFIER_ALIASES.fetch(m.to_sym, m.to_sym) }
 
-        command(:drag, other.node, modifiers, options.slice(:steps, :delay, :scroll, :html5))
+        command { drag(other.node, modifiers, options) }
       end
 
-      def drag_by(x, y, **options)
-        options[:steps] ||= 1
-        options[:scroll] = true unless options.key?(:scroll)
-
-        command(:drag_by, x, y, options[:steps], options[:delay], options[:scroll])
+      def drop(*args)
+        command do
+          if args[0].is_a?(String)
+            driver.browser.execute("_cuprite.attachDropInput()")
+            driver.browser.at_css("#_cuprite_drop_file").select_file(args)
+            js(:dropFile)
+          else
+            strings = args.flat_map { |arg| arg.map { |type, data| { "type" => type, "data" => data } } }
+            node.evaluate("_cuprite.dropString(strings, this)", strings: strings)
+          end
+        end
       end
-
-      def drop(...) = command(:drop, ...)
 
       def trigger(event)
-        command(:trigger, event)
+        command do
+          next js(:trigger, event.to_s) unless event.to_s == "click" && TRIGGER_CLICK_WAIT.positive?
+
+          driver.browser.wait_for_navigation!(TRIGGER_CLICK_WAIT) { js(:trigger, "click") }
+        end
       end
 
       def scroll_to(element, location, position = nil)
@@ -213,15 +193,7 @@ module Capybara
       end
 
       def scroll_by(x, y)
-        driver.execute_script <<~JS, self, x, y
-          var el = arguments[0];
-          if (el.scrollBy){
-            el.scrollBy(arguments[1], arguments[2]);
-          } else {
-            el.scrollTop = el.scrollTop + arguments[2];
-            el.scrollLeft = el.scrollLeft + arguments[1];
-          }
-        JS
+        node.evaluate("this.scrollBy(x, y)", x: x, y: y)
       end
 
       def ==(other)
@@ -232,54 +204,119 @@ module Capybara
         keys = keys.reject { |key| key.nil? || key == "" }
         return if keys.empty?
 
-        command(:send_keys, keys)
+        command do
+          unless node.evaluate("_cuprite.containsSelection(this) || _cuprite.hasFocus(this)")
+            before_click("click")
+            node.click(mode: :left, keys: keys)
+          end
+
+          driver.browser.keyboard.type(keys)
+        end
       end
-      alias send_key send_keys
 
       def path
         command(:path)
       end
 
       def obscured?
-        command(:obscured?)
+        command(:isObscured)
       end
 
       def shadow_root
-        root = driver.evaluate_script <<~JS, self
-          arguments[0].shadowRoot
-        JS
-        root && self.class.new(driver, root.node)
+        root = driver.browser.evaluate("node.shadowRoot", node: node)
+        root && self.class.new(driver, root)
       end
 
       def rect
-        driver.evaluate_script <<~JS, self
-          arguments[0].getBoundingClientRect().toJSON()
-        JS
+        node.evaluate("this.getBoundingClientRect().toJSON()")
       end
 
       def inspect
         %(#<#{self.class} @node=#{@node.inspect}>)
       end
 
-      # @api private
-      def to_json(*)
-        JSON.generate(as_json)
-      end
-
-      # @api private
-      def as_json(*)
-        # FIXME: Where is this method used and why attr is called id?
-        { ELEMENT: { node: node, id: node.node_id } }
-      end
-
       private
+
+      def find(method, selector)
+        command { Finder.find(driver.browser, method, selector, node) }.map do |node|
+          self.class.new(driver, node)
+        end
+      end
+
+      def command(function = nil, *args)
+        raise ObsoleteNode.new(self, nil) unless node.evaluate("this.isConnected")
+
+        block_given? ? yield : js(function, *args)
+      rescue Ferrum::NodeNotFoundError => e
+        raise ObsoleteNode.new(self, e.response)
+      end
 
       def prepare_and_click(mode, name, keys, options)
         delay = options[:delay].to_i
         x, y = options.values_at(:x, :y)
         offset = { x: x, y: y, position: options[:offset] || :top }
-        command(:before_click, name, keys, offset)
+        command { before_click(name, offset) }
         node.click(mode: mode, keys: keys, offset: offset, delay: delay)
+      end
+
+      def js(function, *args)
+        node.evaluate("_cuprite.#{function}(this, ...arguments)", *args)
+      end
+
+      def before_click(name, offset = {})
+        js(:scrollIntoViewport)
+
+        # If offset is given it may go outside of the element and likely error
+        # will be raised that we detected another element at this position.
+        return if offset[:x] || offset[:y]
+
+        x, y = find_position(**offset)
+        js(:mouseEventTest, name.to_s, x, y)
+      rescue Ferrum::JavaScriptError => e
+        raise MouseEventFailed, e.message if e.class_name == "MouseEventFailed"
+
+        raise
+      end
+
+      def find_position(**options)
+        node.find_position(**options)
+      rescue Ferrum::BrowserError => e
+        raise MouseEventFailed, "MouseEventFailed: click, none, 0, 0" if e.message == "Could not compute content quads."
+
+        raise
+      end
+
+      def drag(other, modifiers, options)
+        browser = driver.browser
+        delay, scroll, html5, drop_offset = options.values_at(:delay, :scroll, :html5, :drop_offset)
+        browser.execute("_cuprite.dragMousedownTracker()")
+
+        node.scroll_into_view if scroll
+        x1, y1 = node.find_position
+
+        browser.mouse.move(x: x1, y: y1)
+        browser.mouse.down
+        sleep delay if delay
+
+        html5 = !js(:legacyDragCheck) if html5.nil?
+
+        if html5
+          keys = modifiers.map(&:to_s)
+          driver.evaluate_async_script(DRAG_HTML5_JS, node, other, (delay || 0.05) * 1000, keys, drop_offset)
+          browser.mouse.up
+        else
+          other.scroll_into_view if scroll
+          x2, y2 = other.find_position(**drop_offset.to_h)
+
+          browser.keyboard.hold(*modifiers) { browser.mouse.move(x: x2, y: y2, steps: options[:steps]).up }
+        end
+      end
+
+      def drop_offset(x, y, position)
+        return unless x
+
+        position ||= driver.session_options.w3c_click_offset ? :center : :top
+        { x: x, y: y, position: position.to_sym }
       end
 
       def filter_text(text)
@@ -301,34 +338,19 @@ module Capybara
                       else
                         raise ArgumentError, "Invalid scroll_to location: #{location}"
                       end
-        driver.execute_script <<~JS, element
-          arguments[0].scrollIntoView(#{scroll_opts})
-        JS
+        element.node.evaluate("this.scrollIntoView(#{scroll_opts})")
       end
 
       def scroll_to_location(location)
         height = { top: "0",
-                   bottom: "arguments[0].scrollHeight",
-                   center: "(arguments[0].scrollHeight - arguments[0].clientHeight)/2" }
+                   bottom: "this.scrollHeight",
+                   center: "(this.scrollHeight - this.clientHeight) / 2" }
 
-        driver.execute_script <<~JS, self
-          if (arguments[0].scrollTo){
-            arguments[0].scrollTo(0, #{height[location]});
-          } else {
-            arguments[0].scrollTop = #{height[location]};
-          }
-        JS
+        node.evaluate("this.scrollTo(0, #{height[location]})")
       end
 
       def scroll_to_coords(x, y)
-        driver.execute_script <<~JS, self, x, y
-          if (arguments[0].scrollTo){
-            arguments[0].scrollTo(arguments[1], arguments[2]);
-          } else {
-            arguments[0].scrollTop = arguments[2];
-            arguments[0].scrollLeft = arguments[1];
-          }
-        JS
+        node.evaluate("this.scrollTo(x, y)", x: x, y: y)
       end
     end
   end
