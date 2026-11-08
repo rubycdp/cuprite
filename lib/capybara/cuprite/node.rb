@@ -274,6 +274,7 @@ module Capybara
         js(:mouseEventTest, name.to_s, x, y)
       rescue Ferrum::JavaScriptError => e
         raise MouseEventFailed, e.message if e.class_name == "MouseEventFailed"
+        raise ObsoleteNode.new(self, e.response) if e.class_name == "ObsoleteNode"
 
         raise
       end

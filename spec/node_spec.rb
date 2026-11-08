@@ -95,6 +95,19 @@ describe Capybara::Cuprite::Node do
         .to raise_error(Capybara::Cuprite::MouseEventFailed)
     end
 
+    it "raises ObsoleteNode for an element removed before the hit test" do
+      @session.visit("/cuprite/with_js")
+      node = @session.find(:css, "#remove_me")
+      # The page removes the node after Ruby checked it and before the hit test runs.
+      @session.execute_script(<<~JS)
+        const test = _cuprite.mouseEventTest;
+        _cuprite.mouseEventTest = function(node, ...args) { node.remove(); return test.call(this, node, ...args); };
+      JS
+
+      # native.click bypasses Capybara::Node::Element#reload, which would re-find and retry.
+      expect { node.native.click }.to raise_error(Capybara::Cuprite::ObsoleteNode)
+    end
+
     it "clicks an element brought into the viewport" do
       @session.visit("/cuprite/with_js")
       @session.execute_script %($("#off-the-left").animate({left: "10"});)

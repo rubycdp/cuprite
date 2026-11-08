@@ -1,6 +1,7 @@
 ## [Unreleased](https://github.com/rubycdp/cuprite/compare/v0.20...main) ##
 
 ### Added
+- `:url_blocklist` and `:url_allowlist` driver options as aliases for `:url_blacklist` and `:url_whitelist` [#330]
 
 ### Changed
 - `Driver#current_url` and `Driver#title` read Ferrum's `url` and `title` of the window, not `current_url` and
@@ -12,6 +13,10 @@
   [rubycdp/ferrum#689]
 
 ### Fixed
+- A click on a node the page removes before the hit test raises `ObsoleteNode`, which Capybara retries, instead of
+  `Ferrum::JavaScriptError: node.getRootNode(...).elementFromPoint is not a function` [#359]
+- `Driver#reset!` and `Driver#quit` don't launch Chrome when no browser has started, so a failed launch doesn't
+  launch again during teardown
 - `scroll_to` with an element or a location waits for the scroll like `scroll_to(x, y)` and `scroll_by` already do,
   instead of making Ferrum warn that the script returns a promise [#362]
 

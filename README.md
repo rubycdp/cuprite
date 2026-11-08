@@ -92,8 +92,8 @@ end
     that triggered the dialog (a click, `visit`, `evaluate_script`, ...), since a JS dialog blocks the page until
     answered, so that action's own command is what was waiting. A dialog fired with nothing in flight (e.g. a bare JS
     timer) only surfaces on whatever command runs next.
-  * `:url_blacklist` (Array) - array of regexes to match against requested URLs
-  * `:url_whitelist` (Array) - array of regexes to match against requested URLs
+  * `:url_blocklist` (Array) - array of regexes to match against requested URLs, alias `:url_blacklist`
+  * `:url_allowlist` (Array) - array of regexes to match against requested URLs, alias `:url_whitelist`
   * `:emulate` (Symbol) - device from Chrome DevTools' list to emulate, e.g. `:iphone_16`, `:pixel_9`, `:ipad_mini`
   * `:mobile` (Boolean) - emulate a mobile device: viewport meta tag and touch events
   * `:scale_factor` (Numeric) - device scale factor to emulate

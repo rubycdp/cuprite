@@ -26,7 +26,7 @@ module Capybara
       extend Forwardable
       include Extensions
 
-      delegate %i[quit title window_handles current_window_handle close_window switch_to_window refresh] => :browser
+      delegate %i[title window_handles current_window_handle close_window switch_to_window refresh] => :browser
       delegate %i[send_keys] => :active_element
       def_delegator :browser, :url, :current_url
       def_delegator :browser, :body, :html
@@ -46,6 +46,9 @@ module Capybara
         @screen_size = @options.delete(:screen_size)
         @screen_size ||= DEFAULT_MAXIMIZE_SCREEN_SIZE
         @options[:save_path] ||= File.expand_path(Capybara.save_path) if Capybara.save_path
+
+        @options[:url_blacklist] = @options.delete(:url_blocklist) if @options.key?(:url_blocklist)
+        @options[:url_whitelist] = @options.delete(:url_allowlist) if @options.key?(:url_allowlist)
 
         # It's set for debug() to make devtools tab open correctly.
         @options[:browser_options] ||= {}
@@ -133,7 +136,13 @@ module Capybara
         Ferrum::NoSuchPageError
       end
 
+      def quit
+        @browser&.quit
+      end
+
       def reset!
+        return unless @browser
+
         browser.url_blacklist = @options[:url_blacklist]
         browser.url_whitelist = @options[:url_whitelist]
         browser.raise_on_unhandled_modal = @options.fetch(:raise_on_unhandled_modal, false)
