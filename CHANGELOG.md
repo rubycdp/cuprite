@@ -17,6 +17,8 @@
   `Ferrum::JavaScriptError: node.getRootNode(...).elementFromPoint is not a function` [#359]
 - `Driver#reset!` and `Driver#quit` don't launch Chrome when no browser has started, so a failed launch doesn't
   launch again during teardown
+- `scroll_to` with an element or a location waits for the scroll like `scroll_to(x, y)` and `scroll_by` already do,
+  instead of making Ferrum warn that the script returns a promise [#362]
 
 ### Removed
 - Methods deprecated in 0.20, see its Deprecated section for replacements

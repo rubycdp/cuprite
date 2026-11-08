@@ -339,7 +339,7 @@ module Capybara
                       else
                         raise ArgumentError, "Invalid scroll_to location: #{location}"
                       end
-        element.node.evaluate("this.scrollIntoView(#{scroll_opts})")
+        element.node.evaluate("await this.scrollIntoView(#{scroll_opts})")
       end
 
       def scroll_to_location(location)
@@ -347,7 +347,7 @@ module Capybara
                    bottom: "this.scrollHeight",
                    center: "(this.scrollHeight - this.clientHeight) / 2" }
 
-        node.evaluate("this.scrollTo(0, #{height[location]})")
+        node.evaluate("await this.scrollTo(0, #{height[location]})")
       end
 
       def scroll_to_coords(x, y)
