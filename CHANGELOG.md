@@ -1,6 +1,7 @@
 ## [Unreleased](https://github.com/rubycdp/cuprite/compare/v0.20...main) ##
 
 ### Added
+- `:url_blocklist` and `:url_allowlist` driver options as aliases for `:url_blacklist` and `:url_whitelist` [#330]
 
 ### Changed
 - `Driver#current_url` and `Driver#title` read Ferrum's `url` and `title` of the window, not `current_url` and

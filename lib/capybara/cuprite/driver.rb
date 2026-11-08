@@ -47,6 +47,9 @@ module Capybara
         @screen_size ||= DEFAULT_MAXIMIZE_SCREEN_SIZE
         @options[:save_path] ||= File.expand_path(Capybara.save_path) if Capybara.save_path
 
+        @options[:url_blacklist] = @options.delete(:url_blocklist) if @options.key?(:url_blocklist)
+        @options[:url_whitelist] = @options.delete(:url_allowlist) if @options.key?(:url_allowlist)
+
         # It's set for debug() to make devtools tab open correctly.
         @options[:browser_options] ||= {}
         unless @options[:browser_options][:"remote-allow-origins"]
