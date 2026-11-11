@@ -581,6 +581,13 @@ describe Capybara::Cuprite::Driver do
       it "returns nothing when nothing matches" do
         expect(@driver.find_css("#missing", uses_visibility: true, position: true)).to be_empty
       end
+
+      it "filters the rest of a result by the hints from when it was found, as Selenium does" do
+        result = @session.all(:css, "#items li", minimum: 1)
+        @session.execute_script("document.getElementById('split').style.display = 'none'")
+
+        expect(ids(result)).to include("split")
+      end
     end
   end
 
