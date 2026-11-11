@@ -230,7 +230,7 @@ module Capybara
       attr_reader :screen_size
 
       def find(method, selector, **hints)
-        Finder.find(browser, method, selector, **hints).map { |native, cache| Node.new(self, native, cache) }
+        Finder.find(browser, method, selector, **hints) { |native, cache| Node.new(self, native, cache) }
       end
 
       def within_window(handle)

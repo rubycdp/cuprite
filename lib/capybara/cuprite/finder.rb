@@ -28,7 +28,7 @@ module Capybara
           cache[:style] = style.transform_values { |values| values[index] } if style
           cache[:position] = position[index] if position
           cache.merge!(all_text: all_texts[index], visible_text: visible_texts[index]) if texts
-          [node, cache]
+          yield node, cache
         end
       rescue Ferrum::JavaScriptError => e
         raise InvalidSelector.new(e.response, method, selector) if e.class_name == "InvalidSelector"
