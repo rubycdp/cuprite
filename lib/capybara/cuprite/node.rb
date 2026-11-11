@@ -14,29 +14,32 @@ module Capybara
       DRAG_HTML5_JS = File.read(File.expand_path("javascripts/drag.js", __dir__))
       TRIGGER_CLICK_WAIT = ENV.fetch("CUPRITE_TRIGGER_CLICK_WAIT", 0.1).to_f
 
-      def initialize(driver, node)
-        super(driver, self)
+      def initialize(driver, node, initial_cache = {})
+        super(driver, self, initial_cache)
         @node = node
       end
 
-      def find_xpath(selector)
-        find(:xpath, selector)
+      def find_xpath(selector, **hints)
+        find(:xpath, selector, **hints)
       end
 
-      def find_css(selector)
-        find(:css, selector)
+      def find_css(selector, **hints)
+        find(:css, selector, **hints)
       end
 
+      # A text in the initial cache comes only with a node that can't match its query's text, which
+      # Capybara reads to filter it out and to describe the failure, and never hands to the caller.
       def all_text
-        filter_text(command { node.text })
+        filter_text(initial_cache.fetch(:all_text) { command { node.text } })
       end
 
       def visible_text
-        command(:visibleText).to_s
-                             .gsub(/\A[[:space:]&&[^\u00a0]]+/, "")
-                             .gsub(/[[:space:]&&[^\u00a0]]+\z/, "")
-                             .gsub(/\n+/, "\n")
-                             .tr("\u00a0", " ")
+        text = initial_cache.fetch(:visible_text) { command(:visibleText) }
+        text.to_s
+            .gsub(/\A[[:space:]&&[^\u00a0]]+/, "")
+            .gsub(/[[:space:]&&[^\u00a0]]+\z/, "")
+            .gsub(/\n+/, "\n")
+            .tr("\u00a0", " ")
       end
 
       def [](name)
@@ -237,9 +240,11 @@ module Capybara
 
       private
 
-      def find(method, selector)
-        command { Finder.find(driver.browser, method, selector, node) }.map do |node|
-          self.class.new(driver, node)
+      def find(method, selector, **hints)
+        command do
+          Finder.find(driver.browser, method, selector, node, **hints) do |native, cache|
+            self.class.new(driver, native, cache)
+          end
         end
       end
 

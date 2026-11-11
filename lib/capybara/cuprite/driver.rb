@@ -90,12 +90,12 @@ module Capybara
         Node.new(self, browser.evaluate("document.activeElement"))
       end
 
-      def find_xpath(selector)
-        find(:xpath, selector)
+      def find_xpath(selector, **hints)
+        find(:xpath, selector, **hints)
       end
 
-      def find_css(selector)
-        find(:css, selector)
+      def find_css(selector, **hints)
+        find(:css, selector, **hints)
       end
 
       def evaluate_script(script, *args)
@@ -229,8 +229,8 @@ module Capybara
 
       attr_reader :screen_size
 
-      def find(method, selector)
-        Finder.find(browser, method, selector).map { |native| Node.new(self, native) }
+      def find(method, selector, **hints)
+        Finder.find(browser, method, selector, **hints) { |native, cache| Node.new(self, native, cache) }
       end
 
       def within_window(handle)
