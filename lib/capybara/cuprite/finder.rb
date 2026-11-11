@@ -18,11 +18,10 @@ module Capybara
           position: hints.fetch(:position, false)
         }
 
-        answers = browser.evaluate("_cuprite.findWithHints(...arguments)", *[method, selector, hints, within].compact)
-        hidden = answers["hidden"]&.to_set
-        style = answers["style"]
-        position = answers["position"]
-        answers["nodes"].each_with_index.map do |node, index|
+        nodes, hidden, style, position =
+          browser.evaluate("_cuprite.findWithHints(...arguments)", *[method, selector, hints, within].compact)
+        hidden = hidden&.to_set
+        nodes.each_with_index.map do |node, index|
           cache = {}
           cache[:visible] = !hidden.include?(index) if hidden
           cache[:style] = style.transform_values { |values| values[index] } if style
