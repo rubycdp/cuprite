@@ -530,6 +530,16 @@ describe Capybara::Cuprite::Driver do
         nodes.map { |node| node[:id] }
       end
 
+      def matched_ids(nodes)
+        ids(nodes.reject { |node| node.initial_cache.key?(:all_text) })
+      end
+
+      def no_matches_message(description)
+        texts = ["Shown item", "", "Splitword", "Zero\u200bwidth", "SHOUTED", "Spaced out", "Non breaking"]
+        "expected to find #{description} but there were no matches. " \
+          "Also found #{texts.map(&:inspect).join(', ')}, which matched the selector but not all filters. "
+      end
+
       it "answers visibility, styles and position in the initial cache" do
         shown, hidden = @driver.find_css("#shown, #hidden", uses_visibility: true,
                                                             styles: { color: "red" },
@@ -555,7 +565,7 @@ describe Capybara::Cuprite::Driver do
       it "keeps only the nodes holding every text" do
         expect(ids(@driver.find_css("li", texts: %w[Shown item]))).to eq(%w[shown])
         expect(ids(@driver.find_css("li", texts: %w[Hidden]))).to eq(%w[hidden])
-        expect(@driver.find_css("li", texts: %w[shown])).to be_empty
+        expect(matched_ids(@driver.find_css("li", texts: %w[shown]))).to be_empty
       end
 
       it "keeps the ancestors of a node holding every text, in document order" do
@@ -563,13 +573,13 @@ describe Capybara::Cuprite::Driver do
       end
 
       it "matches the visible text only when visibility is asked for" do
-        expect(@driver.find_css("li", texts: %w[Splitword])).to be_empty
+        expect(matched_ids(@driver.find_css("li", texts: %w[Splitword]))).to be_empty
         expect(ids(@driver.find_css("li", texts: %w[Splitword], uses_visibility: true))).to eq(%w[split])
       end
 
       it "matches the visible text of nodes that share ancestors" do
         expect(ids(@driver.find_css("ul, li", texts: %w[SHOUTED], uses_visibility: true))).to eq(%w[items shouted])
-        expect(ids(@driver.find_css("ul, li", texts: %w[Splitword Hidden], uses_visibility: true))).to be_empty
+        expect(matched_ids(@driver.find_css("ul, li", texts: %w[Splitword Hidden], uses_visibility: true))).to be_empty
       end
 
       it "finds what Capybara matches on text" do
@@ -585,6 +595,48 @@ describe Capybara::Cuprite::Driver do
         expect(@session).to have_no_css("li", text: "shouted")
         expect(@session).to have_no_css("li", text: "Zerowidth")
         expect(@session).to have_no_css("li", text: "Hidden item")
+      end
+
+      it "returns the nodes with the texts Capybara reads when none hold every text" do
+        nodes = @driver.find_css("li", texts: %w[Missing], uses_visibility: true)
+
+        expect(ids(nodes)).to eq(%w[shown hidden split zero_width shouted spaced non_breaking])
+        expect(nodes.first.initial_cache).to eq(visible: true, all_text: "Shown item", visible_text: "Shown item")
+        expect(nodes[1].initial_cache).to eq(visible: false, all_text: "Hidden item", visible_text: nil)
+      end
+
+      it "returns at most 50 nodes when none hold every text" do
+        @session.execute_script(<<~JS)
+          document.getElementById("items").innerHTML = "<li>Row</li>".repeat(60);
+        JS
+
+        expect(@driver.find_css("li", texts: %w[Missing]).size).to eq(50)
+      end
+
+      it "reads the text of a node holding every text live" do
+        node = @driver.find_css("#shown", texts: %w[Shown], uses_visibility: true).first
+        @session.execute_script("document.getElementById('shown').textContent = 'Changed'")
+
+        expect([node.all_text, node.visible_text]).to eq(%w[Changed Changed])
+      end
+
+      it "describes a failed find as Capybara does without hints" do
+        expect { @session.find(:css, "#items li", text: "Missing", wait: 0) }
+          .to raise_error(Capybara::ElementNotFound, 'Unable to find visible css "#items li" with text "Missing"')
+      end
+
+      it "describes a failed assert_selector as Capybara does without hints" do
+        expect { @session.assert_selector(:css, "#items li", text: "Missing", wait: 0) }
+          .to raise_error(Capybara::ExpectationNotMet,
+                          no_matches_message(%(visible css "#items li" with text "Missing")))
+      end
+
+      it "describes a failed assert_selector for all nodes as Capybara does without hints" do
+        items = @session.find(:css, "#items")
+
+        expect { items.assert_selector(:css, "li", text: "Missing", visible: :all, wait: 0) }
+          .to raise_error(Capybara::ExpectationNotMet,
+                          no_matches_message(%(css "li" with text "Missing" within #{items.inspect})))
       end
 
       it "returns nothing when nothing matches" do

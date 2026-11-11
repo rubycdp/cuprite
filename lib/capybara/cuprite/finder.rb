@@ -18,14 +18,16 @@ module Capybara
           position: hints.fetch(:position, false)
         }
 
-        nodes, hidden, style, position =
+        nodes, hidden, style, position, texts =
           browser.evaluate("_cuprite.findWithHints(...arguments)", *[method, selector, hints, within].compact)
         hidden = hidden&.to_set
+        all_texts, visible_texts = texts
         nodes.each_with_index.map do |node, index|
           cache = {}
           cache[:visible] = !hidden.include?(index) if hidden
           cache[:style] = style.transform_values { |values| values[index] } if style
           cache[:position] = position[index] if position
+          cache.merge!(all_text: all_texts[index], visible_text: visible_texts[index]) if texts
           [node, cache]
         end
       rescue Ferrum::JavaScriptError => e

@@ -27,16 +27,19 @@ module Capybara
         find(:css, selector, **hints)
       end
 
+      # A text in the initial cache comes only with a node that can't match its query's text, which
+      # Capybara reads to filter it out and to describe the failure, and never hands to the caller.
       def all_text
-        filter_text(command { node.text })
+        filter_text(initial_cache.fetch(:all_text) { command { node.text } })
       end
 
       def visible_text
-        command(:visibleText).to_s
-                             .gsub(/\A[[:space:]&&[^\u00a0]]+/, "")
-                             .gsub(/[[:space:]&&[^\u00a0]]+\z/, "")
-                             .gsub(/\n+/, "\n")
-                             .tr("\u00a0", " ")
+        text = initial_cache.fetch(:visible_text) { command(:visibleText) }
+        text.to_s
+            .gsub(/\A[[:space:]&&[^\u00a0]]+/, "")
+            .gsub(/[[:space:]&&[^\u00a0]]+\z/, "")
+            .gsub(/\n+/, "\n")
+            .tr("\u00a0", " ")
       end
 
       def [](name)
