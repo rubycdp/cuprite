@@ -558,9 +558,18 @@ describe Capybara::Cuprite::Driver do
         expect(@driver.find_css("li", texts: %w[shown])).to be_empty
       end
 
+      it "keeps the ancestors of a node holding every text, in document order" do
+        expect(ids(@driver.find_css("#items, #split, #split span", texts: %w[Splithidden]))).to eq(%w[items split])
+      end
+
       it "matches the visible text only when visibility is asked for" do
         expect(@driver.find_css("li", texts: %w[Splitword])).to be_empty
         expect(ids(@driver.find_css("li", texts: %w[Splitword], uses_visibility: true))).to eq(%w[split])
+      end
+
+      it "matches the visible text of nodes that share ancestors" do
+        expect(ids(@driver.find_css("ul, li", texts: %w[SHOUTED], uses_visibility: true))).to eq(%w[items shouted])
+        expect(ids(@driver.find_css("ul, li", texts: %w[Splitword Hidden], uses_visibility: true))).to be_empty
       end
 
       it "finds what Capybara matches on text" do
