@@ -18,8 +18,17 @@ module Capybara
           position: hints.fetch(:position, false)
         }
 
-        browser.evaluate("_cuprite.findWithHints(...arguments)", *[method, selector, hints, within].compact)
-               .map { |node, cache| [node, cache.transform_keys(&:to_sym)] }
+        answers = browser.evaluate("_cuprite.findWithHints(...arguments)", *[method, selector, hints, within].compact)
+        hidden = answers["hidden"]&.to_set
+        style = answers["style"]
+        position = answers["position"]
+        answers["nodes"].each_with_index.map do |node, index|
+          cache = {}
+          cache[:visible] = !hidden.include?(index) if hidden
+          cache[:style] = style.transform_values { |values| values[index] } if style
+          cache[:position] = position[index] if position
+          [node, cache]
+        end
       rescue Ferrum::JavaScriptError => e
         raise InvalidSelector.new(e.response, method, selector) if e.class_name == "InvalidSelector"
 
