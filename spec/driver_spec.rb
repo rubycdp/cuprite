@@ -540,6 +540,14 @@ describe Capybara::Cuprite::Driver do
         expect(hidden.initial_cache).to include(visible: false)
       end
 
+      it "answers visibility for each node when they share ancestors" do
+        @session.execute_script("document.getElementById('dialog').showModal()")
+        nodes = @driver.find_css("#faded p", uses_visibility: true)
+
+        expect(nodes.to_h { |node| [node[:id], node.initial_cache[:visible]] })
+          .to eq("before_dialog" => false, "in_dialog" => true, "after_dialog" => false)
+      end
+
       it "leaves the initial cache empty without hints" do
         expect(@driver.find_css("li").map(&:initial_cache)).to all(eq({}))
       end
