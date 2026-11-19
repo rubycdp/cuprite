@@ -241,10 +241,8 @@ module Capybara
       private
 
       def find(method, selector, **hints)
-        command do
-          Finder.find(driver.browser, method, selector, node, **hints) do |native, cache|
-            self.class.new(driver, native, cache)
-          end
+        command { Finder.find(driver.browser, method, selector, node, **hints) }.map do |native, cache|
+          self.class.new(driver, native, cache)
         end
       end
 
