@@ -14,13 +14,14 @@ module Capybara
           super
         end
 
-        # The `Page.javascriptDialogOpening` event is handled on Ferrum's
-        # background CDP dispatcher thread, so raising there wouldn't reach
-        # the caller and would permanently kill that thread instead. The
-        # dialog is always accepted immediately from that thread, and the
-        # error (if any) is stashed here to be raised from the main thread
-        # the next time it makes a command round trip.
+        # Dialogs are handled on Ferrum's background dispatcher thread, so
+        # raising there wouldn't reach the caller. The dialog is answered
+        # from that thread, skipping the pending error check, and the error
+        # (if any) is stashed here to be raised from the calling thread the
+        # next time it makes a command round trip.
         def command(...)
+          return super if Thread.current[:cuprite_handling_dialog]
+
           raise_pending_unhandled_modal_error! { super }
         end
 
@@ -78,39 +79,41 @@ module Capybara
 
         def prepare_page
           super
-          on("Page.javascriptDialogOpening") { |params| handle_javascript_dialog(params) }
+          on(:dialog) { |dialog| handle_dialog(dialog) }
         end
 
-        def handle_javascript_dialog(params)
+        def handle_dialog(dialog)
           accept_modal = @accept_modal.last
-          unhandled_modal_error = nil
 
           if [true, false].include?(accept_modal)
             @accept_modal.pop
-            @modal_messages << params["message"]
-            options = { accept: accept_modal }
-            response = @modal_response || params["defaultPrompt"]
+            @modal_messages << dialog.message
+            accept = accept_modal
+            response = @modal_response
           else
-            with_text = params["message"] ? "with text `#{params['message']}` " : ""
+            with_text = dialog.message ? "with text `#{dialog.message}` " : ""
             message = "Modal window #{with_text}has been opened, but you didn't wrap " \
                       "your code into (`accept_prompt` | `dismiss_prompt` | " \
                       "`accept_confirm` | `dismiss_confirm` | `accept_alert`), " \
                       "accepting by default"
 
             if @options.raise_on_unhandled_modal
-              unhandled_modal_error = UnhandledModalError.new(message)
+              @unhandled_modal_error = UnhandledModalError.new(message)
             else
               warn message
             end
 
-            options = { accept: true }
-            response = params["defaultPrompt"]
+            accept = true
           end
-          options.merge!(promptText: response) if response
-          # Skips #command so a pending error isn't raised on the dispatcher thread.
-          client.command("Page.handleJavaScriptDialog", timeout: timeout, **options)
 
-          @unhandled_modal_error = unhandled_modal_error if unhandled_modal_error
+          answer_dialog(dialog, accept, response)
+        end
+
+        def answer_dialog(dialog, accept, response)
+          Thread.current[:cuprite_handling_dialog] = true
+          accept ? dialog.accept(response) : dialog.dismiss
+        ensure
+          Thread.current[:cuprite_handling_dialog] = nil
         end
       end
     end
