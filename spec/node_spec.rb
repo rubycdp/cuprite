@@ -933,6 +933,12 @@ describe Capybara::Cuprite::Node do
 
       expect(nodes.map { |node| node[:id] }).to eq(%w[shown])
       expect(nodes.first.initial_cache).to eq(visible: true)
+    end
+
+    it "skips nodes holding the text outside the node" do
+      @session.visit("/cuprite/find_hints")
+      items = @session.find(:css, "#items").base
+
       expect(items.find_css("p", texts: %w[Shown])).to be_empty
     end
   end

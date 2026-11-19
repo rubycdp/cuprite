@@ -564,7 +564,13 @@ describe Capybara::Cuprite::Driver do
 
       it "keeps only the nodes holding every text" do
         expect(ids(@driver.find_css("li", texts: %w[Shown item]))).to eq(%w[shown])
+      end
+
+      it "keeps a hidden node holding the text" do
         expect(ids(@driver.find_css("li", texts: %w[Hidden]))).to eq(%w[hidden])
+      end
+
+      it "drops a node holding the text in another case" do
         expect(matched_ids(@driver.find_css("li", texts: %w[shown]))).to be_empty
       end
 
@@ -579,21 +585,45 @@ describe Capybara::Cuprite::Driver do
 
       it "matches the visible text of nodes that share ancestors" do
         expect(ids(@driver.find_css("ul, li", texts: %w[SHOUTED], uses_visibility: true))).to eq(%w[items shouted])
+      end
+
+      it "drops nodes whose visible text holds only some of the texts" do
         expect(matched_ids(@driver.find_css("ul, li", texts: %w[Splitword Hidden], uses_visibility: true))).to be_empty
       end
 
-      it "finds what Capybara matches on text" do
+      it "finds a node by text split by a hidden element" do
         expect(@session.find(:css, "li", text: "Splitword")[:id]).to eq("split")
+      end
+
+      it "finds a node by all its text without zero width characters" do
         expect(@session.find(:css, "li", text: "Zerowidth", visible: :all)[:id]).to eq("zero_width")
+      end
+
+      it "finds a node by text transformed with CSS" do
         expect(@session.find(:css, "li", text: "SHOUTED")[:id]).to eq("shouted")
+      end
+
+      it "finds a node by text spread over lines" do
         expect(@session.find(:css, "li", text: "Spaced out")[:id]).to eq("spaced")
+      end
+
+      it "finds a node by text with a non-breaking space" do
         expect(@session.find(:css, "li", text: "Non breaking")[:id]).to eq("non_breaking")
       end
 
-      it "skips what Capybara doesn't match on text" do
+      it "skips a node holding the text in another case" do
         expect(@session).to have_no_css("li", text: "shown item")
+      end
+
+      it "skips a node by its text before a CSS transform" do
         expect(@session).to have_no_css("li", text: "shouted")
+      end
+
+      it "skips a node whose visible text has a zero width character in the text" do
         expect(@session).to have_no_css("li", text: "Zerowidth")
+      end
+
+      it "skips a hidden node holding the text" do
         expect(@session).to have_no_css("li", text: "Hidden item")
       end
 
