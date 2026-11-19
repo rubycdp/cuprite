@@ -11,6 +11,8 @@
 - `:pending_connection_errors` is handled by Cuprite instead of being passed to Ferrum, which deprecates it. `visit`
   raises `Capybara::Cuprite::PendingConnectionsError`, a subclass of Ferrum's, and rescuing Ferrum's warns
   [rubycdp/ferrum#689]
+- A closed window is removed from Ferrum's context, which returns a copy of its targets, so `close_window` no longer
+  leaves it listed until Chrome reports it destroyed [rubycdp/ferrum#707]
 
 ### Fixed
 - A click on a node the page removes before the hit test raises `ObsoleteNode`, which Capybara retries, instead of

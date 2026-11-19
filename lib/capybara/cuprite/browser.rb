@@ -77,7 +77,7 @@ module Capybara
           @page_closed = true
         end
         target.page.close
-        targets.delete(target_id) # page.close is async, delete target asap
+        default_context.delete_target(target_id) # page.close is async, delete target asap
       end
 
       private
