@@ -13,6 +13,8 @@
   [rubycdp/ferrum#689]
 - Dialogs are handled with Ferrum's `on(:dialog)` instead of the raw CDP event, so Ferrum's default handler no longer
   accepts them first and loses dismissals and prompt responses [rubycdp/ferrum#703]
+- A closed window is removed from Ferrum's context, which returns a copy of its targets, so `close_window` no longer
+  leaves it listed until Chrome reports it destroyed [rubycdp/ferrum#707]
 
 ### Fixed
 - A click on a node the page removes before the hit test raises `ObsoleteNode`, which Capybara retries, instead of
