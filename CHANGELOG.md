@@ -15,10 +15,8 @@
   accepts them first and loses dismissals and prompt responses [rubycdp/ferrum#703]
 - A closed window is removed from Ferrum's context, which returns a copy of its targets, so `close_window` no longer
   leaves it listed until Chrome reports it destroyed [rubycdp/ferrum#707]
-- `find_css` and `find_xpath` answer Capybara's finder hints in the call that finds the nodes: nodes that can't hold
-  the text are dropped there, and visibility, styles and position come back in `Node#initial_cache`, so Capybara no
-  longer asks for each node's visibility and text in a round trip of its own. As with Selenium, the hints are taken
-  when the nodes are found, so a result Capybara filters lazily keeps them if the page changes in between [#347]
+- `find_css` and `find_xpath` answer Capybara's finder hints in the call that finds the nodes, so Capybara no longer
+  asks each node for its visibility and text. As with Selenium, a lazily filtered result keeps the answers [#347]
 
 ### Fixed
 - A click on a node the page removes before the hit test raises `ObsoleteNode`, which Capybara retries, instead of
