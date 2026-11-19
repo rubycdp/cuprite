@@ -11,6 +11,8 @@
 - `:pending_connection_errors` is handled by Cuprite instead of being passed to Ferrum, which deprecates it. `visit`
   raises `Capybara::Cuprite::PendingConnectionsError`, a subclass of Ferrum's, and rescuing Ferrum's warns
   [rubycdp/ferrum#689]
+- Dialogs are handled with Ferrum's `on(:dialog)` instead of the raw CDP event, so Ferrum's default handler no longer
+  accepts them first and loses dismissals and prompt responses [rubycdp/ferrum#703]
 
 ### Fixed
 - A click on a node the page removes before the hit test raises `ObsoleteNode`, which Capybara retries, instead of
