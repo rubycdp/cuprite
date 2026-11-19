@@ -3,6 +3,7 @@
 source "https://rubygems.org"
 
 gem "byebug", "~> 11.1", platforms: %i[mri windows]
+gem "ferrum", github: "rubycdp/ferrum", branch: "main"
 gem "launchy", "~> 2.5"
 gem "logger"
 gem "ostruct"
