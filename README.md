@@ -141,9 +141,9 @@ Manipulate HTTP request headers with Ferrum:
 
 ``` ruby
 page.driver.browser.headers.get # => {}
-page.driver.browser.headers.set("User-Agent" => "Cuprite")
+page.driver.browser.headers.set("X-Trace" => "1")
 page.driver.browser.headers.add({ "Referer" => "https://example.com" })
-page.driver.browser.headers.get # => { "User-Agent" => "Cuprite", "Referer" => "https://example.com" }
+page.driver.browser.headers.get # => { "X-Trace" => "1", "Referer" => "https://example.com" }
 ```
 
 Notice that `set` will overwrite already set headers. You should use `add` if

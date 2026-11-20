@@ -34,7 +34,7 @@ Cuprite-specific options are:
   * `:emulate` (Symbol) - Device to emulate, one of those listed in Chrome DevTools' device toolbar, such as
     `:iphone_16`, `:pixel_9`, `:samsung_galaxy_a55` or `:ipad_mini`, see `Capybara::Cuprite::Devices::LIST`. It sets
     the device's `:window_size`, `:scale_factor` and `:mobile`, options passed explicitly take precedence, and its
-    user agent, unless a `User-Agent` is set with [headers](/docs/cuprite/headers).
+    user agent, unless one is set with `network.emulate(user_agent:)`, see [headers](/docs/cuprite/headers).
   * `:mobile` (Boolean) - Emulate a mobile device: honor `<meta name="viewport">` and enable touch events, `false`
     by default. Kept across window resizes.
   * `:scale_factor` (Numeric) - Device scale factor (`window.devicePixelRatio`) to emulate, `0` (browser default)
