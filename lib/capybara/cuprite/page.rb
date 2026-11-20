@@ -11,7 +11,13 @@ module Capybara
       include Frames
       include Modals
 
-      def go_to(url = nil)
+      # Navigates the page to a URL, see `Ferrum::Page#go_to`.
+      #
+      # @param url [String, nil]
+      # @param options [Hash] the keywords of `Ferrum::Page#go_to`, like `referrer:` and `timeout:`
+      # @return [String, nil] the navigated frame's id
+      # @raise [PendingConnectionsError] with `pending_connection_errors` when the page doesn't load in time
+      def go_to(url = nil, **options)
         frame_id = super
         return frame_id if frame_id || !@options.raise_on_pending_connections
 

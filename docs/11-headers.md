@@ -16,9 +16,10 @@ headers.add({ "Accept-Language" => "de" })
 headers.get # => { "User-Agent" => "Cuprite", "Accept-Language" => "de" }
 ```
 
-`set` overwrites already set headers, `add` merges into them. With
-`permanent: false` a `Referer` header is applied to the next navigation only:
+`set` overwrites already set headers, `add` merges into them. A `Referer`
+header is sent with every request, for the referrer of one navigation only pass
+it to `go_to`:
 
 ```ruby
-page.driver.browser.headers.add({ "Referer" => "https://example.com" }, permanent: false)
+page.driver.browser.go_to("/landing", referrer: "https://example.com")
 ```
