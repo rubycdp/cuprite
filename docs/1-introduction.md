@@ -79,7 +79,7 @@ Capybara has no API for what you need:
 
 ```ruby
 browser = page.driver.browser
-browser.headers.set("Accept-Language" => "de")
+browser.network.emulate(accept_language: "de")
 browser.cookies.set(name: "stealth", value: "omg")
 browser.network.wait_for_idle
 browser.network.traffic.last.response.status # => 200
