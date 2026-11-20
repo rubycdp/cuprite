@@ -1,6 +1,7 @@
 ## [Unreleased](https://github.com/rubycdp/cuprite/compare/v0.20.1...main) ##
 
 ### Added
+- `browser.go_to` takes the keywords of Ferrum's `go_to`, like `referrer:` and `timeout:`, it accepted only the URL
 - `:url_blocklist` and `:url_allowlist` driver options as aliases for `:url_blacklist` and `:url_whitelist` [#330]
 
 ### Changed
