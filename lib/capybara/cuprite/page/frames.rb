@@ -8,7 +8,7 @@ module Capybara
       module Frames
         extend Forwardable
 
-        delegate %i[at_css at_xpath css xpath body execution_id execution_id! evaluate execute] => :active_frame
+        delegate %i[at_css at_xpath css xpath html execution_id execution_id! evaluate execute] => :active_frame
 
         def initialize(...)
           @frame_stack = []
