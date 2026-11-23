@@ -5,6 +5,8 @@
 - `:url_blocklist` and `:url_allowlist` driver options as aliases for `:url_blacklist` and `:url_whitelist` [#330]
 
 ### Changed
+- Calls Ferrum's `go_to` and `node.scroll` instead of `goto` and `scroll_into_view`, deprecated in Ferrum 0.21, and
+  `page.goto`/`page.go` warn through Ferrum's deprecation instead of being Cuprite's own aliases [rubycdp/ferrum#717]
 - `Driver#current_url` and `Driver#title` read Ferrum's `url` and `title` of the window, not `current_url` and
   `current_title` deprecated in Ferrum 0.21 [rubycdp/ferrum#687]
 - `:js_errors` is handled by Cuprite instead of being passed to Ferrum, which deprecates it. Behavior is the same

@@ -71,7 +71,7 @@ module Capybara
       def visit(url)
         @started = true
         browser.base_url = url if url.match?(%r{\Ahttps?://})
-        browser.goto(url)
+        browser.go_to(url)
       end
 
       def status_code
