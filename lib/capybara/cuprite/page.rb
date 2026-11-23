@@ -24,8 +24,6 @@ module Capybara
         pendings = network.traffic.select(&:pending?).map(&:url).compact
         raise PendingConnectionsError.new(combine_url!(url), pendings)
       end
-      alias goto go_to
-      alias go go_to
 
       def set_viewport(width: 0, height: 0, scale_factor: @options.scale_factor, mobile: @options.mobile)
         super

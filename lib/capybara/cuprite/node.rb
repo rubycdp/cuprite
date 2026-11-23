@@ -295,7 +295,7 @@ module Capybara
         delay, scroll, html5, drop_offset = options.values_at(:delay, :scroll, :html5, :drop_offset)
         browser.execute("_cuprite.dragMousedownTracker()")
 
-        node.scroll_into_view if scroll
+        node.scroll if scroll
         x1, y1 = node.find_position
 
         browser.mouse.move(x: x1, y: y1)
@@ -309,7 +309,7 @@ module Capybara
           driver.evaluate_async_script(DRAG_HTML5_JS, node, other, (delay || 0.05) * 1000, keys, drop_offset)
           browser.mouse.up
         else
-          other.scroll_into_view if scroll
+          other.scroll if scroll
           x2, y2 = other.find_position(**drop_offset.to_h)
 
           browser.keyboard.hold(*modifiers) { browser.mouse.move(x: x2, y: y2, steps: options[:steps]).up }
