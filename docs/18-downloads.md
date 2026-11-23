@@ -8,12 +8,15 @@ Files are saved to `Capybara.save_path`, or to the `:save_path` driver option
 if given. `page.driver.browser.downloads` is Ferrum's
 [downloads](/docs/ferrum/downloads) object for the current page.
 
-#### wait(timeout = 5)
+#### await_download(timeout: 5) { ... }
 
-Waits until the current download is finished. Pass a block that starts it.
+Runs the block and waits until the download it starts is finished. Returns the
+file information, or `nil` if it doesn't finish within 5 seconds, pass
+`timeout:` to change it. `await_download!` raises `Ferrum::TimeoutError` instead.
 
 ```ruby
-page.driver.browser.downloads.wait { click_link "Export" }
+page.driver.browser.await_download { click_link "Export" }
+# => {"url"=>"http://127.0.0.1/export.csv", "suggestedFilename"=>"export.csv", "state"=>"completed", ...}
 ```
 
 #### files : `Array<Hash>`

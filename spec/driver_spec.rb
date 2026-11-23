@@ -175,9 +175,8 @@ describe Capybara::Cuprite::Driver do
     end
 
     it "saves downloads to Capybara.save_path by default" do
-      @driver.browser.downloads.wait { @session.visit("/cuprite/attachment.txt") }
+      file = @driver.browser.await_download! { @session.visit("/cuprite/attachment.txt") }
 
-      file = @driver.browser.downloads.files.last
       expect(file["suggestedFilename"]).to eq("attachment.txt")
       expect(file["state"]).to eq("completed")
       expect(File.read(File.join(Capybara.save_path, "attachment.txt"))).to eq("attachment contents")
@@ -353,7 +352,7 @@ describe Capybara::Cuprite::Driver do
     end
 
     it "forgets downloaded files" do
-      @driver.browser.downloads.wait { @session.visit("/cuprite/attachment.txt") }
+      @driver.browser.await_download! { @session.visit("/cuprite/attachment.txt") }
       @driver.reset!
 
       expect(@driver.browser.downloads.files).to be_empty

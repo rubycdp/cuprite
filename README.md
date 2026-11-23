@@ -167,13 +167,13 @@ first_exchange = network_traffic.first
 response = first_exchange.response
 ```
 
-* `page.driver.browser.network.wait_for_idle` Natively waits for network idle
-and returns `false` if there are still active connections after timeout.
+* `page.driver.browser.network.wait_idle` Natively waits for network idle
+and returns `nil` if there are still active connections after timeout.
 Accepts the same options as
-[`wait_for_idle`](https://github.com/rubycdp/ferrum#wait_for_idleoptions)
+[`wait_idle`](https://docs.rubycdp.com/docs/ferrum/network)
 
 ```ruby
-page.driver.browser.network.wait_for_idle
+page.driver.browser.network.wait_idle
 page.driver.refresh
 ```
 
@@ -181,13 +181,15 @@ Please note that network traffic is not cleared when you visit new page. You can
 manually clear the network traffic by calling
 `page.driver.browser.network.clear(:traffic)` or `page.driver.reset!`
 
-* `page.driver.browser.wait_for_reload` unlike `network.wait_for_idle` will wait until
-the whole page is reloaded or the timeout passes. It's useful when you know
-that for example after clicking autocomplete suggestion you expect page to be
-reloaded, you have a few choices - put sleep or wait for network idle, but both
-are bad. Sleep makes you wait longer or less than needed, network idle can
-return earlier even before the whole page is started to reload. Here's the
-rescue.
+* `page.driver.browser.await_navigation { ... }` unlike `network.wait_idle` runs
+the block and waits until the page it reloads or navigates to is loaded, or the
+timeout passes. It's useful when you know that for example clicking an
+autocomplete suggestion reloads the page. Sleep makes you wait longer or less
+than needed, and network idle can return before the page even started to reload.
+
+```ruby
+page.driver.browser.await_navigation { find(".suggestion").click }
+```
 
 
 ## Manipulating cookies

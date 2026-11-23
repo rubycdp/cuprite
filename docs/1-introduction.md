@@ -81,7 +81,7 @@ Capybara has no API for what you need:
 browser = page.driver.browser
 browser.network.emulate(accept_language: "de")
 browser.cookies.set(name: "stealth", value: "omg")
-browser.network.wait_for_idle
+browser.network.wait_idle
 browser.network.traffic.last.response.status # => 200
 browser.mouse.move(x: 123, y: 456).down.up
 browser.screenshot(format: :jpeg, quality: 60)

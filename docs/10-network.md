@@ -23,19 +23,20 @@ traffic.select(&:blocked?)
 page.driver.browser.network.clear(:traffic)
 ```
 
-#### wait_for_idle(\*\*options) : `Boolean`
+#### wait_idle(\*\*options) : `true` | `nil`
 
 Waits until there are no active connections. Returns `true` on success and
-`false` if there are still connections after timeout.
+`nil` if there are still connections after timeout. `wait_idle!` raises
+`Ferrum::TimeoutError` instead.
 
 * options `Hash`
   * :connections `Integer` how many connections are allowed for network to be idling, `0` by default
-  * :duration `Float` sleep for given amount of time and check again, `0.05` by default
+  * :interval `Float` sleep for given amount of time and check again, `0.05` by default
   * :timeout `Float` during what time we try to check idle, `browser.timeout` by default
 
 ```ruby
 click_button "Save"
-page.driver.browser.network.wait_for_idle
+page.driver.browser.network.wait_idle
 ```
 
 #### clear(:cache)
@@ -46,17 +47,18 @@ Clears the browser cache.
 page.driver.browser.network.clear(:cache)
 ```
 
-#### wait_for_reload(timeout = 1)
+#### await_navigation(\*\*options) { ... }
 
-Ferrum's `browser.wait_for_reload`, unlike `network.wait_for_idle`, waits until
-the whole page is reloaded, or `timeout` seconds pass. Useful
-when you know an action, like choosing an autocomplete suggestion, reloads the
-page. Sleep makes you wait longer or less than needed, and network idle can
-return before the page even started to reload.
+Ferrum's `browser.await_navigation`, unlike `network.wait_idle`, runs the block
+and waits until the page it reloads or navigates to is loaded. Returns `true`,
+or `nil` if it doesn't load within `timeout:`, `browser.timeout` by default.
+`await_navigation!` raises `Ferrum::TimeoutError` instead. Useful when you know
+an action, like choosing an autocomplete suggestion, reloads the page. Sleep
+makes you wait longer or less than needed, and network idle can return before
+the page even started to reload.
 
 ```ruby
-find(".suggestion").click
-page.driver.browser.wait_for_reload
+page.driver.browser.await_navigation { find(".suggestion").click }
 ```
 
 #### status_code : `Integer`
