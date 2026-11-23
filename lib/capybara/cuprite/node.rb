@@ -133,15 +133,15 @@ module Capybara
       end
 
       def click(keys = [], **options)
-        prepare_and_click(:left, __method__, keys, options)
+        prepare_and_click(__method__, keys, options)
       end
 
       def right_click(keys = [], **options)
-        prepare_and_click(:right, __method__, keys, options)
+        prepare_and_click(__method__, keys, options, button: :right)
       end
 
       def double_click(keys = [], **options)
-        prepare_and_click(:double, __method__, keys, options)
+        prepare_and_click(__method__, keys, options, count: 2)
       end
 
       def hover
@@ -210,7 +210,7 @@ module Capybara
         command do
           unless node.evaluate("_cuprite.containsSelection(this) || _cuprite.hasFocus(this)")
             before_click("click")
-            node.click(mode: :left, keys: keys)
+            node.click
           end
 
           driver.browser.keyboard.type(keys)
@@ -254,12 +254,12 @@ module Capybara
         raise ObsoleteNode.new(self, e.response)
       end
 
-      def prepare_and_click(mode, name, keys, options)
+      def prepare_and_click(name, keys, options, **click)
         delay = options[:delay].to_i
         x, y = options.values_at(:x, :y)
         offset = { x: x, y: y, position: options[:offset] || :top }
         command { before_click(name, offset) }
-        node.click(mode: mode, keys: keys, offset: offset, delay: delay)
+        node.click(modifiers: keys, offset: offset, delay: delay, **click)
       end
 
       def js(function, *args)
