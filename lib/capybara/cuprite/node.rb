@@ -180,7 +180,7 @@ module Capybara
         command do
           next js(:trigger, event.to_s) unless event.to_s == "click" && TRIGGER_CLICK_WAIT.positive?
 
-          driver.browser.wait_for_navigation!(TRIGGER_CLICK_WAIT) { js(:trigger, "click") }
+          driver.browser.await_navigation!(watch: TRIGGER_CLICK_WAIT) { js(:trigger, "click") }
         end
       end
 
