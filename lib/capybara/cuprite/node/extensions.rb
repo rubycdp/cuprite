@@ -14,7 +14,7 @@ module Capybara
 
             sleep delay if delay
 
-            mouse.scroll_by(x, y) if scroll
+            mouse.scroll_by(x: x, y: y) if scroll
 
             x2, y2 = node.find_position
             mouse.move(x: x2 + x, y: y2 + y, steps: steps)
