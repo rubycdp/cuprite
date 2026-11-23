@@ -33,6 +33,6 @@ For more control use [Ferrum's mouse and keyboard](/docs/ferrum/mouse-keyboard):
 browser = page.driver.browser
 browser.mouse.click(x: 100, y: 200)
 browser.mouse.move(x: 123, y: 456).down.up
-browser.mouse.scroll_by(0, 400)
+browser.mouse.scroll_by(y: 400)
 browser.keyboard.type("text", :Enter)
 ```
