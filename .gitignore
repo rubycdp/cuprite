@@ -1,6 +1,7 @@
 .byebug_history
 Gemfile.*
-tmp
+/tmp
+/spec/tmp
 doc
 pkg
 .idea
