@@ -15,10 +15,7 @@ module Capybara
       TRIGGER_CLICK_WAIT = ENV.fetch("CUPRITE_TRIGGER_CLICK_WAIT", 0.1).to_f
       TYPED_INPUTS = %w[text password email search tel url].freeze
       RAPID_SET_LENGTH = 30
-      RAPID_APPEND_TEXT = <<~JS
-        let appended = this.value + value;
-        this.value = this.maxLength >= 0 ? appended.slice(0, this.maxLength) : appended;
-      JS
+      RAPID_APPEND_TEXT = "this.value = (this.value + value).slice(0, this.maxLength >= 0 ? this.maxLength : undefined)"
 
       def initialize(driver, node, initial_cache = {})
         super(driver, self, initial_cache)
@@ -260,7 +257,13 @@ module Capybara
         else
           node.type(value)
         end
+        refocus
+      end
+
+      def refocus
         node.evaluate("this.blur(); this.focus()")
+      rescue Ferrum::NodeNotFoundError
+        nil
       end
 
       def find(method, selector, **hints)
