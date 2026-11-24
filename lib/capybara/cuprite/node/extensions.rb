@@ -8,7 +8,7 @@ module Capybara
           mouse = driver.browser.mouse
 
           command do
-            x1, y1 = node.find_position
+            x1, y1 = node.pinpoint
             mouse.move(x: x1, y: y1)
             mouse.down
 
@@ -16,7 +16,7 @@ module Capybara
 
             mouse.scroll_by(x: x, y: y) if scroll
 
-            x2, y2 = node.find_position
+            x2, y2 = node.pinpoint
             mouse.move(x: x2 + x, y: y2 + y, steps: steps)
             mouse.up
           end

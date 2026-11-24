@@ -147,7 +147,7 @@ module Capybara
       def hover
         command do
           js(:scrollIntoViewport)
-          x, y = find_position
+          x, y = pinpoint
           driver.browser.page.command("Input.dispatchMouseEvent", type: "mouseMoved", x: x, y: y)
         end
       end
@@ -257,7 +257,7 @@ module Capybara
       def prepare_and_click(name, keys, options, **click)
         delay = options[:delay].to_i
         x, y = options.values_at(:x, :y)
-        offset = { x: x, y: y, position: options[:offset] || :top }
+        offset = x && y ? { x: x, y: y, position: options[:offset] || :top } : {}
         command { before_click(name, offset) }
         node.click(modifiers: keys, offset: offset, delay: delay, **click)
       end
@@ -271,9 +271,9 @@ module Capybara
 
         # If offset is given it may go outside of the element and likely error
         # will be raised that we detected another element at this position.
-        return if offset[:x] || offset[:y]
+        return if offset.any?
 
-        x, y = find_position(**offset)
+        x, y = pinpoint
         js(:mouseEventTest, name.to_s, x, y)
       rescue Ferrum::JavaScriptError => e
         raise MouseEventFailed, e.message if e.class_name == "MouseEventFailed"
@@ -282,8 +282,8 @@ module Capybara
         raise
       end
 
-      def find_position(**options)
-        node.find_position(**options)
+      def pinpoint(**options)
+        node.pinpoint(**options)
       rescue Ferrum::BrowserError => e
         raise MouseEventFailed, "MouseEventFailed: click, none, 0, 0" if e.message == "Could not compute content quads."
 
@@ -296,7 +296,7 @@ module Capybara
         browser.execute("_cuprite.dragMousedownTracker()")
 
         node.scroll if scroll
-        x1, y1 = node.find_position
+        x1, y1 = node.pinpoint
 
         browser.mouse.move(x: x1, y: y1)
         browser.mouse.down
@@ -310,7 +310,7 @@ module Capybara
           browser.mouse.up
         else
           other.scroll if scroll
-          x2, y2 = other.find_position(**drop_offset.to_h)
+          x2, y2 = other.pinpoint(**drop_offset.to_h)
 
           browser.keyboard.hold(*modifiers) { browser.mouse.move(x: x2, y: y2, steps: options[:steps]).up }
         end
