@@ -250,9 +250,10 @@ module Capybara
         value = value.gsub(/\r\n?|\n/, "\r")
         node.focus
         node.evaluate("this.select()")
-        if rapid == true || (value.length > RAPID_SET_LENGTH && rapid != false)
+        middle = value[4...-3].to_s
+        if !middle.empty? && (rapid == true || (value.length > RAPID_SET_LENGTH && rapid != false))
           node.type(value[0..3])
-          node.evaluate(RAPID_APPEND_TEXT, value: value[4...-3])
+          node.evaluate(RAPID_APPEND_TEXT, value: middle)
           node.type(value[-3..])
         else
           node.type(value)

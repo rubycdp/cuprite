@@ -459,6 +459,24 @@ describe Capybara::Cuprite::Node do
         expect(element.value).to eq("100")
       end
 
+      it "sets a value over 30 characters in full" do
+        element = @session.find(:css, "#change_me")
+        element.set(("a".."z").to_a.join * 2)
+        expect(element.value).to eq(("a".."z").to_a.join * 2)
+      end
+
+      it "sets a short value in full with rapid: true" do
+        element = @session.find(:css, "#change_me")
+        element.set("Hello", rapid: true)
+        expect(element.value).to eq("Hello")
+      end
+
+      it "cuts a value set with rapid: true at maxlength" do
+        element = @session.find(:css, "#change_me_maxlength")
+        element.set(("a".."z").to_a.join * 2, rapid: true)
+        expect(element.value).to eq((("a".."z").to_a.join * 2)[0, 30])
+      end
+
       it "accepts negatives in a number field" do
         element = @session.find(:css, "#change_me_number")
         element.set(-100)
