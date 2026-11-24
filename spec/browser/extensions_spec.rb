@@ -24,6 +24,11 @@ describe Capybara::Cuprite::Browser::Extensions do
       end
     end
 
+    it "raises for a string pattern" do
+      expect { @driver.browser.url_blacklist = ["*unwanted*"] }
+        .to raise_error(ArgumentError, 'url_blacklist/url_whitelist take regexps, got "*unwanted*"')
+    end
+
     it "blocks urls matching a regexp" do
       @driver.browser.url_blacklist = /.*wanted/
 

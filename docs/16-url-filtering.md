@@ -31,8 +31,7 @@ If both lists are set, the blocklist takes precedence. Blocked requests can be
 inspected with `page.driver.browser.network.traffic.select(&:blocked?)`.
 
 `url_blacklist=` and `url_whitelist=` setters continue to work for legacy support.
-Passing strings instead of regexes is deprecated, `*` is treated as a wildcard
-in that case.
+Both take regexes only, a string raises `ArgumentError`.
 
 If you are experiencing slower run times, consider creating an allowlist of
 domains that are essential or a blocklist of domains that are not, such as ad

@@ -36,6 +36,7 @@
 
 ### Removed
 - Methods deprecated in 0.20, see its Deprecated section for replacements
+- String patterns for `url_blacklist`/`url_whitelist`, deprecated in 0.15, raise `ArgumentError`, pass regexps
 
 
 ## [0.20.1](https://github.com/rubycdp/cuprite/compare/v0.20...v0.20.1) ##
