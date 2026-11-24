@@ -58,6 +58,15 @@ describe Capybara::Cuprite::Driver do
         expect(@driver.html).to include("DV: hello")
         expect(@session.evaluate_script("navigator.userAgent")).to start_with("Mozilla/5.0 (iPhone;")
       end
+
+      it "keeps the device user agent when Ferrum's emulate overrides are cleared" do
+        @driver.browser.network.emulate(accept_language: "de-DE")
+        @driver.browser.network.emulate(accept_language: nil)
+        @session.visit("/cuprite/headers")
+
+        expect(@driver.html).to include("USER_AGENT: Mozilla/5.0 (iPhone; CPU iPhone OS")
+        expect(@session.evaluate_script("navigator.userAgent")).to start_with("Mozilla/5.0 (iPhone;")
+      end
     end
 
     context "with emulate: and explicit options" do
