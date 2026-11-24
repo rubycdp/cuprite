@@ -15,8 +15,8 @@ module Capybara
         @options.raise_on_js_errors = options&.dig(:js_errors)
         @options.raise_on_pending_connections = options.nil? || options.fetch(:pending_connection_errors, true)
         @options.raise_on_unhandled_modal = options&.dig(:raise_on_unhandled_modal)
-        @options.url_blacklist = prepare_wildcards(options&.dig(:url_blacklist))
-        @options.url_whitelist = prepare_wildcards(options&.dig(:url_whitelist))
+        @options.url_blacklist = regexp_patterns(options&.dig(:url_blacklist))
+        @options.url_whitelist = regexp_patterns(options&.dig(:url_whitelist))
 
         @page = nil
       end

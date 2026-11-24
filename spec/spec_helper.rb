@@ -49,7 +49,9 @@ RSpec.configure do |config|
   config.define_derived_metadata do |metadata|
     regexes = <<~REGEXP.split("\n").map { |s| Regexp.quote(s.strip) }.join("|")
       #has_field with valid should be false if field is invalid
-      #has_element? should be true if the given element is on the page
+    REGEXP
+
+    hash_inspect = <<~REGEXP.split("\n").map { |s| Regexp.quote(s.strip) }.join("|")
       #assert_matches_style should raise error if the elements style doesn't contain the given properties
       #has_css? :style option should support Hash
     REGEXP
@@ -69,6 +71,9 @@ RSpec.configure do |config|
     metadata[:skip] = "Intentionally skipped" if metadata[:full_description].match(/#{intentional_skip}/)
     if metadata[:full_description].match(/#{browser_behavior}/)
       metadata[:skip] = "Expects behavior browsers don't have, e.g. dragleave together with drop"
+    end
+    if Gem::Version.new(RUBY_VERSION) >= Gem::Version.new("3.4") && metadata[:full_description].match(/#{hash_inspect}/)
+      metadata[:skip] = "Capybara 3.40 expects the pre-Ruby 3.4 Hash#inspect format"
     end
   end
 
