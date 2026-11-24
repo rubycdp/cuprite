@@ -46,7 +46,7 @@ module Capybara
 
         width, height = @options.window_size
         width && height ? resize(width: width, height: height) : set_viewport
-        command("Network.setUserAgentOverride", userAgent: default_user_agent) if @options.device_user_agent
+        network.emulate(user_agent: default_user_agent) if @options.device_user_agent
 
         if @options.url_blacklist.any?
           network.blacklist = @options.url_blacklist
