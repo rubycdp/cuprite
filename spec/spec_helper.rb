@@ -47,10 +47,6 @@ end
 
 RSpec.configure do |config|
   config.define_derived_metadata do |metadata|
-    regexes = <<~REGEXP.split("\n").map { |s| Regexp.quote(s.strip) }.join("|")
-      #has_field with valid should be false if field is invalid
-    REGEXP
-
     hash_inspect = <<~REGEXP.split("\n").map { |s| Regexp.quote(s.strip) }.join("|")
       #assert_matches_style should raise error if the elements style doesn't contain the given properties
       #has_css? :style option should support Hash
@@ -59,15 +55,12 @@ RSpec.configure do |config|
     # These are tests that are currently skipped intentionally, as they don't even work in capybara.
     intentional_skip = <<~REGEXP.split("\n").map { |s| Regexp.quote(s.strip) }.join("|")
       Capybara::Session Cuprite #reset_session! closes extra windows
-      #fill_in should handle carriage returns with line feeds in a textarea correctly
-      node #set should submit single text input forms if ended with
     REGEXP
 
     browser_behavior = <<~REGEXP.split("\n").map { |s| Regexp.quote(s.strip) }.join("|")
       #drag_to HTML5 should preserve clientX/Y from last dragover event
     REGEXP
 
-    metadata[:skip] = true if metadata[:full_description].match(/#{regexes}/)
     metadata[:skip] = "Intentionally skipped" if metadata[:full_description].match(/#{intentional_skip}/)
     if metadata[:full_description].match(/#{browser_behavior}/)
       metadata[:skip] = "Expects behavior browsers don't have, e.g. dragleave together with drop"

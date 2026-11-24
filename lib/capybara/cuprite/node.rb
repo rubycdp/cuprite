@@ -13,6 +13,9 @@ module Capybara
       DRAG_MODIFIER_ALIASES = { control: :ctrl, command: :meta, cmd: :meta }.freeze
       DRAG_HTML5_JS = File.read(File.expand_path("javascripts/drag.js", __dir__))
       TRIGGER_CLICK_WAIT = ENV.fetch("CUPRITE_TRIGGER_CLICK_WAIT", 0.1).to_f
+      TYPED_INPUTS = %w[text password email search tel url].freeze
+      RAPID_SET_LENGTH = 30
+      RAPID_APPEND_TEXT = "this.value = (this.value + value).slice(0, this.maxLength >= 0 ? this.maxLength : undefined)"
 
       def initialize(driver, node, initial_cache = {})
         super(driver, self, initial_cache)
@@ -62,10 +65,10 @@ module Capybara
       end
 
       def set(value, options = {}) # rubocop:disable Metrics/CyclomaticComplexity, Metrics/PerceivedComplexity, Metrics/AbcSize
-        warn "Options passed to Node#set but Cuprite doesn't currently support any - ignoring" unless options.empty?
-
         if tag_name == "input"
           case self[:type]
+          when *TYPED_INPUTS
+            set_text(value.to_s, **options)
           when "radio"
             click
           when "checkbox"
@@ -96,7 +99,7 @@ module Capybara
             command(:set, value.to_s)
           end
         elsif tag_name == "textarea"
-          command(:set, value.to_s)
+          set_text(value.to_s, **options)
         elsif self[:isContentEditable]
           command(:deleteText)
           click.type(value.to_s)
@@ -239,6 +242,30 @@ module Capybara
       end
 
       private
+
+      def set_text(value, rapid: nil, **)
+        return command(:set, value) if value.empty?
+        return if command { node.evaluate("this.readOnly || this.disabled") }
+
+        value = value.gsub(/\r\n?|\n/, "\r")
+        node.focus
+        node.evaluate("this.select()")
+        middle = value[4...-3].to_s
+        if !middle.empty? && (rapid == true || (value.length > RAPID_SET_LENGTH && rapid != false))
+          node.type(value[0..3])
+          node.evaluate(RAPID_APPEND_TEXT, value: middle)
+          node.type(value[-3..])
+        else
+          node.type(value)
+        end
+        refocus
+      end
+
+      def refocus
+        node.evaluate("this.blur(); this.focus()")
+      rescue Ferrum::NodeNotFoundError
+        nil
+      end
 
       def find(method, selector, **hints)
         command { Finder.find(driver.browser, method, selector, node, **hints) }.map do |native, cache|
