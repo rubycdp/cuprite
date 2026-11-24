@@ -5,6 +5,8 @@
 - `:url_blocklist` and `:url_allowlist` driver options as aliases for `:url_blacklist` and `:url_whitelist` [#330]
 
 ### Changed
+- Text inputs and textareas are filled with real key presses like Selenium, values over 30 characters type the first 4
+  and last 3 and set the rest from JS. `minlength` validates, `\n` submits a single-input form, and `rapid:` is supported
 - `CUPRITE_DEBUG` is renamed to `CUPRITE_LOG`, which takes `FERRUM_LOG` values and passes them on, `CUPRITE_DEBUG` is
   deprecated and acts as `CUPRITE_LOG=*`. `FERRUM_DEBUG` is deprecated in Ferrum 0.21
 - Clicks, hovers and drags find their point with Ferrum's `node.pinpoint` instead of `find_position`, deprecated in
