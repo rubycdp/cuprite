@@ -40,11 +40,15 @@ Capybara::Cuprite::Driver.new(app, headless: false, slowmo: 0.5)
 
 ## Logging
 
-Set `CUPRITE_DEBUG` to print all CDP messages exchanged with the browser:
+Set `CUPRITE_LOG=*` to print all CDP messages exchanged with the browser and Chrome's output:
 
 ```bash
-CUPRITE_DEBUG=true bundle exec rspec
+CUPRITE_LOG=* bundle exec rspec
 ```
+
+`CUPRITE_LOG` takes the same values as Ferrum's
+[`FERRUM_LOG`](https://github.com/rubycdp/ferrum/blob/main/docs/2-customization.md), e.g. `CUPRITE_LOG=*,-browser`
+leaves out Chrome's output. A `FERRUM_LOG` already set wins.
 
 Or pass a logger object responding to `puts`:
 

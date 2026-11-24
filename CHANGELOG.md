@@ -5,6 +5,8 @@
 - `:url_blocklist` and `:url_allowlist` driver options as aliases for `:url_blacklist` and `:url_whitelist` [#330]
 
 ### Changed
+- `CUPRITE_DEBUG` is renamed to `CUPRITE_LOG`, which takes `FERRUM_LOG` values and passes them on, `CUPRITE_DEBUG` is
+  deprecated and acts as `CUPRITE_LOG=*`. `FERRUM_DEBUG` is deprecated in Ferrum 0.21
 - Clicks, hovers and drags find their point with Ferrum's `node.pinpoint` instead of `find_position`, deprecated in
   Ferrum 0.21, and a click passes an offset only when Capybara gives `x` and `y` [rubycdp/ferrum#726]
 - Calls Ferrum's `go_to` and `node.scroll` instead of `goto` and `scroll_into_view`, deprecated in Ferrum 0.21, and
