@@ -1,0 +1,7 @@
+module Capybara
+  module Cuprite
+    module Finder
+      def self?.find: (Browser browser, Symbol method, String selector, ?Ferrum::Node? within, **untyped hints) -> Array[[Ferrum::Node, Hash[Symbol, untyped]]]
+    end
+  end
+end

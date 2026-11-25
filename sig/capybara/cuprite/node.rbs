@@ -1,0 +1,110 @@
+module Capybara
+  module Cuprite
+    class Node < Capybara::Driver::Node
+      include Extensions
+
+      DRAG_MODIFIER_ALIASES: Hash[Symbol, Symbol]
+      DRAG_HTML5_JS: String
+      TRIGGER_CLICK_WAIT: Float
+      TYPED_INPUTS: Array[String]
+      RAPID_SET_LENGTH: Integer
+      RAPID_APPEND_TEXT: String
+
+      attr_reader node: Ferrum::Node
+
+      @tag_name: String?
+
+      def initialize: (Driver driver, Ferrum::Node node, ?Hash[Symbol, untyped] initial_cache) -> void
+
+      def find_xpath: (String selector, **untyped hints) -> Array[Node]
+
+      def find_css: (String selector, **untyped hints) -> Array[Node]
+
+      def all_text: () -> String
+
+      def visible_text: () -> String
+
+      def []: (String | Symbol name) -> untyped
+
+      def value: () -> untyped
+
+      def set: (untyped value, ?Hash[Symbol, untyped] options) -> untyped
+
+      def select_option: () -> untyped
+
+      def unselect_option: () -> untyped
+
+      def tag_name: () -> String
+
+      def visible?: () -> bool
+
+      def checked?: () -> bool
+
+      def selected?: () -> bool
+
+      def disabled?: () -> bool
+
+      def click: (?Array[Symbol] keys, **untyped options) -> untyped
+
+      def right_click: (?Array[Symbol] keys, **untyped options) -> untyped
+
+      def double_click: (?Array[Symbol] keys, **untyped options) -> untyped
+
+      def hover: () -> untyped
+
+      def drag_to: (Node other, **untyped options) -> untyped
+
+      def drop: (*untyped args) -> untyped
+
+      def trigger: (String | Symbol event) -> untyped
+
+      def scroll_to: (Node? element, Symbol? location, ?[Numeric, Numeric]? position) -> self
+
+      def scroll_by: (Numeric x, Numeric y) -> untyped
+
+      def ==: (untyped other) -> bool
+
+      def send_keys: (*untyped keys) -> untyped
+
+      def path: () -> String
+
+      def obscured?: () -> bool
+
+      def shadow_root: () -> Node?
+
+      def rect: () -> Hash[String, Numeric]
+
+      def inspect: () -> String
+
+      private
+
+      def set_text: (String value, ?rapid: bool?, **untyped) -> untyped
+
+      def refocus: () -> untyped
+
+      def find: (Symbol method, String selector, **untyped hints) -> Array[Node]
+
+      def command: (?(Symbol | String)? function, *untyped args) ?{ () -> untyped } -> untyped
+
+      def prepare_and_click: (Symbol name, Array[Symbol] keys, Hash[Symbol, untyped] options, **untyped click) -> untyped
+
+      def js: ((Symbol | String)? function, *untyped args) -> untyped
+
+      def before_click: (Symbol | String name, ?Hash[Symbol, untyped] offset) -> untyped
+
+      def pinpoint: (**untyped options) -> [Numeric, Numeric]
+
+      def drag: (Ferrum::Node other, Array[Symbol] modifiers, Hash[Symbol, untyped] options) -> untyped
+
+      def drop_offset: (Numeric? x, Numeric? y, (String | Symbol)? position) -> { x: Numeric, y: Numeric?, position: Symbol }?
+
+      def filter_text: (String text) -> String
+
+      def scroll_element_to_location: (Node element, Symbol location) -> untyped
+
+      def scroll_to_location: (Symbol location) -> untyped
+
+      def scroll_to_coords: (Numeric x, Numeric y) -> untyped
+    end
+  end
+end

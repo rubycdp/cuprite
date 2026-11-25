@@ -1,0 +1,67 @@
+module Ferrum
+  class Error < StandardError
+  end
+
+  class StatusError < Error
+  end
+
+  class NoSuchTargetError < Error
+  end
+
+  class NoSuchPageError < NoSuchTargetError
+  end
+
+  class DeadBrowserError < Error
+  end
+
+  class CoordinatesNotFoundError < Error
+  end
+
+  class BrowserError < Error
+    def response: () -> untyped
+  end
+
+  class NodeNotFoundError < BrowserError
+  end
+
+  class NoExecutionContextError < BrowserError
+  end
+
+  class JavaScriptError < BrowserError
+    def class_name: () -> String?
+  end
+
+  class Browser
+    class Options
+      @options: Hash[Symbol, untyped]
+      @window_size: [Integer, Integer]?
+      @default_user_agent: String?
+
+      def window_size: () -> [Integer, Integer]?
+    end
+
+    @options: Options
+    @client: untyped
+
+    def initialize: (?Hash[Symbol, untyped]? options) -> void
+  end
+
+  class Page
+    @options: Browser::Options
+    @frames: Hash[String, Frame]
+
+    def initialize: (*untyped, **untyped) -> void
+  end
+
+  class Frame
+  end
+
+  class Node
+  end
+
+  class Target
+  end
+
+  class Dialog
+  end
+end

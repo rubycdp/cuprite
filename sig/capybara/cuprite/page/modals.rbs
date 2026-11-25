@@ -1,0 +1,38 @@
+module Capybara
+  module Cuprite
+    class Page < Ferrum::Page
+      module Modals : Ferrum::Page
+        MODAL_WAIT: Float
+
+        @accept_modal: Array[bool]
+        @modal_messages: Array[String?]
+        @modal_response: String?
+        @unhandled_modal_error: UnhandledModalError?
+
+        def initialize: (*untyped, **untyped) -> void
+
+        def command: (*untyped, **untyped) -> Hash[String, untyped]
+
+        def accept_confirm: () -> Array[bool]
+
+        def dismiss_confirm: () -> Array[bool]
+
+        def accept_prompt: (String? modal_response) -> String?
+
+        def dismiss_prompt: () -> Array[bool]
+
+        def find_modal: (Hash[Symbol, untyped] options) -> String
+
+        private
+
+        def raise_pending_unhandled_modal_error!: [T] () { () -> T } -> T
+
+        def prepare_page: () -> void
+
+        def handle_dialog: (Ferrum::Dialog dialog) -> untyped
+
+        def answer_dialog: (Ferrum::Dialog dialog, bool accept, String? response) -> untyped
+      end
+    end
+  end
+end

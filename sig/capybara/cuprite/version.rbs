@@ -1,0 +1,5 @@
+module Capybara
+  module Cuprite
+    VERSION: String
+  end
+end

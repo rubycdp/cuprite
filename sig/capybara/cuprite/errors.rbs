@@ -1,0 +1,60 @@
+module Capybara
+  module Cuprite
+    class Error < StandardError
+    end
+
+    class ClientError < Error
+      attr_reader response: untyped
+
+      def initialize: (untyped response) -> void
+    end
+
+    class InvalidSelector < ClientError
+      @method: Symbol
+      @selector: String
+
+      def initialize: (untyped response, Symbol method, String selector) -> void
+
+      def message: () -> String
+    end
+
+    class MouseEventFailed < ClientError
+      attr_reader name: String?
+      attr_reader selector: String?
+      attr_reader position: Array[Float]
+
+      def initialize: (untyped response) -> void
+
+      def message: () -> String
+    end
+
+    class UnhandledModalError < Error
+      attr_reader message: String
+
+      def initialize: (String message) -> void
+    end
+
+    FERRUM_PENDING_CONNECTIONS_ERROR: bool
+
+    class PendingConnectionsError < Ferrum::StatusError
+      attr_reader url: String
+      attr_reader pendings: Array[String]
+
+      def initialize: (String url, ?Array[String] pendings) -> void
+
+      def message: () -> String
+    end
+
+    module DeprecatedPendingConnectionsError : Module
+      def ===: (untyped other) -> bool
+    end
+
+    class ObsoleteNode < ClientError
+      attr_reader node: Node
+
+      def initialize: (Node node, untyped response) -> void
+
+      def message: () -> String
+    end
+  end
+end

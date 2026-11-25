@@ -1,0 +1,18 @@
+module Capybara
+  module Cuprite
+    module Finder
+      class Hints
+        @visible: bool
+        @texts: Array[String]
+        @styles: Array[String]?
+        @position: bool
+
+        def initialize: (?uses_visibility: bool, ?texts: Array[String], ?styles: Hash[untyped, untyped]?, ?position: bool, **untyped) -> void
+
+        def to_h: () -> { visible: bool, texts: Array[String], styles: Array[String]?, position: bool }
+
+        def caches: (Integer count, Array[Integer]? hidden, Hash[String, Array[String]]? style, Array[Hash[String, untyped]]? position, Array[Array[String]]? texts) -> Array[Hash[Symbol, untyped]]
+      end
+    end
+  end
+end

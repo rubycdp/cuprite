@@ -1,0 +1,113 @@
+module Capybara
+  module Cuprite
+    class Driver < Capybara::Driver::Base
+      extend Forwardable
+      include Extensions
+
+      DEFAULT_MAXIMIZE_SCREEN_SIZE: [Integer, Integer]
+      EXTENSION: String
+      CALLBACK_JS: String
+
+      attr_reader app: untyped
+      attr_reader options: Hash[Symbol, untyped]
+
+      @started: bool
+      @screen_size: [Integer, Integer]
+      @browser: Browser?
+
+      def initialize: (untyped app, ?Hash[Symbol, untyped] options) -> void
+
+      def title: () -> String
+
+      def window_handles: () -> Array[String]
+
+      def current_window_handle: () -> String
+
+      def close_window: (String handle) -> untyped
+
+      def switch_to_window: (String handle) -> untyped
+
+      def refresh: () -> untyped
+
+      def send_keys: (*untyped keys) -> untyped
+
+      def current_url: () -> String
+
+      def html: () -> String
+
+      def go_back: () -> untyped
+
+      def go_forward: () -> untyped
+
+      def needs_server?: () -> true
+
+      def browser: () -> Browser
+
+      def visit: (String url) -> untyped
+
+      def status_code: () -> Integer?
+
+      def frame_url: () -> String
+
+      def frame_title: () -> String
+
+      def active_element: () -> Node
+
+      def find_xpath: (String selector, **untyped hints) -> Array[Node]
+
+      def find_css: (String selector, **untyped hints) -> Array[Node]
+
+      def evaluate_script: (String script, *untyped args) -> untyped
+
+      def evaluate_async_script: (String script, *untyped args) -> untyped
+
+      def execute_script: (String script, *untyped args) -> nil
+
+      def switch_to_frame: (Capybara::Node::Element | Node | :parent | :top locator) -> untyped
+
+      def open_new_window: () -> Page
+
+      def no_such_window_error: () -> singleton(Ferrum::NoSuchPageError)
+
+      def quit: () -> void
+
+      def reset!: () -> void
+
+      def save_screenshot: (String path, ?Hash[Symbol, untyped] options) -> untyped
+
+      def resize_window_to: (String handle, Integer width, Integer height) -> untyped
+
+      def maximize_window: (String handle) -> untyped
+
+      def window_size: (String handle) -> [Integer, Integer]
+
+      def fullscreen_window: (String handle) -> untyped
+
+      def response_headers: () -> Hash[String, String]?
+
+      def wait?: () -> true
+
+      def invalid_element_errors: () -> Array[singleton(StandardError)]
+
+      def accept_modal: (Symbol type, ?Hash[Symbol, untyped] options) ?{ () -> void } -> String?
+
+      def dismiss_modal: (Symbol type, ?Hash[Symbol, untyped] options) ?{ () -> void } -> String?
+
+      private
+
+      attr_reader screen_size: [Integer, Integer]
+
+      def find: (Symbol method, String selector, **untyped hints) -> Array[Node]
+
+      def within_window: [T] (String handle) { () -> T } -> T
+
+      def capybara_base_url: () -> String?
+
+      def native_args: (Array[untyped] args) -> Array[untyped]
+
+      def session_wait_time: () -> Numeric
+
+      def unwrap_script_result: (untyped arg) -> untyped
+    end
+  end
+end

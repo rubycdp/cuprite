@@ -1,0 +1,19 @@
+module Capybara
+  module Cuprite
+    module Devices
+      type device = {
+        window_size: [Integer, Integer],
+        scale_factor: Numeric,
+        mobile: bool,
+        user_agent: String
+      }
+
+      IPHONE_USER_AGENT: String
+      SAMSUNG_GALAXY_S8_PLUS_USER_AGENT: String
+      WINDOWS_USER_AGENT: String
+      LIST: Hash[Symbol, device]
+
+      def self.fetch: (String | Symbol name) -> device
+    end
+  end
+end

@@ -1,0 +1,37 @@
+module Capybara
+  module Cuprite
+    class Page < Ferrum::Page
+      module Frames : Ferrum::Page
+        extend Forwardable
+
+        @frame_stack: Array[String]
+
+        def initialize: (*untyped, **untyped) -> void
+
+        def at_css: (*untyped, **untyped) -> Ferrum::Node?
+
+        def at_xpath: (*untyped, **untyped) -> Ferrum::Node?
+
+        def css: (*untyped, **untyped) -> Array[Ferrum::Node]
+
+        def xpath: (*untyped, **untyped) -> Array[Ferrum::Node]
+
+        def html: () -> String
+
+        def execution_id: () -> Integer?
+
+        def execution_id!: () -> Integer
+
+        def evaluate: (String expression, *untyped args) -> untyped
+
+        def execute: (String expression, *untyped args) -> untyped
+
+        def switch_to_frame: (String | :parent | :top handle) -> untyped
+
+        private
+
+        def active_frame: () -> Ferrum::Frame
+      end
+    end
+  end
+end
