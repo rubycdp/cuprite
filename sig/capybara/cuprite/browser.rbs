@@ -8,7 +8,7 @@ module Capybara
 
       def initialize: (?Hash[Symbol, untyped]? options) -> void
 
-      def command: (*untyped, **untyped) -> Hash[String, untyped]
+      def command: (String method, ?timeout: (Numeric | Ferrum::Deadline)?, **untyped params) -> Hash[String, untyped]
 
       def page: () -> Page
 
@@ -16,7 +16,7 @@ module Capybara
 
       def quit: () -> void
 
-      def resize: (**untyped options) -> untyped
+      def resize: (?width: Integer?, ?height: Integer?, ?fullscreen: bool) -> nil
 
       def current_window_handle: () -> String
 
@@ -24,9 +24,9 @@ module Capybara
 
       def open_new_window: () -> Page
 
-      def switch_to_window: (String target_id) -> untyped
+      def switch_to_window: (String target_id) -> nil
 
-      def close_window: (String target_id) -> untyped
+      def close_window: (String target_id) -> Ferrum::Target?
 
       private
 

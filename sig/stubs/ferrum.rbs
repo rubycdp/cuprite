@@ -53,6 +53,15 @@ module Ferrum
     def initialize: (*untyped, **untyped) -> void
   end
 
+  class Client
+  end
+
+  class SessionClient
+  end
+
+  class Deadline
+  end
+
   class Frame
   end
 

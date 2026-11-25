@@ -6,27 +6,27 @@ module Capybara
 
         @frame_stack: Array[String]
 
-        def initialize: (*untyped, **untyped) -> void
+        def initialize: (Ferrum::Client | Ferrum::SessionClient client, context_id: String?, target_id: String, ?proxy: Hash[Symbol, String | Integer]?) -> void
 
-        def at_css: (*untyped, **untyped) -> Ferrum::Node?
+        def at_css: (String selector, ?within: Ferrum::Node?) -> Ferrum::Node?
 
-        def at_xpath: (*untyped, **untyped) -> Ferrum::Node?
+        def at_xpath: (String selector, ?within: Ferrum::Node?) -> Ferrum::Node?
 
-        def css: (*untyped, **untyped) -> Array[Ferrum::Node]
+        def css: (String selector, ?within: Ferrum::Node?) -> Array[Ferrum::Node]
 
-        def xpath: (*untyped, **untyped) -> Array[Ferrum::Node]
+        def xpath: (String selector, ?within: Ferrum::Node?) -> Array[Ferrum::Node]
 
         def html: () -> String
 
         def execution_id: () -> Integer?
 
-        def execution_id!: () -> Integer
+        def execution_id!: (?Numeric? timeout) -> Integer
 
-        def evaluate: (String expression, *untyped args) -> untyped
+        def evaluate: (String expression, *untyped positional, **untyped keywords) -> untyped
 
-        def execute: (String expression, *untyped args) -> untyped
+        def execute: (String expression, *untyped positional, **untyped keywords) -> nil
 
-        def switch_to_frame: (String | :parent | :top handle) -> untyped
+        def switch_to_frame: (String | :parent | :top handle) -> void
 
         private
 

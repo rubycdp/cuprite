@@ -4,26 +4,28 @@ module Capybara
     end
 
     class ClientError < Error
-      attr_reader response: untyped
+      type response = Hash[String, untyped] | String | nil
 
-      def initialize: (untyped response) -> void
+      attr_reader response: response
+
+      def initialize: (response response) -> void
     end
 
     class InvalidSelector < ClientError
-      @method: Symbol
+      @method: :css | :xpath
       @selector: String
 
-      def initialize: (untyped response, Symbol method, String selector) -> void
+      def initialize: (Hash[String, untyped] response, :css | :xpath method, String selector) -> void
 
       def message: () -> String
     end
 
     class MouseEventFailed < ClientError
-      attr_reader name: String?
-      attr_reader selector: String?
-      attr_reader position: Array[Float]
+      attr_reader name: String
+      attr_reader selector: String
+      attr_reader position: [Float, Float]
 
-      def initialize: (untyped response) -> void
+      def initialize: (String response) -> void
 
       def message: () -> String
     end
@@ -52,7 +54,7 @@ module Capybara
     class ObsoleteNode < ClientError
       attr_reader node: Node
 
-      def initialize: (Node node, untyped response) -> void
+      def initialize: (Node node, Hash[String, untyped]? response) -> void
 
       def message: () -> String
     end

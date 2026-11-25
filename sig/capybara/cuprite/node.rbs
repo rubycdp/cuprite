@@ -3,6 +3,12 @@ module Capybara
     class Node < Capybara::Driver::Node
       include Extensions
 
+      type key = String | Symbol | Array[String | Symbol] | nil
+
+      type drop_item = String | Hash[String | Symbol, String]
+
+      type offset = { x: Numeric, y: Numeric, position: Symbol }
+
       DRAG_MODIFIER_ALIASES: Hash[Symbol, Symbol]
       DRAG_HTML5_JS: String
       TRIGGER_CLICK_WAIT: Float
@@ -14,25 +20,25 @@ module Capybara
 
       @tag_name: String?
 
-      def initialize: (Driver driver, Ferrum::Node node, ?Hash[Symbol, untyped] initial_cache) -> void
+      def initialize: (Driver driver, Ferrum::Node node, ?Finder::Hints::cache initial_cache) -> void
 
-      def find_xpath: (String selector, **untyped hints) -> Array[Node]
+      def find_xpath: (String selector, **Finder::Hints::hint hints) -> Array[Node]
 
-      def find_css: (String selector, **untyped hints) -> Array[Node]
+      def find_css: (String selector, **Finder::Hints::hint hints) -> Array[Node]
 
       def all_text: () -> String
 
       def visible_text: () -> String
 
-      def []: (String | Symbol name) -> untyped
+      def []: (String | Symbol name) -> (String | Numeric | bool)?
 
-      def value: () -> untyped
+      def value: () -> (String | Array[String])?
 
-      def set: (untyped value, ?Hash[Symbol, untyped] options) -> untyped
+      def set: (untyped value, ?Hash[Symbol, untyped] options) -> void
 
-      def select_option: () -> untyped
+      def select_option: () -> bool
 
-      def unselect_option: () -> untyped
+      def unselect_option: () -> true
 
       def tag_name: () -> String
 
@@ -44,27 +50,27 @@ module Capybara
 
       def disabled?: () -> bool
 
-      def click: (?Array[Symbol] keys, **untyped options) -> untyped
+      def click: (?Array[Symbol] keys, ?x: Numeric?, ?y: Numeric?, ?offset: (:center | :top)?, ?delay: Numeric?) -> Ferrum::Node
 
-      def right_click: (?Array[Symbol] keys, **untyped options) -> untyped
+      def right_click: (?Array[Symbol] keys, ?x: Numeric?, ?y: Numeric?, ?offset: (:center | :top)?, ?delay: Numeric?) -> Ferrum::Node
 
-      def double_click: (?Array[Symbol] keys, **untyped options) -> untyped
+      def double_click: (?Array[Symbol] keys, ?x: Numeric?, ?y: Numeric?, ?offset: (:center | :top)?, ?delay: Numeric?) -> Ferrum::Node
 
-      def hover: () -> untyped
+      def hover: () -> void
 
-      def drag_to: (Node other, **untyped options) -> untyped
+      def drag_to: (Node other, ?x: Numeric?, ?y: Numeric?, ?offset: (:center | :top)?, ?steps: Integer, ?scroll: bool, ?delay: Numeric?, ?html5: bool?, ?drop_modifiers: Symbol | Array[Symbol]) -> void
 
-      def drop: (*untyped args) -> untyped
+      def drop: (*drop_item args) -> void
 
-      def trigger: (String | Symbol event) -> untyped
+      def trigger: (String | Symbol event) -> void
 
       def scroll_to: (Node? element, Symbol? location, ?[Numeric, Numeric]? position) -> self
 
-      def scroll_by: (Numeric x, Numeric y) -> untyped
+      def scroll_by: (Numeric x, Numeric y) -> void
 
       def ==: (untyped other) -> bool
 
-      def send_keys: (*untyped keys) -> untyped
+      def send_keys: (*key keys) -> void
 
       def path: () -> String
 
@@ -78,33 +84,34 @@ module Capybara
 
       private
 
-      def set_text: (String value, ?rapid: bool?, **untyped) -> untyped
+      def set_text: (String value, ?rapid: bool?, **untyped) -> void
 
-      def refocus: () -> untyped
+      def refocus: () -> void
 
-      def find: (Symbol method, String selector, **untyped hints) -> Array[Node]
+      def find: (:css | :xpath method, String selector, **Finder::Hints::hint hints) -> Array[Node]
 
-      def command: (?(Symbol | String)? function, *untyped args) ?{ () -> untyped } -> untyped
+      def command: [T] () { () -> T } -> T
+                 | (Symbol function, *Driver::script_value args) -> Driver::script_value
 
-      def prepare_and_click: (Symbol name, Array[Symbol] keys, Hash[Symbol, untyped] options, **untyped click) -> untyped
+      def prepare_and_click: (Symbol name, Array[Symbol] keys, Hash[Symbol, untyped] options, ?button: :left | :right, ?count: Integer) -> Ferrum::Node
 
-      def js: ((Symbol | String)? function, *untyped args) -> untyped
+      def js: (Symbol function, *Driver::script_value args) -> Driver::script_value
 
-      def before_click: (Symbol | String name, ?Hash[Symbol, untyped] offset) -> untyped
+      def before_click: (Symbol | String name, ?(offset | Hash[untyped, untyped]) offset) -> void
 
-      def pinpoint: (**untyped options) -> [Numeric, Numeric]
+      def pinpoint: (?x: Numeric, ?y: Numeric, ?position: :center | :top) -> [Float, Float]
 
-      def drag: (Ferrum::Node other, Array[Symbol] modifiers, Hash[Symbol, untyped] options) -> untyped
+      def drag: (Ferrum::Node other, Array[Symbol] modifiers, Hash[Symbol, untyped] options) -> void
 
-      def drop_offset: (Numeric? x, Numeric? y, (String | Symbol)? position) -> { x: Numeric, y: Numeric?, position: Symbol }?
+      def drop_offset: (Numeric? x, Numeric? y, (String | Symbol)? position) -> offset?
 
       def filter_text: (String text) -> String
 
-      def scroll_element_to_location: (Node element, Symbol location) -> untyped
+      def scroll_element_to_location: (Node element, :top | :bottom | :center location) -> void
 
-      def scroll_to_location: (Symbol location) -> untyped
+      def scroll_to_location: (:top | :bottom | :center location) -> void
 
-      def scroll_to_coords: (Numeric x, Numeric y) -> untyped
+      def scroll_to_coords: (Numeric x, Numeric y) -> void
     end
   end
 end

@@ -9,9 +9,9 @@ module Capybara
         @modal_response: String?
         @unhandled_modal_error: UnhandledModalError?
 
-        def initialize: (*untyped, **untyped) -> void
+        def initialize: (Ferrum::Client | Ferrum::SessionClient client, context_id: String?, target_id: String, ?proxy: Hash[Symbol, String | Integer]?) -> void
 
-        def command: (*untyped, **untyped) -> Hash[String, untyped]
+        def command: (String method, ?timeout: (Numeric | Ferrum::Deadline)?, **untyped params) -> Hash[String, untyped]
 
         def accept_confirm: () -> Array[bool]
 
@@ -21,7 +21,7 @@ module Capybara
 
         def dismiss_prompt: () -> Array[bool]
 
-        def find_modal: (Hash[Symbol, untyped] options) -> String
+        def find_modal: (Driver::modal_options options) -> String
 
         private
 
@@ -29,9 +29,9 @@ module Capybara
 
         def prepare_page: () -> void
 
-        def handle_dialog: (Ferrum::Dialog dialog) -> untyped
+        def handle_dialog: (Ferrum::Dialog dialog) -> nil
 
-        def answer_dialog: (Ferrum::Dialog dialog, bool accept, String? response) -> untyped
+        def answer_dialog: (Ferrum::Dialog dialog, bool accept, String? response) -> nil
       end
     end
   end
