@@ -26,3 +26,4 @@ jobs:
       - name: Run linters
         run: |
           bundle exec rubocop --parallel
+          bundle exec rake rbs

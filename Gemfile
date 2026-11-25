@@ -9,6 +9,7 @@ gem "ostruct"
 gem "pdf-reader", "~> 2.12"
 gem "puma", ">= 5.6.7"
 gem "rake", "~> 13.0"
+gem "rbs", "~> 3.10", platforms: %i[mri windows]
 gem "rspec", "~> 3.10"
 gem "rubocop", "~> 1.22"
 gem "rubocop-rake", require: false
