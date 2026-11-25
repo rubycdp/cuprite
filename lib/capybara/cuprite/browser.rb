@@ -4,9 +4,13 @@ require "capybara/cuprite/browser/extensions"
 
 module Capybara
   module Cuprite
+    # The Ferrum browser behind {Driver#browser}. Its public API is Ferrum's plus {Browser::Extensions}; the methods
+    # here only adapt Ferrum to Capybara.
     class Browser < Ferrum::Browser
       include Extensions
 
+      # @api private
+      # @param options [Hash, nil] the {Driver} options
       def initialize(options = nil)
         device = options&.dig(:emulate)
         options = Devices.fetch(device).except(:user_agent).merge(options) if device
@@ -21,6 +25,8 @@ module Capybara
         @page = nil
       end
 
+      # Restarts a browser that died before raising the error.
+      # @api private
       def command(...)
         super
       rescue Ferrum::DeadBrowserError
@@ -28,12 +34,17 @@ module Capybara
         raise
       end
 
+      # @api private
+      # @return [Page] the current page
+      # @raise [Ferrum::NoSuchPageError] when the current window was closed
       def page
         raise Ferrum::NoSuchPageError if @page_closed
 
         @page ||= attach_page
       end
 
+      # @api private
+      # @return [void]
       def reset
         super
       ensure
@@ -41,26 +52,36 @@ module Capybara
         forget_page
       end
 
+      # @api private
+      # @return [void]
       def quit
         super
         forget_page
       end
 
+      # Keeps the size for the windows opened next.
+      # @api private
+      # @return [void]
       def resize(**options)
         @options.window_size = [options[:width], options[:height]]
         super
       end
 
+      # @api private
+      # @return [String]
       def current_window_handle
         page.target_id
       end
 
+      # @api private
+      # @return [Array<String>]
       def window_handles
         targets.values.select(&:page?).map(&:id)
       end
 
       # Opens a blank page without switching to it.
       #
+      # @api private
       # @param kind [:tab, :window] a tab in the current window, or a window of its own
       # @return [Page]
       # @raise [ArgumentError] for any other kind
@@ -72,6 +93,10 @@ module Capybara
         attach_page(default_context.create_target(new_window: kind == :window).id)
       end
 
+      # @api private
+      # @param target_id [String]
+      # @return [void]
+      # @raise [Ferrum::NoSuchPageError]
       def switch_to_window(target_id)
         target = window_target(target_id)
         forget_page
@@ -79,6 +104,10 @@ module Capybara
         @page.activate
       end
 
+      # @api private
+      # @param target_id [String]
+      # @return [void]
+      # @raise [Ferrum::NoSuchPageError]
       def close_window(target_id)
         target = window_target(target_id)
         if @page&.target_id == target.id

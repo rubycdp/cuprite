@@ -6,35 +6,60 @@ require "capybara/cuprite/node/typing"
 
 module Capybara
   module Cuprite
+    # An element found by the {Driver}, which Capybara wraps in `Capybara::Node::Element`.
     class Node < Capybara::Driver::Node
+      # @return [Ferrum::Node] the Ferrum node, for what Capybara doesn't cover
       attr_reader :node
 
       include Extensions
       include Typing
 
+      # Capybara's names of modifier keys mapped to Ferrum's.
+      # @api private
       DRAG_MODIFIER_ALIASES = { control: :ctrl, command: :meta, cmd: :meta }.freeze
+      # The script that drags with HTML5 drag and drop events.
+      # @api private
       DRAG_HTML5_JS = File.read(File.expand_path("javascripts/drag.js", __dir__))
+      # How long `trigger("click")` waits for a navigation to start, `CUPRITE_TRIGGER_CLICK_WAIT` in seconds.
+      # @api private
       TRIGGER_CLICK_WAIT = ENV.fetch("CUPRITE_TRIGGER_CLICK_WAIT", 0.1).to_f
 
+      # @param driver [Driver]
+      # @param node [Ferrum::Node]
+      # @param initial_cache [Hash] what the finder already knows about the element, see Capybara's finder hints
       def initialize(driver, node, initial_cache = {})
         super(driver, self, initial_cache)
         @node = node
       end
 
+      # @param selector [String]
+      # @param hints [Hash] Capybara's finder hints
+      # @return [Array<Node>] the descendants matching the XPath
+      # @raise [InvalidSelector]
+      # @raise [ObsoleteNode] when the element is no longer in the DOM
       def find_xpath(selector, **hints)
         find(:xpath, selector, **hints)
       end
 
+      # @param selector [String]
+      # @param hints [Hash] Capybara's finder hints
+      # @return [Array<Node>] the descendants matching the CSS selector
+      # @raise [InvalidSelector]
+      # @raise [ObsoleteNode] when the element is no longer in the DOM
       def find_css(selector, **hints)
         find(:css, selector, **hints)
       end
 
       # A text in the initial cache comes only with a node that can't match its query's text, which
       # Capybara reads to filter it out and to describe the failure, and never hands to the caller.
+      #
+      # @return [String] all the text of the element, visible or not, with whitespace normalized
       def all_text
         filter_text(initial_cache.fetch(:all_text) { command { node.text } })
       end
 
+      # @return [String] the text of the element a user can see
+      # @raise [ObsoleteNode] when the element is no longer in the DOM
       def visible_text
         text = initial_cache.fetch(:visible_text) { command(:visibleText) }
         text.to_s
@@ -44,6 +69,11 @@ module Capybara
             .tr("\u00a0", " ")
       end
 
+      # Reads a property of the element, or the attribute when the property isn't a scalar. For `src` of an image
+      # and `href` of a link it's the resolved property, if the attribute is present.
+      #
+      # @param name [String, Symbol]
+      # @return [String, Numeric, Boolean, nil]
       def [](name)
         # Although the attribute matters, the property is consistent. Return that in
         # preference to the attribute for links and images.
@@ -59,6 +89,8 @@ module Capybara
         end
       end
 
+      # @return [String, Array<String>, nil] the value of a form field, every selected one for a multiple select
+      # @raise [ObsoleteNode] when the element is no longer in the DOM
       def value
         command(:value)
       end
@@ -127,47 +159,92 @@ module Capybara
         end
       end
 
+      # Selects the option element.
+      #
+      # @return [void]
+      # @raise [ObsoleteNode] when the element is no longer in the DOM
       def select_option
         command(:select, true)
       end
 
+      # Unselects the option element.
+      #
+      # @return [void]
+      # @raise [Capybara::UnselectNotAllowed] for an option of a single select
+      # @raise [ObsoleteNode] when the element is no longer in the DOM
       def unselect_option
         command(:select, false) ||
           raise(Capybara::UnselectNotAllowed, "Cannot unselect option from single select box.")
       end
 
+      # @return [String] the lowercase tag name, `"ShadowRoot"` for a shadow root
       def tag_name
         @tag_name ||= node.description["shadowRootType"] ? "ShadowRoot" : node.description["nodeName"].downcase
       end
 
+      # @return [Boolean]
+      # @raise [ObsoleteNode] when the element is no longer in the DOM
       def visible?
         command(:isVisible)
       end
 
+      # @return [Boolean]
       def checked?
         self[:checked]
       end
 
+      # @return [Boolean]
       def selected?
         !!self[:selected]
       end
 
+      # @return [Boolean] whether the element is disabled, itself or by a disabled fieldset or optgroup
+      # @raise [ObsoleteNode] when the element is no longer in the DOM
       def disabled?
         command(:isDisabled)
       end
 
+      # Scrolls the element into view and clicks it with the mouse.
+      #
+      # @param keys [Array<Symbol>] modifier keys held during the click
+      # @param options [Hash]
+      # @option options [Integer] :x offset from the position given by `:offset`, along with `:y`
+      # @option options [Integer] :y offset from the position given by `:offset`, along with `:x`
+      # @option options [:top, :center] :offset what `:x` and `:y` are relative to, the top left by default
+      # @option options [Numeric] :delay seconds between pressing and releasing the button
+      # @return [void]
+      # @raise [MouseEventFailed] when another element would receive the click
+      # @raise [ObsoleteNode] when the element is no longer in the DOM
       def click(keys = [], **options)
         prepare_and_click(__method__, keys, options)
       end
 
+      # Clicks the element with the right mouse button, see {#click}.
+      #
+      # @param keys [Array<Symbol>] modifier keys held during the click
+      # @param options [Hash] the options of {#click}
+      # @return [void]
+      # @raise [MouseEventFailed] when another element would receive the click
+      # @raise [ObsoleteNode] when the element is no longer in the DOM
       def right_click(keys = [], **options)
         prepare_and_click(__method__, keys, options, button: :right)
       end
 
+      # Double-clicks the element, see {#click}.
+      #
+      # @param keys [Array<Symbol>] modifier keys held during the clicks
+      # @param options [Hash] the options of {#click}
+      # @return [void]
+      # @raise [MouseEventFailed] when another element would receive the click
+      # @raise [ObsoleteNode] when the element is no longer in the DOM
       def double_click(keys = [], **options)
         prepare_and_click(__method__, keys, options, count: 2)
       end
 
+      # Scrolls the element into view and moves the mouse over it.
+      #
+      # @return [void]
+      # @raise [ObsoleteNode] when the element is no longer in the DOM
       def hover
         command do
           js(:scrollIntoViewport)
@@ -176,6 +253,22 @@ module Capybara
         end
       end
 
+      # Drags the element onto another one, with HTML5 drag and drop events when the page uses them.
+      #
+      # @param other [Node]
+      # @param options [Hash]
+      # @option options [Integer] :x drop offset, along with `:y`
+      # @option options [Integer] :y drop offset, along with `:x`
+      # @option options [:top, :center] :offset what the drop offset is relative to, `:center` with `w3c_click_offset`,
+      #   `:top` otherwise
+      # @option options [Numeric] :delay seconds to wait after pressing the button
+      # @option options [Integer] :steps mouse moves to reach the target, `1` by default
+      # @option options [Boolean] :scroll scroll the elements into view, `true` by default
+      # @option options [Boolean, nil] :html5 force or skip HTML5 drag and drop, detected by default
+      # @option options [Array<Symbol>] :drop_modifiers modifier keys held while dropping
+      # @return [void]
+      # @raise [ArgumentError] when only one of `:x` and `:y` is given
+      # @raise [ObsoleteNode] when the element is no longer in the DOM
       def drag_to(other, **options)
         raise ArgumentError, "You must specify both x: and y: for a drop offset" if options[:x].nil? ^ options[:y].nil?
 
@@ -187,6 +280,11 @@ module Capybara
         command { drag(other.node, modifiers, options) }
       end
 
+      # Drops files or strings onto the element.
+      #
+      # @param args [Array<String, Pathname>, Array<Hash{String => String}>] file paths, or MIME types mapped to data
+      # @return [void]
+      # @raise [ObsoleteNode] when the element is no longer in the DOM
       def drop(*args)
         command do
           if args[0].is_a?(String)
@@ -200,6 +298,12 @@ module Capybara
         end
       end
 
+      # Dispatches a DOM event on the element without moving the mouse. A `click` waits briefly for the navigation
+      # it may start.
+      #
+      # @param event [String, Symbol]
+      # @return [void]
+      # @raise [ObsoleteNode] when the element is no longer in the DOM
       def trigger(event)
         command do
           next js(:trigger, event.to_s) unless event.to_s == "click" && TRIGGER_CLICK_WAIT.positive?
@@ -208,6 +312,13 @@ module Capybara
         end
       end
 
+      # Scrolls an element into view inside this one, or this one to a location or position.
+      #
+      # @param element [Node, nil] the element to scroll into view
+      # @param location [:top, :bottom, :center, nil]
+      # @param position [Array(Numeric, Numeric), nil] the coordinates to scroll to
+      # @return [self]
+      # @raise [ArgumentError] for an unknown location with an element
       def scroll_to(element, location, position = nil)
         if element.is_a?(Node)
           scroll_element_to_location(element, location)
@@ -219,14 +330,24 @@ module Capybara
         self
       end
 
+      # @param x [Numeric]
+      # @param y [Numeric]
+      # @return [void]
       def scroll_by(x, y)
         node.evaluate("this.scrollBy(x, y)", x: x, y: y)
       end
 
+      # @param other [Capybara::Node::Element, Node]
+      # @return [Boolean] whether both are the same DOM element
       def ==(other)
         node == other.native.node
       end
 
+      # Focuses the element, unless it already has focus, and types the keys, at the end of the value of a field.
+      #
+      # @param keys [Array<String, Symbol, Array>] text, key names and Arrays of keys pressed together
+      # @return [void]
+      # @raise [ObsoleteNode] when the element is no longer in the DOM
       def send_keys(*keys)
         keys = keys.reject { |key| key.nil? || key == "" }
         return if keys.empty?
@@ -238,23 +359,31 @@ module Capybara
         end
       end
 
+      # @return [String] an XPath that locates the element
+      # @raise [ObsoleteNode] when the element is no longer in the DOM
       def path
         command(:path)
       end
 
+      # @return [Boolean] whether the element is out of the viewport or covered by another one
+      # @raise [ObsoleteNode] when the element is no longer in the DOM
       def obscured?
         command(:isObscured)
       end
 
+      # @return [Node, nil] the open shadow root of the element
       def shadow_root
         root = driver.browser.evaluate("node.shadowRoot", node: node)
         root && self.class.new(driver, root)
       end
 
+      # @return [Hash{String => Numeric}] the bounding rectangle: `x`, `y`, `width`, `height`, `top`, `right`, `bottom`,
+      #   `left`
       def rect
         node.evaluate("this.getBoundingClientRect().toJSON()")
       end
 
+      # @return [String]
       def inspect
         %(#<#{self.class} @node=#{@node.inspect}>)
       end

@@ -5,6 +5,8 @@ require "forwardable"
 module Capybara
   module Cuprite
     class Page < Ferrum::Page
+      # Runs the page's DOM and JavaScript methods in the frame switched to.
+      # @api private
       module Frames
         extend Forwardable
 
@@ -15,6 +17,8 @@ module Capybara
           super
         end
 
+        # @param handle [String, :parent, :top] a frame id, or the parent or top frame
+        # @return [void]
         def switch_to_frame(handle)
           case handle
           when :parent

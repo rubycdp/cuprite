@@ -5,7 +5,10 @@ require "capybara/cuprite/page/modals"
 
 module Capybara
   module Cuprite
+    # A Ferrum page with Cuprite's JavaScript, frame switching and dialog handling.
+    # @api private
     class Page < Ferrum::Page
+      # The JavaScript Cuprite adds to every page.
       EXTENSION_JS = File.read(Driver::EXTENSION).freeze
 
       include Frames
@@ -25,6 +28,9 @@ module Capybara
         raise PendingConnectionsError.new(combine_url!(url), pendings)
       end
 
+      # Sets the viewport, keeping the `scale_factor:` and `mobile:` options unless given.
+      #
+      # @return [void]
       def set_viewport(width: 0, height: 0, scale_factor: @options.scale_factor, mobile: @options.mobile)
         super
       end
