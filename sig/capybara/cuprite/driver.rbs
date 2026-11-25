@@ -101,7 +101,7 @@ module Capybara
 
       def accept_modal: (:alert | :confirm | :prompt type, ?modal_options options) ?{ () -> void } -> String
 
-      def dismiss_modal: (:alert | :confirm | :prompt type, ?modal_options options) ?{ () -> void } -> String
+      def dismiss_modal: (:confirm | :prompt type, ?modal_options options) ?{ () -> void } -> String
 
       private
 

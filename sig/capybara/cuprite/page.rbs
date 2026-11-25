@@ -6,7 +6,7 @@ module Capybara
 
       EXTENSION_JS: String
 
-      def go_to: (?String? url, ?timeout: Numeric?, ?referrer: String?) -> String?
+      def go_to: (?String? url, ?timeout: (Numeric | Ferrum::Deadline)?, ?referrer: String?) -> String?
 
       def set_viewport: (?width: Integer, ?height: Integer, ?scale_factor: Numeric, ?mobile: bool?) -> nil
 

@@ -1,7 +1,7 @@
 module Capybara
   module Cuprite
     class Node < Capybara::Driver::Node
-      module Extensions : Capybara::Driver::Node
+      module Extensions : Capybara::Cuprite::Node
         def drag_by: (Numeric x, Numeric y, ?steps: Integer, ?delay: Numeric?, ?scroll: bool) -> void
       end
     end
