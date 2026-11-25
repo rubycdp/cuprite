@@ -44,7 +44,7 @@ module Capybara
       def reset
         super
       ensure
-        @settings.reset_window_size
+        @settings.reset
         forget_page
       end
 

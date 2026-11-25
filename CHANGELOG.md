@@ -36,8 +36,13 @@
 - `trigger("click")` waits for the navigation it starts with Ferrum's `await_navigation`, not `wait_for_navigation!`
   deprecated in Ferrum 0.21. `go_back`, `go_forward` and `refresh` no longer raise when the page doesn't load in time
   [rubycdp/ferrum#716]
+- `:url_blacklist` and `:url_whitelist` driver options set together raise `ArgumentError` like the setters, the
+  blacklist won
 
 ### Fixed
+- An empty `url_blacklist=` unblocks the current page, it kept blocking until the next page
+- `url_blacklist=` and `url_whitelist=` raise before saving the list when the other one is set, so new windows no
+  longer get the list that raised
 - `set` with an Array on a field without `multiple` raises `ArgumentError` like Selenium, it typed the Array as text
 - Number fields are typed with real key presses like text fields, so `clear:` and `rapid:` apply, their value was set
   from JS with no key events

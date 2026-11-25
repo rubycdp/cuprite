@@ -21,19 +21,16 @@ module Capybara
 
         # @param options [Hash, nil] the {Driver} options, with those of the `emulate:` device merged in
         # @param window_size [Array(Integer, Integer), nil] the window size Ferrum launched Chrome with
-        # @raise [ArgumentError] for a URL pattern that isn't a Regexp, or an unknown device
+        # @raise [ArgumentError] for a URL pattern that isn't a Regexp, both URL lists, or an unknown device
         def initialize(options, window_size)
-          options = Hash(options)
-          @js_errors = options[:js_errors]
-          @pending_connection_errors = options.fetch(:pending_connection_errors, true)
-          @raise_on_unhandled_modal = options[:raise_on_unhandled_modal]
-          @device_user_agent = Devices.fetch(options[:emulate])[:user_agent] if options[:emulate]
-          @mobile = options[:mobile]
-          @scale_factor = options.fetch(:scale_factor, 0)
+          @options = Hash(options)
+          @js_errors = @options[:js_errors]
+          @pending_connection_errors = @options.fetch(:pending_connection_errors, true)
+          @device_user_agent = Devices.fetch(@options[:emulate])[:user_agent] if @options[:emulate]
+          @mobile = @options[:mobile]
+          @scale_factor = @options.fetch(:scale_factor, 0)
           @initial_window_size = window_size
-          @window_size = window_size
-          self.url_blacklist = options[:url_blacklist]
-          self.url_whitelist = options[:url_whitelist]
+          reset
         end
 
         # @return [Boolean] whether JavaScript errors on the page are raised in Ruby
@@ -48,23 +45,33 @@ module Capybara
 
         # @param patterns [Regexp, Array<Regexp>, nil]
         # @return [void]
-        # @raise [ArgumentError] for a pattern that isn't a Regexp
+        # @raise [ArgumentError] for a pattern that isn't a Regexp, or when a whitelist is set
         def url_blacklist=(patterns)
-          @url_blacklist = regexp_patterns(patterns)
+          patterns = regexp_patterns(patterns)
+          raise ArgumentError, "You can't use blacklist along with whitelist" if patterns.any? && url_whitelist.any?
+
+          @url_blacklist = patterns
         end
 
         # @param patterns [Regexp, Array<Regexp>, nil]
         # @return [void]
-        # @raise [ArgumentError] for a pattern that isn't a Regexp
+        # @raise [ArgumentError] for a pattern that isn't a Regexp, or when a blacklist is set
         def url_whitelist=(patterns)
-          @url_whitelist = regexp_patterns(patterns)
+          patterns = regexp_patterns(patterns)
+          raise ArgumentError, "You can't use whitelist along with blacklist" if patterns.any? && url_blacklist.any?
+
+          @url_whitelist = patterns
         end
 
-        # Restores the window size Chrome was launched with.
+        # Restores the URL lists, the modal behavior and the window size of the {Driver} options.
         #
         # @return [void]
-        def reset_window_size
+        def reset
+          @raise_on_unhandled_modal = @options[:raise_on_unhandled_modal]
           @window_size = @initial_window_size
+          @url_blacklist = @url_whitelist = []
+          self.url_blacklist = @options[:url_blacklist]
+          self.url_whitelist = @options[:url_whitelist]
         end
 
         # @return [Boolean] whether an `emulate:` device sets the user agent

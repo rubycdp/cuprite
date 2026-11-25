@@ -263,9 +263,6 @@ module Capybara
       def reset!
         return unless @browser
 
-        browser.url_blacklist = @options[:url_blacklist]
-        browser.url_whitelist = @options[:url_whitelist]
-        browser.raise_on_unhandled_modal = @options.fetch(:raise_on_unhandled_modal, false)
         browser.reset
         base_url = @options[:base_url] || capybara_base_url
         browser.base_url = base_url if base_url

@@ -11,6 +11,7 @@ module Capybara
         attr_reader mobile: bool?
         attr_reader scale_factor: Numeric
 
+        @options: Hash[Symbol, untyped]
         @js_errors: bool?
         @pending_connection_errors: bool
         @device_user_agent: String?
@@ -26,7 +27,7 @@ module Capybara
 
         def url_whitelist=: (Regexp | Array[Regexp] | nil patterns) -> void
 
-        def reset_window_size: () -> void
+        def reset: () -> void
 
         def device_user_agent?: () -> bool
 
