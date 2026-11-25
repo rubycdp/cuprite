@@ -33,6 +33,7 @@
   [rubycdp/ferrum#716]
 
 ### Fixed
+- `response_headers` are looked up case-insensitively as with rack_test, `["Content-Type"]` returned `nil`
 - A click on a node the page removes before the hit test raises `ObsoleteNode`, which Capybara retries, instead of
   `Ferrum::JavaScriptError: node.getRootNode(...).elementFromPoint is not a function` [#359]
 - `Driver#reset!` and `Driver#quit` don't launch Chrome when no browser has started, so a failed launch doesn't

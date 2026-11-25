@@ -16,6 +16,7 @@ module Capybara
       DEFAULT_MAXIMIZE_SCREEN_SIZE: [Integer, Integer]
       EXTENSION: String
       CALLBACK_JS: String
+      RESPONSE_HEADERS: singleton(Hash)
 
       attr_reader app: _RackApp?
       attr_reader options: Hash[Symbol, untyped]

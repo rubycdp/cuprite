@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "forwardable"
+require "rack"
 require "capybara/cuprite/finder"
 require "capybara/cuprite/driver/extensions"
 
@@ -9,6 +10,7 @@ module Capybara
     class Driver < Capybara::Driver::Base
       DEFAULT_MAXIMIZE_SCREEN_SIZE = [1366, 768].freeze
       EXTENSION = File.expand_path("javascripts/index.js", __dir__)
+      RESPONSE_HEADERS = defined?(Rack::Headers) ? Rack::Headers : Rack::Utils::HeaderHash
       CALLBACK_JS = <<~JS
         function(...args) {
           return new Promise((resolve, reject) => {
@@ -183,8 +185,12 @@ module Capybara
         end
       end
 
+      # The headers of the last response, looked up case-insensitively as with rack_test.
+      #
+      # @return [Hash{String => String}, nil] `Rack::Headers`, or `Rack::Utils::HeaderHash` on Rack 2
       def response_headers
-        browser.network.response&.headers
+        headers = browser.network.response&.headers
+        RESPONSE_HEADERS[headers] if headers
       end
 
       def wait?
