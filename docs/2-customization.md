@@ -27,10 +27,10 @@ Cuprite-specific options are:
   * `:raise_on_unhandled_modal` (Boolean) - What to do when a JavaScript dialog is opened but not handled by
     `accept_*`/`dismiss_*`. When `false` (default) a warning is printed, when `true`
     `Capybara::Cuprite::UnhandledModalError` is raised. See [Modals](/docs/cuprite/modals).
-  * `:url_blacklist` (Array) - Regexes to match against requested URLs that should be blocked, see
-    [URL filtering](/docs/cuprite/url-filtering).
-  * `:url_whitelist` (Array) - Regexes to match against requested URLs that are allowed, see
-    [URL filtering](/docs/cuprite/url-filtering).
+  * `:url_blacklist` (Array) - Regexes to match against requested URLs that should be blocked, alias
+    `:url_blocklist`, see [URL filtering](/docs/cuprite/url-filtering).
+  * `:url_whitelist` (Array) - Regexes to match against requested URLs that are allowed, alias `:url_allowlist`,
+    see [URL filtering](/docs/cuprite/url-filtering).
   * `:emulate` (Symbol) - Device to emulate, one of those listed in Chrome DevTools' device toolbar, such as
     `:iphone_16`, `:pixel_9`, `:samsung_galaxy_a55` or `:ipad_mini`, see `Capybara::Cuprite::Devices::LIST`. It sets
     the device's `:window_size`, `:scale_factor` and `:mobile`, options passed explicitly take precedence, and its

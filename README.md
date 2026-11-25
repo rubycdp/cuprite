@@ -251,7 +251,7 @@ domains:
 page.driver.browser.url_allowlist = %r{http://www.example.com}
 ```
 
-For legacy support, `url_blacklist=` and `url_whitelist=` continue to work respectively.
+`url_blacklist=` and `url_whitelist=` are aliases of the same setters. Only one list can be set at a time.
 
 If you are experiencing slower run times, consider creating a URL allowlist of
 domains that are essential or a blocklist of domains that are not essential,
