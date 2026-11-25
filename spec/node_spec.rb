@@ -395,6 +395,14 @@ describe Capybara::Cuprite::Node do
     end
   end
 
+  describe "#value" do
+    it "returns the selected options of a multiple select, those in an optgroup too" do
+      @session.visit("/cuprite/with_js")
+
+      expect(@session.find(:css, "#browsers").value).to eq(%w[Firefox Chrome IE])
+    end
+  end
+
   describe "#trigger" do
     let(:input) { @session.find(:css, "#input") }
     let(:output) { @session.find(:css, "#output") }
@@ -1210,6 +1218,30 @@ describe Capybara::Cuprite::Node do
       input.native.send_keys(" appended")
 
       expect(input.text).to eq("Content appended")
+    end
+
+    it "sends keys to the end of a filled email input" do
+      input = @session.find(:css, "#filled_email")
+
+      input.native.send_keys(".com")
+
+      expect(input.value).to eq("user@example.com")
+    end
+
+    it "presses the keys on a checkbox without clicking it" do
+      checkbox = @session.find(:css, "#checkbox")
+
+      checkbox.native.send_keys(:space)
+
+      expect(checkbox).to be_checked
+    end
+
+    it "does not click a link it sends keys to" do
+      link = @session.find(:css, "#link")
+
+      link.native.send_keys(:shift)
+
+      expect(link["data-clicks"]).to be_nil
     end
 
     it "keeps the focus across calls" do

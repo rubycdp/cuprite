@@ -38,6 +38,9 @@
 ### Fixed
 - Number fields are typed with real key presses like text fields, so `clear:` and `rapid:` apply, their value was set
   from JS with no key events
+- `value` of a multiple select includes the selected options in an `<optgroup>`, it returned only the others
+- `Node#send_keys` focuses an element without focus instead of clicking it, so a checkbox isn't toggled and a link isn't
+  followed, and the keys go to the end of a filled field instead of where the click put the caret
 - Setting a text field to a value ending in `\n` no longer fails now and then with `Ferrum::NoExecutionContextError`
   when the form submits and the page navigates away before the field refocuses
 - `response_headers` are looked up case-insensitively as with rack_test, `["Content-Type"]` returned `nil`
