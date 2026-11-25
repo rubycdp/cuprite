@@ -62,6 +62,8 @@
 ### Removed
 - Methods deprecated in 0.20, see its Deprecated section for replacements
 - String patterns for `url_blacklist`/`url_whitelist`, deprecated in 0.15, raise `ArgumentError`, pass regexps
+- `CUPRITE_MODAL_WAIT`, `accept_*`/`dismiss_*` find the dialog as soon as it's answered instead of checking for it on
+  an interval
 
 
 ## [0.20.1](https://github.com/rubycdp/cuprite/compare/v0.20...v0.20.1) ##

@@ -2,10 +2,8 @@ module Capybara
   module Cuprite
     class Page < Ferrum::Page
       module Modals : Ferrum::Page
-        MODAL_WAIT: Float
-
         @accept_modal: Array[bool]
-        @modal_messages: Array[String?]
+        @modal_messages: Thread::Queue[String?]
         @modal_response: String?
         @unhandled_modal_error: UnhandledModalError?
         @settings: Browser::Settings
@@ -25,6 +23,8 @@ module Capybara
         def find_modal: (Driver::modal_options options) -> String
 
         private
+
+        def monotonic_time: () -> Float
 
         def raise_pending_unhandled_modal_error!: [T] () { () -> T } -> T
 
