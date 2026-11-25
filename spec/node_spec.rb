@@ -1205,6 +1205,30 @@ describe Capybara::Cuprite::Node do
       expect(input.text).to eq("Content appended")
     end
 
+    it "sends keys to the end of a filled email input" do
+      input = @session.find(:css, "#filled_email")
+
+      input.native.send_keys(".com")
+
+      expect(input.value).to eq("user@example.com")
+    end
+
+    it "presses the keys on a checkbox without clicking it" do
+      checkbox = @session.find(:css, "#checkbox")
+
+      checkbox.native.send_keys(:space)
+
+      expect(checkbox).to be_checked
+    end
+
+    it "does not click a link it sends keys to" do
+      link = @session.find(:css, "#link")
+
+      link.native.send_keys(:shift)
+
+      expect(link["data-clicks"]).to be_nil
+    end
+
     it "keeps the focus across calls" do
       input = @session.find(:css, "#empty_div")
 
