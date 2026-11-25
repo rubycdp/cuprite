@@ -283,19 +283,6 @@ describe Capybara::Cuprite::Driver do
       @session.driver.browser.timeout = old_timeout
     end
 
-    it "warns when Ferrum::PendingConnectionsError is rescued" do
-      @driver.browser.page
-      old_timeout = @driver.browser.timeout
-      @driver.browser.timeout = 0.1
-      expect do
-        @driver.visit(session_url("/cuprite/really_slow"))
-      rescue Ferrum::PendingConnectionsError
-        nil
-      end.to output(/#{__FILE__}:\d+: warning: Ferrum::PendingConnectionsError is deprecated/).to_stderr
-    ensure
-      @driver.browser.timeout = old_timeout
-    end
-
     it "does not raise with pending_connection_errors: false" do
       driver = Capybara::Cuprite::Driver.new(@session.app, pending_connection_errors: false, timeout: 0.5)
       expect { driver.visit(session_url("/cuprite/really_slow")) }.not_to raise_error
