@@ -5,6 +5,7 @@ module Capybara
     module Finder
       # Capybara's finder hints for one query: what the browser is asked to answer along with
       # the nodes it finds, and the initial cache of each node built from that answer.
+      # @api private
       class Hints
         # @param uses_visibility [Boolean] whether the query filters on visibility
         # @param texts [Array<String>] the fragments every matching node's text has to contain

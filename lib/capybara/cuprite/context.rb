@@ -4,6 +4,7 @@
 # lib/capybara/cuprite.rb, and raise the gemspec's ferrum requirement to that release.
 module Ferrum
   class Context
+    # @api private
     module NewWindow
       # Creates a new target in this context, as Ferrum's `create_target` does once rubycdp/ferrum#733 is released.
       #

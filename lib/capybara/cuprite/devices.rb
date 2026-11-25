@@ -2,11 +2,16 @@
 
 module Capybara
   module Cuprite
+    # The devices `emulate:` takes, those listed in Chrome DevTools' device toolbar.
     module Devices
+      # @api private
       IPHONE_USER_AGENT = "Mozilla/5.0 (iPhone; CPU iPhone OS 18_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.5 Mobile/15E148 Safari/604.1"
+      # @api private
       SAMSUNG_GALAXY_S8_PLUS_USER_AGENT = "Mozilla/5.0 (Linux; Android 8.0.0; SM-G955U Build/R16NW) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/%<version>s Mobile Safari/537.36"
+      # @api private
       WINDOWS_USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/%<version>s Safari/537.36"
 
+      # Each device's `:window_size`, `:scale_factor`, `:mobile` and `:user_agent`, by name.
       LIST = {
         iphone_se: {
           window_size: [375, 667], scale_factor: 2, mobile: true,
@@ -178,6 +183,9 @@ module Capybara
         }
       }.freeze
 
+      # @param name [Symbol, String] a key of {LIST}
+      # @return [Hash] the device's options
+      # @raise [ArgumentError] for an unknown device
       def self.fetch(name)
         LIST.fetch(name.to_sym) do
           raise ArgumentError, "Unknown device to emulate: #{name.inspect}, use one of #{LIST.keys.join(', ')}"

@@ -3,7 +3,10 @@
 module Capybara
   module Cuprite
     class Page < Ferrum::Page
+      # Answers JavaScript dialogs as `accept_modal` and `dismiss_modal` asked, and records their messages.
+      # @api private
       module Modals
+        # How often `find_modal` checks for a dialog, `CUPRITE_MODAL_WAIT` in seconds.
         MODAL_WAIT = ENV.fetch("CUPRITE_MODAL_WAIT", 0.05).to_f
 
         def initialize(...)
@@ -25,23 +28,37 @@ module Capybara
           raise_pending_unhandled_modal_error! { super }
         end
 
+        # Accepts the next dialog.
+        # @return [void]
         def accept_confirm
           @accept_modal << true
         end
 
+        # Dismisses the next dialog.
+        # @return [void]
         def dismiss_confirm
           @accept_modal << false
         end
 
+        # Accepts the next dialog with a response.
+        # @param modal_response [String, nil]
+        # @return [void]
         def accept_prompt(modal_response)
           @accept_modal << true
           @modal_response = modal_response
         end
 
+        # Dismisses the next dialog.
+        # @return [void]
         def dismiss_prompt
           @accept_modal << false
         end
 
+        # Waits for a dialog to have been answered.
+        #
+        # @param options [Hash] `:text` to match and `:wait` in seconds
+        # @return [String] the dialog's message
+        # @raise [Capybara::ModalNotFound] when no matching dialog was answered in time
         def find_modal(options)
           start = Ferrum::Utils::ElapsedTime.monotonic_time
           expect_text = options[:text]

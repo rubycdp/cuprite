@@ -4,6 +4,8 @@ require "capybara/cuprite/finder/hints"
 
 module Capybara
   module Cuprite
+    # Looks up the elements for {Driver} and {Node}.
+    # @api private
     module Finder
       module_function
 

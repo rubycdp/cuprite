@@ -3,6 +3,8 @@
 module Capybara
   module Cuprite
     class Node < Capybara::Driver::Node
+      # Typing into text fields for {Node#set}.
+      # @api private
       module Typing
         TYPED_INPUTS = %w[text password email search tel url number].freeze
         SET_OPTIONS = %i[rapid clear].freeze
