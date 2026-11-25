@@ -7,6 +7,7 @@
 ### Fixed
 
 ### Removed
+- `CUPRITE_DEBUG`, deprecated in 0.21, use `CUPRITE_LOG=*`
 
 
 ## [0.21](https://github.com/rubycdp/cuprite/compare/v0.20.1...v0.21) ##
