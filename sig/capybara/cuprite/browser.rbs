@@ -22,7 +22,7 @@ module Capybara
 
       def window_handles: () -> Array[String]
 
-      def open_new_window: () -> Page
+      def open_new_window: (?(:tab | :window) kind) -> Page
 
       def switch_to_window: (String target_id) -> nil
 

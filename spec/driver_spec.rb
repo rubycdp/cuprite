@@ -1030,6 +1030,26 @@ describe Capybara::Cuprite::Driver do
   end
 
   describe "#open_new_window" do
+    def window_id_of(window)
+      @session.within_window(window) { @driver.browser.page.window_id }
+    end
+
+    it "opens a tab in the current window by default" do
+      @session.visit "/"
+
+      expect(window_id_of(@session.open_new_window)).to eq(window_id_of(@session.current_window))
+    end
+
+    it "opens a window of its own for :window" do
+      @session.visit "/"
+
+      expect(window_id_of(@session.open_new_window(:window))).not_to eq(window_id_of(@session.current_window))
+    end
+
+    it "raises ArgumentError for a kind other than :tab and :window" do
+      expect { @driver.open_new_window(:popup) }.to raise_error(ArgumentError, /:tab or :window/)
+    end
+
     it "opens a window that inherits the size" do
       @session.visit "/"
       @session.current_window.resize_to(1200, 800)

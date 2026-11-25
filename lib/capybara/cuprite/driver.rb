@@ -130,8 +130,10 @@ module Capybara
         browser.page.switch_to_frame(handle)
       end
 
-      def open_new_window
-        browser.open_new_window
+      # @param kind [:tab, :window] what Capybara's `open_new_window` asks for
+      # @return [Page]
+      def open_new_window(kind = :tab)
+        browser.open_new_window(kind)
       end
 
       def no_such_window_error

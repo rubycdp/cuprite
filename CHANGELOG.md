@@ -3,6 +3,7 @@
 ### Added
 - `Node#style` reads computed styles in one call, Capybara no longer falls back to its own script after
   `NotImplementedError`
+- `open_new_window(:window)` opens a window instead of a tab, an unknown kind raises `ArgumentError`
 - `browser.go_to` takes the keywords of Ferrum's `go_to`, like `referrer:` and `timeout:`, it accepted only the URL
 - `:url_blocklist` and `:url_allowlist` driver options as aliases for `:url_blacklist` and `:url_whitelist` [#330]
 - `clear:` set option like Selenium's: `:none` appends, `:backspace` deletes with Backspace, an Array of keys is pressed
