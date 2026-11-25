@@ -8,8 +8,8 @@ module Capybara
         def call: (Hash[String, untyped] env) -> [Integer, Hash[String, String], untyped]
       end
 
-      type script_value = nil | bool | Numeric | String | Node | Ferrum::Node
-                        | Array[script_value] | Hash[String, script_value]
+      type script_value = nil | bool | Numeric | String | Symbol | Node | Ferrum::Node | Ferrum::CyclicObject
+                        | Array[script_value] | Hash[String | Symbol, script_value]
 
       type modal_options = { ?with: String?, ?text: (String | Regexp)?, ?wait: Numeric }
 
@@ -82,7 +82,7 @@ module Capybara
 
       def reset!: () -> void
 
-      def save_screenshot: (String path, ?Hash[Symbol, untyped] options) -> void
+      def save_screenshot: (String | Pathname path, ?Hash[Symbol, untyped] options) -> void
 
       def resize_window_to: (String handle, Integer width, Integer height) -> nil
 

@@ -62,6 +62,9 @@ module Ferrum
   class Deadline
   end
 
+  class CyclicObject
+  end
+
   class Frame
   end
 
