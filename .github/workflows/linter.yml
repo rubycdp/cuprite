@@ -26,4 +26,8 @@ jobs:
       - name: Run linters
         run: |
           bundle exec rubocop --parallel
-          bundle exec rake rbs
+
+      - name: Validate RBS signatures
+        run: |
+          bundle exec rbs collection install --frozen
+          bundle exec rbs validate
