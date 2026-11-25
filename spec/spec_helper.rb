@@ -52,8 +52,7 @@ RSpec.configure do |config|
       #has_css? :style option should support Hash
     REGEXP
 
-    # These are tests that are currently skipped intentionally, as they don't even work in capybara.
-    intentional_skip = <<~REGEXP.split("\n").map { |s| Regexp.quote(s.strip) }.join("|")
+    lazy_page = <<~REGEXP.split("\n").map { |s| Regexp.quote(s.strip) }.join("|")
       Capybara::Session Cuprite #reset_session! closes extra windows
     REGEXP
 
@@ -61,7 +60,9 @@ RSpec.configure do |config|
       #drag_to HTML5 should preserve clientX/Y from last dragover event
     REGEXP
 
-    metadata[:skip] = "Intentionally skipped" if metadata[:full_description].match(/#{intentional_skip}/)
+    if metadata[:full_description].match(/#{lazy_page}/)
+      metadata[:skip] = "Cuprite opens no page after a reset until one is needed, Capybara expects one [#203]"
+    end
     if metadata[:full_description].match(/#{browser_behavior}/)
       metadata[:skip] = "Expects behavior browsers don't have, e.g. dragleave together with drop"
     end
