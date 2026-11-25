@@ -75,7 +75,7 @@ module Capybara
 
       def switch_to_frame: (Capybara::Node::Element | Node | :parent | :top locator) -> void
 
-      def open_new_window: () -> Page
+      def open_new_window: (?(:tab | :window) kind) -> Page
 
       def no_such_window_error: () -> singleton(Ferrum::NoSuchPageError)
 

@@ -59,8 +59,17 @@ module Capybara
         targets.values.select(&:page?).map(&:id)
       end
 
-      def open_new_window
-        attach_page(default_context.create_target.id)
+      # Opens a blank page without switching to it.
+      #
+      # @param kind [:tab, :window] a tab in the current window, or a window of its own
+      # @return [Page]
+      # @raise [ArgumentError] for any other kind
+      def open_new_window(kind = :tab)
+        unless %i[tab window].include?(kind)
+          raise ArgumentError, "open_new_window takes :tab or :window, got #{kind.inspect}"
+        end
+
+        attach_page(default_context.create_target(new_window: kind == :window).id)
       end
 
       def switch_to_window(target_id)
