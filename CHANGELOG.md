@@ -1,6 +1,8 @@
 ## [Unreleased](https://github.com/rubycdp/cuprite/compare/v0.20.1...main) ##
 
 ### Added
+- `Node#style` reads computed styles in one call, Capybara no longer falls back to its own script after
+  `NotImplementedError`
 - `browser.go_to` takes the keywords of Ferrum's `go_to`, like `referrer:` and `timeout:`, it accepted only the URL
 - `:url_blocklist` and `:url_allowlist` driver options as aliases for `:url_blacklist` and `:url_whitelist` [#330]
 - `clear:` set option like Selenium's: `:none` appends, `:backspace` deletes with Backspace, an Array of keys is pressed

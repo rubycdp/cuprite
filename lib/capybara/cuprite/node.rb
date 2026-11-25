@@ -63,6 +63,14 @@ module Capybara
         command(:value)
       end
 
+      # Reads the computed styles of the node. The ones a `:style` filter cached aren't used, they may be out of date.
+      #
+      # @param styles [Array<String>] the CSS property names
+      # @return [Hash{String => String}] the computed value of each property
+      def style(styles)
+        command { node.evaluate("_cuprite.styles([this], names)", names: styles) }.transform_values(&:first)
+      end
+
       # Sets the value of a form field. Text inputs and textareas are typed with real key presses.
       #
       # @param value [String, Array<String>, Boolean, Date, Time] the value to set

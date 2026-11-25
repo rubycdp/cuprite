@@ -34,6 +34,8 @@ module Capybara
 
       def value: () -> (String | Array[String])?
 
+      def style: (Array[String] styles) -> Hash[String, String]
+
       def set: (untyped value, ?Hash[Symbol, untyped] options) -> void
 
       def select_option: () -> bool
