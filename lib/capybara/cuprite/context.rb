@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+# Once a Ferrum release has rubycdp/ferrum#733, delete this file, sig/capybara/cuprite/context.rbs and its require in
+# lib/capybara/cuprite.rb, and raise the gemspec's ferrum requirement to that release.
 module Ferrum
   class Context
     module NewWindow
