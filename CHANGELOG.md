@@ -36,6 +36,7 @@
   [rubycdp/ferrum#716]
 
 ### Fixed
+- `set` with an Array on a field without `multiple` raises `ArgumentError` like Selenium, it typed the Array as text
 - Setting a text field to a value ending in `\n` no longer fails now and then with `Ferrum::NoExecutionContextError`
   when the form submits and the page navigates away before the field refocuses
 - `response_headers` are looked up case-insensitively as with rack_test, `["Content-Type"]` returned `nil`

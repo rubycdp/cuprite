@@ -13,6 +13,7 @@ module Capybara
       DRAG_HTML5_JS: String
       TRIGGER_CLICK_WAIT: Float
       TYPED_INPUTS: Array[String]
+      MULTIPLE_ERROR: String
       RAPID_SET_LENGTH: Integer
       RAPID_APPEND_TEXT: String
 
