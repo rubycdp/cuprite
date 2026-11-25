@@ -79,5 +79,5 @@ Capybara::Cuprite::Driver.new(app, emulate: :pixel_9, scale_factor: 1)
 
 * `CUPRITE_LOG` - What Ferrum logs to `STDOUT`, the same values as `FERRUM_LOG`, `*` for everything.
 * `BROWSER_PATH` - Path to the Chrome binary.
-* `CUPRITE_TRIGGER_CLICK_WAIT` - How long to wait for a possible navigation after `trigger("click")`, `0.1` seconds
-  by default.
+* `FERRUM_NAVIGATION_WAIT` - How long a click, real or `trigger("click")`, watches for the navigation it may start,
+  `0.1` seconds by default, `0` turns it off.

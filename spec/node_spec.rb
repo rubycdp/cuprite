@@ -439,6 +439,20 @@ describe Capybara::Cuprite::Node do
       expect(loaded).to be(true)
     end
 
+    it "doesn't wait for the page a triggered click opens when Ferrum's navigation wait is 0" do
+      stub_const("Ferrum::Page::NAVIGATION_WAIT", 0)
+      page = @session.driver.browser.page
+      loaded = false
+      page.on("Page.loadEventFired") { loaded = true }
+      @session.execute_script(<<~JS)
+        document.body.insertAdjacentHTML("beforeend", '<a id="slow" href="/cuprite/slow">slow</a>')
+      JS
+
+      @session.find(:css, "#slow").trigger(:click)
+
+      expect(loaded).to be(false)
+    end
+
     it "submits a form" do
       @session.visit("/cuprite/send_keys")
       @session.find(:css, "#without_submit_button").trigger("submit")
