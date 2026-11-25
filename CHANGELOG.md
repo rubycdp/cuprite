@@ -1,4 +1,15 @@
-## [Unreleased](https://github.com/rubycdp/cuprite/compare/v0.20.1...main) ##
+## [Unreleased](https://github.com/rubycdp/cuprite/compare/v0.21...main) ##
+
+### Added
+
+### Changed
+
+### Fixed
+
+### Removed
+
+
+## [0.21](https://github.com/rubycdp/cuprite/compare/v0.20.1...v0.21) ##
 
 ### Added
 - `Node#style` reads computed styles in one call, Capybara no longer falls back to its own script after
