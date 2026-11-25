@@ -529,6 +529,13 @@ describe Capybara::Cuprite::Node do
         expect(element.value).to eq("-100")
       end
 
+      it "appends to a number field with clear: :none" do
+        element = @session.find(:css, "#change_me_number")
+        element.set(12)
+        element.set(34, clear: :none)
+        expect(element.value).to eq("1234")
+      end
+
       it "fires the keydown event" do
         expect(@session.find(:css, "#changes_on_keydown").text).to eq("6")
       end

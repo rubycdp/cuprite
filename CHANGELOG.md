@@ -36,6 +36,8 @@
   [rubycdp/ferrum#716]
 
 ### Fixed
+- Number fields are typed with real key presses like text fields, so `clear:` and `rapid:` apply, their value was set
+  from JS with no key events
 - Setting a text field to a value ending in `\n` no longer fails now and then with `Ferrum::NoExecutionContextError`
   when the form submits and the page navigates away before the field refocuses
 - `response_headers` are looked up case-insensitively as with rack_test, `["Content-Type"]` returned `nil`
