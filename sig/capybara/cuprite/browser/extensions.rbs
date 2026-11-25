@@ -21,10 +21,6 @@ module Capybara
         def url_blacklist=: (Regexp | Array[Regexp] | nil patterns) -> void
 
         alias url_blocklist= url_blacklist=
-
-        private
-
-        def regexp_patterns: (Regexp | Array[Regexp] | nil patterns) -> Array[Regexp]
       end
     end
   end

@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "capybara/cuprite/browser/extensions"
+require "capybara/cuprite/browser/settings"
 
 module Capybara
   module Cuprite
@@ -16,12 +17,7 @@ module Capybara
         options = Devices.fetch(device).except(:user_agent).merge(options) if device
         super(options&.except(:js_errors, :pending_connection_errors))
 
-        @options.raise_on_js_errors = options&.dig(:js_errors)
-        @options.raise_on_pending_connections = options.nil? || options.fetch(:pending_connection_errors, true)
-        @options.raise_on_unhandled_modal = options&.dig(:raise_on_unhandled_modal)
-        @options.url_blacklist = regexp_patterns(options&.dig(:url_blacklist))
-        @options.url_whitelist = regexp_patterns(options&.dig(:url_whitelist))
-
+        @settings = Settings.new(options, @options.window_size)
         @page = nil
       end
 
@@ -48,7 +44,7 @@ module Capybara
       def reset
         super
       ensure
-        @options.reset_window_size
+        @settings.reset_window_size
         forget_page
       end
 
@@ -63,7 +59,7 @@ module Capybara
       # @api private
       # @return [void]
       def resize(**options)
-        @options.window_size = [options[:width], options[:height]]
+        @settings.window_size = [options[:width], options[:height]]
         super
       end
 
@@ -138,7 +134,7 @@ module Capybara
         return target.page if target.connected?
 
         target.maybe_sleep_if_new_window
-        target.page = Page.new(target.client, context_id: target.context_id, target_id: target.id)
+        target.page = Page.new(target.client, context_id: target.context_id, target_id: target.id, settings: @settings)
         target.page
       end
     end

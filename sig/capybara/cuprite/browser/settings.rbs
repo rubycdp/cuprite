@@ -1,0 +1,41 @@
+module Capybara
+  module Cuprite
+    class Browser < Ferrum::Browser
+      class Settings
+        type window_size = [Integer, Integer] | [nil, nil]
+
+        attr_accessor raise_on_unhandled_modal: bool?
+        attr_accessor window_size: window_size?
+        attr_reader url_blacklist: Array[Regexp]
+        attr_reader url_whitelist: Array[Regexp]
+        attr_reader mobile: bool?
+        attr_reader scale_factor: Numeric
+
+        @js_errors: bool?
+        @pending_connection_errors: bool
+        @device_user_agent: String?
+        @initial_window_size: [Integer, Integer]?
+
+        def initialize: (Hash[Symbol, untyped]? options, [Integer, Integer]? window_size) -> void
+
+        def js_errors?: () -> bool
+
+        def pending_connection_errors?: () -> bool
+
+        def url_blacklist=: (Regexp | Array[Regexp] | nil patterns) -> void
+
+        def url_whitelist=: (Regexp | Array[Regexp] | nil patterns) -> void
+
+        def reset_window_size: () -> void
+
+        def device_user_agent?: () -> bool
+
+        def user_agent: (String? chrome_user_agent) -> String?
+
+        private
+
+        def regexp_patterns: (Regexp | Array[Regexp] | nil patterns) -> Array[Regexp]
+      end
+    end
+  end
+end

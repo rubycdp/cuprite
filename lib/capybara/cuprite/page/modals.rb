@@ -114,7 +114,7 @@ module Capybara
                       "`accept_confirm` | `dismiss_confirm` | `accept_alert`), " \
                       "accepting by default"
 
-            if @options.raise_on_unhandled_modal
+            if @settings.raise_on_unhandled_modal
               @unhandled_modal_error = UnhandledModalError.new(message)
             else
               warn message
