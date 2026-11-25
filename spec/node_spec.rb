@@ -395,6 +395,14 @@ describe Capybara::Cuprite::Node do
     end
   end
 
+  describe "#value" do
+    it "returns the selected options of a multiple select, those in an optgroup too" do
+      @session.visit("/cuprite/with_js")
+
+      expect(@session.find(:css, "#browsers").value).to eq(%w[Firefox Chrome IE])
+    end
+  end
+
   describe "#trigger" do
     let(:input) { @session.find(:css, "#input") }
     let(:output) { @session.find(:css, "#output") }
