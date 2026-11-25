@@ -1,0 +1,37 @@
+module Capybara
+  class CapybaraError < StandardError
+  end
+
+  class ModalNotFound < CapybaraError
+  end
+
+  class UnselectNotAllowed < CapybaraError
+  end
+
+  class SessionConfig
+  end
+
+  class Session
+  end
+
+  module Node
+    class Element
+    end
+  end
+
+  module Driver
+    class Base
+      def session: () -> Session?
+
+      def session_options: () -> SessionConfig
+    end
+
+    class Node
+      attr_reader driver: untyped
+      attr_reader native: untyped
+      attr_reader initial_cache: Hash[Symbol, untyped]
+
+      def initialize: (untyped driver, untyped native, ?Hash[Symbol, untyped] initial_cache) -> void
+    end
+  end
+end

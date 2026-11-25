@@ -9,6 +9,7 @@ needs Capybara or driver context on top of Ferrum; everything else belongs to Fe
 bundle exec rake                      # whole suite, what CI runs
 bundle exec rspec spec/node_spec.rb   # one file
 bundle exec rubocop                   # lint, must be clean
+bundle exec rbs validate              # RBS signatures in sig/, must be clean
 HEADLESS=false bundle exec rspec ...  # watch the browser
 ```
 
@@ -57,6 +58,8 @@ HEADLESS=false bundle exec rspec ...  # watch the browser
 
 - `# frozen_string_literal: true`, double quotes, RuboCop config in `.rubocop.yml`.
 - Prefer self-documenting code over comments. Document public methods with YARD.
+- Keep the RBS signatures in `sig/` in sync with every public or private method you add or change, and run
+  `bundle exec rbs validate`. Types Cuprite uses from Ferrum and Capybara are declared in `sig/stubs/`.
 - American English everywhere: code, comments, docs, errors, commits.
 
 ## Git

@@ -1,0 +1,20 @@
+module Capybara
+  module Cuprite
+    class Page < Ferrum::Page
+      include Frames
+      include Modals
+
+      EXTENSION_JS: String
+
+      def go_to: (?String? url, ?timeout: Numeric?, ?referrer: String?) -> String?
+
+      def set_viewport: (?width: Integer, ?height: Integer, ?scale_factor: Numeric, ?mobile: bool?) -> nil
+
+      private
+
+      def subscribe: () -> void
+
+      def prepare_page: () -> void
+    end
+  end
+end

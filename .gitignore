@@ -7,3 +7,4 @@ pkg
 .idea
 .ruby-version
 .yardoc
+.gem_rbs_collection

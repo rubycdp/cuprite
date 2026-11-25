@@ -1,0 +1,122 @@
+module Capybara
+  module Cuprite
+    class Driver < Capybara::Driver::Base
+      extend Forwardable
+      include Extensions
+
+      interface _RackApp
+        def call: (Hash[String, untyped] env) -> [Integer, Hash[String, String], untyped]
+      end
+
+      type script_value = nil | bool | Numeric | String | Symbol | Node | Ferrum::Node | Ferrum::CyclicObject
+                        | Array[script_value] | Hash[String | Symbol, script_value]
+
+      type modal_options = { ?with: String?, ?text: (String | Regexp)?, ?wait: Numeric }
+
+      DEFAULT_MAXIMIZE_SCREEN_SIZE: [Integer, Integer]
+      EXTENSION: String
+      CALLBACK_JS: String
+
+      attr_reader app: _RackApp?
+      attr_reader options: Hash[Symbol, untyped]
+
+      @started: bool
+      @screen_size: [Integer, Integer]
+      @browser: Browser?
+
+      def initialize: (_RackApp? app, ?Hash[Symbol, untyped] options) -> void
+
+      def title: () -> String
+
+      def window_handles: () -> Array[String]
+
+      def current_window_handle: () -> String
+
+      def close_window: (String handle) -> Ferrum::Target?
+
+      def switch_to_window: (String handle) -> nil
+
+      def refresh: () -> true?
+
+      def send_keys: (*Node::key keys) -> void
+
+      def current_url: () -> String
+
+      def html: () -> String
+
+      def go_back: () -> true?
+
+      def go_forward: () -> true?
+
+      def needs_server?: () -> true
+
+      def browser: () -> Browser
+
+      def visit: (String url) -> String?
+
+      def status_code: () -> Integer?
+
+      def frame_url: () -> String
+
+      def frame_title: () -> String
+
+      def active_element: () -> Node
+
+      def find_xpath: (String selector, **Finder::Hints::hint hints) -> Array[Node]
+
+      def find_css: (String selector, **Finder::Hints::hint hints) -> Array[Node]
+
+      def evaluate_script: (String script, *script_value args) -> script_value
+
+      def evaluate_async_script: (String script, *script_value args) -> script_value
+
+      def execute_script: (String script, *script_value args) -> nil
+
+      def switch_to_frame: (Capybara::Node::Element | Node | :parent | :top locator) -> void
+
+      def open_new_window: () -> Page
+
+      def no_such_window_error: () -> singleton(Ferrum::NoSuchPageError)
+
+      def quit: () -> void
+
+      def reset!: () -> void
+
+      def save_screenshot: (String | Pathname path, ?Hash[Symbol, untyped] options) -> void
+
+      def resize_window_to: (String handle, Integer width, Integer height) -> nil
+
+      def maximize_window: (String handle) -> nil
+
+      def window_size: (String handle) -> [Integer, Integer]
+
+      def fullscreen_window: (String handle) -> nil
+
+      def response_headers: () -> Hash[String, String]?
+
+      def wait?: () -> true
+
+      def invalid_element_errors: () -> Array[singleton(StandardError)]
+
+      def accept_modal: (:alert | :confirm | :prompt type, ?modal_options options) ?{ () -> void } -> String
+
+      def dismiss_modal: (:alert | :confirm | :prompt type, ?modal_options options) ?{ () -> void } -> String
+
+      private
+
+      attr_reader screen_size: [Integer, Integer]
+
+      def find: (:css | :xpath method, String selector, **Finder::Hints::hint hints) -> Array[Node]
+
+      def within_window: [T] (String handle) { () -> T } -> T
+
+      def capybara_base_url: () -> String?
+
+      def native_args: (Array[script_value] args) -> Array[script_value]
+
+      def session_wait_time: () -> Numeric
+
+      def unwrap_script_result: (script_value arg) -> script_value
+    end
+  end
+end
