@@ -1,7 +1,0 @@
-module Ferrum
-  class Context
-    module NewWindow
-      def create_target: (?new_window: bool) -> Target
-    end
-  end
-end
