@@ -63,7 +63,7 @@ module Capybara
 
         def refocus
           node.evaluate("this.blur(); this.focus()")
-        rescue Ferrum::NodeNotFoundError
+        rescue Ferrum::NodeNotFoundError, Ferrum::NoExecutionContextError
           nil
         end
       end

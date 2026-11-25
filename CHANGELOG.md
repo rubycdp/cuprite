@@ -33,6 +33,8 @@
   [rubycdp/ferrum#716]
 
 ### Fixed
+- Setting a text field to a value ending in `\n` no longer fails now and then with `Ferrum::NoExecutionContextError`
+  when the form submits and the page navigates away before the field refocuses
 - `response_headers` are looked up case-insensitively as with rack_test, `["Content-Type"]` returned `nil`
 - A click on a node the page removes before the hit test raises `ObsoleteNode`, which Capybara retries, instead of
   `Ferrum::JavaScriptError: node.getRootNode(...).elementFromPoint is not a function` [#359]
