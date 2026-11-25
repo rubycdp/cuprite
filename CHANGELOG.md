@@ -31,6 +31,8 @@
   leaves it listed until Chrome reports it destroyed [rubycdp/ferrum#707]
 - `find_css` and `find_xpath` answer Capybara's finder hints in the call that finds the nodes, so Capybara no longer
   asks each node for its visibility and text. As with Selenium, a lazily filtered result keeps the answers [#347]
+- Cuprite's own options are kept in `Browser::Settings` instead of reopening `Ferrum::Browser::Options`, so
+  `browser.options` is Ferrum's alone and `browser.default_user_agent` is Chrome's even with `emulate:`
 - `trigger("click")` waits for the navigation it starts with Ferrum's `await_navigation`, not `wait_for_navigation!`
   deprecated in Ferrum 0.21. `go_back`, `go_forward` and `refresh` no longer raise when the page doesn't load in time
   [rubycdp/ferrum#716]

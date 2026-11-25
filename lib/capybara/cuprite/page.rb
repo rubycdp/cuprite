@@ -14,6 +14,14 @@ module Capybara
       include Frames
       include Modals
 
+      # @param client [Ferrum::Client, Ferrum::SessionClient]
+      # @param settings [Browser::Settings] the options only Cuprite handles
+      # @param options [Hash] the keywords of `Ferrum::Page#initialize`
+      def initialize(client, settings:, **options)
+        @settings = settings
+        super(client, **options)
+      end
+
       # Navigates the page to a URL, see `Ferrum::Page#go_to`.
       #
       # @param url [String, nil]
@@ -22,7 +30,7 @@ module Capybara
       # @raise [PendingConnectionsError] with `pending_connection_errors` when the page doesn't load in time
       def go_to(url = nil, **options)
         frame_id = super
-        return frame_id if frame_id || !@options.raise_on_pending_connections
+        return frame_id if frame_id || !@settings.pending_connection_errors?
 
         pendings = network.traffic.select(&:pending?).map(&:url).compact
         raise PendingConnectionsError.new(combine_url!(url), pendings)
@@ -31,15 +39,22 @@ module Capybara
       # Sets the viewport, keeping the `scale_factor:` and `mobile:` options unless given.
       #
       # @return [void]
-      def set_viewport(width: 0, height: 0, scale_factor: @options.scale_factor, mobile: @options.mobile)
+      def set_viewport(width: 0, height: 0, scale_factor: @settings.scale_factor, mobile: @settings.mobile)
         super
+      end
+
+      # Ferrum's network falls back to it when it clears other overrides, so the device's user agent stays.
+      #
+      # @return [String, nil] the emulated device's user agent, or Chrome's own
+      def default_user_agent
+        @settings.user_agent(super)
       end
 
       private
 
       def subscribe
         super
-        return unless @options.raise_on_js_errors
+        return unless @settings.js_errors?
 
         on("Runtime.exceptionThrown") do |params|
           Thread.main.raise Ferrum::JavaScriptError, params["exceptionDetails"]
@@ -50,14 +65,14 @@ module Capybara
         super
         execute(EXTENSION_JS)
 
-        width, height = @options.window_size
+        width, height = @settings.window_size
         width && height ? resize(width: width, height: height) : set_viewport
-        network.emulate(user_agent: default_user_agent) if @options.device_user_agent
+        network.emulate(user_agent: default_user_agent) if @settings.device_user_agent?
 
-        if @options.url_blacklist.any?
-          network.blacklist = @options.url_blacklist
-        elsif @options.url_whitelist.any?
-          network.whitelist = @options.url_whitelist
+        if @settings.url_blacklist.any?
+          network.blacklist = @settings.url_blacklist
+        elsif @settings.url_whitelist.any?
+          network.whitelist = @settings.url_whitelist
         end
       end
     end

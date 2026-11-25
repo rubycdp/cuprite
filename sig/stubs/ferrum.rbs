@@ -33,10 +33,6 @@ module Ferrum
 
   class Browser
     class Options
-      @options: Hash[Symbol, untyped]
-      @window_size: [Integer, Integer]?
-      @default_user_agent: String?
-
       def window_size: () -> [Integer, Integer]?
     end
 
@@ -47,10 +43,11 @@ module Ferrum
   end
 
   class Page
-    @options: Browser::Options
     @frames: Hash[String, Frame]
 
     def initialize: (*untyped, **untyped) -> void
+
+    def default_user_agent: () -> String?
   end
 
   class Client

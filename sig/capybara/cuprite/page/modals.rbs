@@ -8,8 +8,9 @@ module Capybara
         @modal_messages: Array[String?]
         @modal_response: String?
         @unhandled_modal_error: UnhandledModalError?
+        @settings: Browser::Settings
 
-        def initialize: (Ferrum::Client | Ferrum::SessionClient client, context_id: String?, target_id: String, ?proxy: Hash[Symbol, String | Integer]?) -> void
+        def initialize: (Ferrum::Client | Ferrum::SessionClient client, settings: Browser::Settings, context_id: String?, target_id: String, ?proxy: Hash[Symbol, String | Integer]?) -> void
 
         def command: (String method, ?timeout: (Numeric | Ferrum::Deadline)?, **untyped params) -> Hash[String, untyped]
 

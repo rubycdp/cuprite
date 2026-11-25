@@ -3,6 +3,7 @@ module Capybara
     class Browser < Ferrum::Browser
       include Extensions
 
+      @settings: Settings
       @page: Page?
       @page_closed: bool
 

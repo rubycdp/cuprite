@@ -6,9 +6,15 @@ module Capybara
 
       EXTENSION_JS: String
 
+      @settings: Browser::Settings
+
+      def initialize: (Ferrum::Client | Ferrum::SessionClient client, settings: Browser::Settings, context_id: String?, target_id: String, ?proxy: Hash[Symbol, String | Integer]?) -> void
+
       def go_to: (?String? url, ?timeout: (Numeric | Ferrum::Deadline)?, ?referrer: String?) -> String?
 
       def set_viewport: (?width: Integer, ?height: Integer, ?scale_factor: Numeric, ?mobile: bool?) -> nil
+
+      def default_user_agent: () -> String?
 
       private
 
