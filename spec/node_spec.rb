@@ -495,6 +495,17 @@ describe Capybara::Cuprite::Node do
         expect(element.value).to eq("Hello there!")
       end
 
+      it "sets the value when the page navigates away before the field refocuses" do
+        element = @session.find(:css, "#change_me")
+        node = element.native.node
+        allow(node).to receive(:evaluate).and_call_original
+        allow(node).to receive(:evaluate).with("this.blur(); this.focus()").and_raise(Ferrum::NoExecutionContextError)
+
+        element.native.set("Hello")
+
+        expect(element.value).to eq("Hello")
+      end
+
       it "raises for an unknown clear: value" do
         element = @session.find(:css, "#change_me")
         expect { element.set("a", clear: :foo) }
