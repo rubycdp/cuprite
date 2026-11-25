@@ -63,7 +63,20 @@ module Capybara
         command(:value)
       end
 
+      # Sets the value of a form field. Text inputs and textareas are typed with real key presses.
+      #
+      # @param value [String, Array<String>, Boolean, Date, Time] the value to set
+      # @param options [Hash] Capybara's `fill_options`, the defaults come from `Capybara.default_set_options`. Other
+      #   options are ignored with a warning, `rapid:` and `clear:` silently on fields other than text ones.
+      # @option options [Boolean, nil] :rapid `true` types the first 4 and last 3 characters and sets the middle from
+      #   JS, `false` types every character, `nil` does it for values over 30 characters
+      # @option options [nil, :none, :backspace, Array] :clear `nil` replaces the value, `:none` appends to it,
+      #   `:backspace` deletes it with Backspace first, an Array of keys is pressed before typing
+      # @return [void]
+      # @raise [ArgumentError] for an unknown `clear:` value
       def set(value, options = {}) # rubocop:disable Metrics/CyclomaticComplexity, Metrics/PerceivedComplexity, Metrics/AbcSize
+        warn_unsupported(options)
+
         if tag_name == "input"
           case self[:type]
           when *TYPED_INPUTS

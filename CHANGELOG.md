@@ -3,6 +3,8 @@
 ### Added
 - `browser.go_to` takes the keywords of Ferrum's `go_to`, like `referrer:` and `timeout:`, it accepted only the URL
 - `:url_blocklist` and `:url_allowlist` driver options as aliases for `:url_blacklist` and `:url_whitelist` [#330]
+- `clear:` set option like Selenium's: `:none` appends, `:backspace` deletes with Backspace, an Array of keys is pressed
+  first. Options Cuprite doesn't support warn again
 
 ### Changed
 - Text inputs and textareas are filled with real key presses like Selenium, values over 30 characters type the first 4

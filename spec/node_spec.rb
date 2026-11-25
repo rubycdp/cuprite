@@ -477,6 +477,41 @@ describe Capybara::Cuprite::Node do
         expect(element.value).to eq((("a".."z").to_a.join * 2)[0, 30])
       end
 
+      it "appends to the value with clear: :none" do
+        element = @session.find(:css, "#change_me")
+        element.set(" World", clear: :none)
+        expect(element.value).to eq("Hello! World")
+      end
+
+      it "appends the middle of a long value from JS with clear: :none and rapid: true" do
+        element = @session.find(:css, "#change_me")
+        element.set(("a".."z").to_a.join * 2, clear: :none, rapid: true)
+        expect(element.value).to eq("Hello!#{('a'..'z').to_a.join * 2}")
+      end
+
+      it "presses the given keys before typing with clear: Array" do
+        element = @session.find(:css, "#change_me")
+        element.set(" there!", clear: [:backspace])
+        expect(element.value).to eq("Hello there!")
+      end
+
+      it "raises for an unknown clear: value" do
+        element = @session.find(:css, "#change_me")
+        expect { element.set("a", clear: :foo) }
+          .to raise_error(ArgumentError, "clear: takes nil, :none, :backspace or an Array of keys")
+      end
+
+      it "warns about options Cuprite doesn't support" do
+        element = @session.find(:css, "#change_me")
+        expect { element.set("a", foo: 1) }
+          .to output("Options passed to Node#set but Cuprite doesn't support :foo - ignoring\n").to_stderr
+      end
+
+      it "does not warn about clear: on a checkbox" do
+        checkbox = @session.find(:css, "input[name=agree]")
+        expect { checkbox.set(true, clear: :backspace) }.not_to output.to_stderr
+      end
+
       it "accepts negatives in a number field" do
         element = @session.find(:css, "#change_me_number")
         element.set(-100)
@@ -758,6 +793,24 @@ describe Capybara::Cuprite::Node do
       it "doesn't call the input event when clearing an empty value" do
         input.set("")
         expect(output.text).to be_empty
+      end
+
+      it "deletes the value with backspaces before typing with clear: :backspace" do
+        input.set("ab")
+        input.set("c", clear: :backspace)
+        expect(output.text).to eq("keydown keypress input keyup keydown keypress input keyup change " \
+                                  "keydown keyup keydown input keyup keydown input keyup " \
+                                  "keydown keypress input keyup change")
+        expect(input.value).to eq("c")
+      end
+
+      it "only deletes the value with backspaces for an empty value with clear: :backspace" do
+        input.set("ab")
+        input.set("", clear: :backspace)
+        expect(output.text).to eq("keydown keypress input keyup keydown keypress input keyup change " \
+                                  "keydown keyup keydown input keyup keydown input keyup change")
+        expect(output["data-input-type"]).to eq("deleteContentBackward")
+        expect(input.value).to be_empty
       end
     end
 
