@@ -2,6 +2,7 @@ module Capybara
   module Cuprite
     class Node < Capybara::Driver::Node
       include Extensions
+      include Typing
 
       type key = String | Symbol | Array[String | Symbol] | nil
 
@@ -12,10 +13,6 @@ module Capybara
       DRAG_MODIFIER_ALIASES: Hash[Symbol, Symbol]
       DRAG_HTML5_JS: String
       TRIGGER_CLICK_WAIT: Float
-      TYPED_INPUTS: Array[String]
-      MULTIPLE_ERROR: String
-      RAPID_SET_LENGTH: Integer
-      RAPID_APPEND_TEXT: String
 
       attr_reader node: Ferrum::Node
 
@@ -86,10 +83,6 @@ module Capybara
       def inspect: () -> String
 
       private
-
-      def set_text: (String value, ?rapid: bool?, **untyped) -> void
-
-      def refocus: () -> void
 
       def find: (:css | :xpath method, String selector, **Finder::Hints::hint hints) -> Array[Node]
 

@@ -1,0 +1,30 @@
+module Capybara
+  module Cuprite
+    class Node < Capybara::Driver::Node
+      module Typing : Capybara::Cuprite::Node
+        type clear = nil | :none | :backspace | Array[Node::key]
+
+        TYPED_INPUTS: Array[String]
+        SET_OPTIONS: Array[Symbol]
+        CLEAR_ERROR: String
+        MULTIPLE_ERROR: String
+        RAPID_SET_LENGTH: Integer
+        RAPID_APPEND_TEXT: String
+
+        private
+
+        def warn_unsupported: (Hash[Symbol, untyped] options) -> void
+
+        def set_text: (String value, ?rapid: bool?, ?clear: clear, **untyped) -> void
+
+        def clear_keys: (clear clear) -> Array[Node::key]
+
+        def type_text: (String value, bool? rapid) -> void
+
+        def move_caret_to_end: () -> void
+
+        def refocus: () -> void
+      end
+    end
+  end
+end

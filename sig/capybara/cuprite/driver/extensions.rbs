@@ -1,7 +1,7 @@
 module Capybara
   module Cuprite
     class Driver < Capybara::Driver::Base
-      module Extensions : Capybara::Driver::Base
+      module Extensions : Capybara::Cuprite::Driver
         def debug: (?Binding? bind) -> void
       end
     end
