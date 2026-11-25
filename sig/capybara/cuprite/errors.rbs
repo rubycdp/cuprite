@@ -36,8 +36,6 @@ module Capybara
       def initialize: (String message) -> void
     end
 
-    FERRUM_PENDING_CONNECTIONS_ERROR: bool
-
     class PendingConnectionsError < Ferrum::StatusError
       attr_reader url: String
       attr_reader pendings: Array[String]
@@ -45,10 +43,6 @@ module Capybara
       def initialize: (String url, ?Array[String] pendings) -> void
 
       def message: () -> String
-    end
-
-    module DeprecatedPendingConnectionsError : Module
-      def ===: (untyped other) -> bool
     end
 
     class ObsoleteNode < ClientError

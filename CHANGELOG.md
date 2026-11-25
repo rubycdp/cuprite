@@ -7,6 +7,9 @@
 ### Fixed
 
 ### Removed
+- `CUPRITE_DEBUG`, deprecated in 0.21, use `CUPRITE_LOG=*`
+- `Capybara::Cuprite::PendingConnectionsError` no longer subclasses `Ferrum::PendingConnectionsError`, rescue Cuprite's
+  error or `Ferrum::StatusError`
 
 
 ## [0.21](https://github.com/rubycdp/cuprite/compare/v0.20.1...v0.21) ##

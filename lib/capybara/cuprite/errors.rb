@@ -72,12 +72,8 @@ module Capybara
       end
     end
 
-    # Whether this Ferrum still has `Ferrum::PendingConnectionsError`.
-    # @api private
-    FERRUM_PENDING_CONNECTIONS_ERROR = Ferrum.const_defined?(:PendingConnectionsError, false)
-
     # Raised by `visit` with `pending_connection_errors: true` when the page doesn't load in time.
-    class PendingConnectionsError < (FERRUM_PENDING_CONNECTIONS_ERROR ? Ferrum::PendingConnectionsError : Ferrum::StatusError)
+    class PendingConnectionsError < Ferrum::StatusError
       # @return [String] the URL being loaded
       attr_reader :url
       # @return [Array<String>] the URLs of the requests still pending
@@ -97,24 +93,6 @@ module Capybara
         @pendings.empty? ? message : "#{message}: #{@pendings.join(', ')}"
       end
     end
-
-    # Warns when `rescue Ferrum::PendingConnectionsError` catches Cuprite's error.
-    # @api private
-    module DeprecatedPendingConnectionsError
-      # @param other [Object]
-      # @return [Boolean]
-      def ===(other)
-        matched = super
-        if matched && equal?(Ferrum::PendingConnectionsError) && other.is_a?(Cuprite::PendingConnectionsError)
-          warn "Ferrum::PendingConnectionsError is deprecated, use Capybara::Cuprite::PendingConnectionsError",
-               uplevel: 1
-        end
-        matched
-      end
-    end
-
-    Ferrum::PendingConnectionsError.singleton_class.prepend(DeprecatedPendingConnectionsError) if
-      FERRUM_PENDING_CONNECTIONS_ERROR
 
     # Raised when an element is no longer in the DOM. Capybara finds it again and retries.
     class ObsoleteNode < ClientError
