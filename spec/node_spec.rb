@@ -942,6 +942,22 @@ describe Capybara::Cuprite::Node do
     end
   end
 
+  describe "#style" do
+    before { @session.visit "/with_html" }
+
+    it "returns the computed value of each property" do
+      expect(@session.find(:css, "#first").native.style(%w[display line-height]))
+        .to eq("display" => "block", "line-height" => "25px")
+    end
+
+    it "returns the current value after a :style filter matched" do
+      element = @session.find(:css, "#first", style: { display: "block" })
+      @session.execute_script("document.getElementById('first').style.display = 'inline'")
+
+      expect(element.style(:display)).to eq("display" => "inline")
+    end
+  end
+
   describe "#[]" do
     before { @session.visit "/cuprite/attributes_properties" }
 
