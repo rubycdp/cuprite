@@ -7,6 +7,7 @@ module Capybara
         TYPED_INPUTS = %w[text password email search tel url number].freeze
         SET_OPTIONS = %i[rapid clear].freeze
         CLEAR_ERROR = "clear: takes nil, :none, :backspace or an Array of keys"
+        MULTIPLE_ERROR = "Value cannot be an Array when 'multiple' attribute is not present"
         RAPID_SET_LENGTH = 30
         RAPID_APPEND_TEXT = "this.value = (this.value + value)" \
                             ".slice(0, this.maxLength >= 0 ? this.maxLength : undefined)"

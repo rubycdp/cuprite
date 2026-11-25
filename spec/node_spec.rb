@@ -514,6 +514,12 @@ describe Capybara::Cuprite::Node do
         expect(element.value).to eq("Hello")
       end
 
+      it "raises for an Array on a field without multiple" do
+        element = @session.find(:css, "#change_me")
+        expect { element.set(%w[a b]) }
+          .to raise_error(ArgumentError, "Value cannot be an Array when 'multiple' attribute is not present")
+      end
+
       it "raises for an unknown clear: value" do
         element = @session.find(:css, "#change_me")
         expect { element.set("a", clear: :foo) }

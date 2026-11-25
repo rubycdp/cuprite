@@ -36,6 +36,7 @@
   [rubycdp/ferrum#716]
 
 ### Fixed
+- `set` with an Array on a field without `multiple` raises `ArgumentError` like Selenium, it typed the Array as text
 - Number fields are typed with real key presses like text fields, so `clear:` and `rapid:` apply, their value was set
   from JS with no key events
 - `value` of a multiple select includes the selected options in an `<optgroup>`, it returned only the others

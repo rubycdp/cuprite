@@ -81,9 +81,10 @@ module Capybara
       # @option options [nil, :none, :backspace, Array] :clear `nil` replaces the value, `:none` appends to it,
       #   `:backspace` deletes it with Backspace first, an Array of keys is pressed before typing
       # @return [void]
-      # @raise [ArgumentError] for an unknown `clear:` value
+      # @raise [ArgumentError] for an unknown `clear:` value, or an Array on a field without `multiple`
       def set(value, options = {}) # rubocop:disable Metrics/CyclomaticComplexity, Metrics/PerceivedComplexity, Metrics/AbcSize
         warn_unsupported(options)
+        raise ArgumentError, MULTIPLE_ERROR if value.is_a?(Array) && !multiple?
 
         if tag_name == "input"
           case self[:type]
