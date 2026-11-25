@@ -69,11 +69,8 @@ module Capybara
         width && height ? resize(width: width, height: height) : set_viewport
         network.emulate(user_agent: default_user_agent) if @settings.device_user_agent?
 
-        if @settings.url_blacklist.any?
-          network.blacklist = @settings.url_blacklist
-        elsif @settings.url_whitelist.any?
-          network.whitelist = @settings.url_whitelist
-        end
+        network.blacklist = @settings.url_blacklist if @settings.url_blacklist.any?
+        network.whitelist = @settings.url_whitelist if @settings.url_whitelist.any?
       end
     end
   end

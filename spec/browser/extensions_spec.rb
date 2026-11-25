@@ -44,6 +44,44 @@ describe Capybara::Cuprite::Browser::Extensions do
       end
     end
 
+    it "raises when a whitelist is set" do
+      @driver.browser.url_whitelist = /url_whitelist/
+
+      expect { @driver.browser.url_blacklist = /url_whitelist/ }
+        .to raise_error(ArgumentError, "You can't use blacklist along with whitelist")
+    end
+
+    it "keeps the blacklist empty when it raises" do
+      @driver.browser.url_whitelist = /url_whitelist/
+
+      expect { @driver.browser.url_blacklist = /unwanted/ }.to raise_error(ArgumentError)
+
+      expect(@driver.browser.url_blacklist).to eq([])
+    end
+
+    it "unblocks urls on the current page when set to an empty list" do
+      @driver.browser.url_blacklist = /unwanted/
+      @session.visit "/cuprite/url_blacklist"
+
+      @driver.browser.url_blacklist = []
+      @session.visit "/cuprite/url_blacklist"
+
+      @session.within_frame "framename" do
+        expect(@session).to have_content("We shouldn't see this.")
+      end
+    end
+
+    it "blocks urls through the url_blocklist= alias" do
+      @driver.browser.url_blocklist = /unwanted/
+
+      @session.visit "/cuprite/url_blacklist"
+
+      expect(@driver.browser.url_blacklist).to eq([/unwanted/])
+      @session.within_frame "framename" do
+        expect(@session.html).not_to include("We shouldn't see this.")
+      end
+    end
+
     it "keeps blocking urls from the driver option after reset!" do
       Capybara.register_driver :cuprite_blacklist do |app|
         Capybara::Cuprite::Driver.new(app, @driver.options.merge(url_blacklist: /unwanted/))
@@ -120,10 +158,33 @@ describe Capybara::Cuprite::Browser::Extensions do
       end
     end
 
-    it "raises when a blacklist is also set" do
-      @driver.browser.url_whitelist = /url_whitelist/
-      expect { @driver.browser.url_blacklist = /url_whitelist/ }
-        .to raise_error(ArgumentError, "You can't use blacklist along with whitelist")
+    it "raises when a blacklist is set" do
+      @driver.browser.url_blacklist = /unwanted/
+
+      expect { @driver.browser.url_whitelist = /url_whitelist/ }
+        .to raise_error(ArgumentError, "You can't use whitelist along with blacklist")
+    end
+
+    it "keeps the whitelist empty when it raises" do
+      @driver.browser.url_blacklist = /unwanted/
+
+      expect { @driver.browser.url_whitelist = /url_whitelist/ }.to raise_error(ArgumentError)
+
+      expect(@driver.browser.url_whitelist).to eq([])
+    end
+
+    it "allows urls through the url_allowlist= alias" do
+      @driver.browser.url_allowlist = [/url_whitelist/, %r{/cuprite/wanted}]
+
+      @session.visit "/cuprite/url_whitelist"
+
+      expect(@driver.browser.url_whitelist).to eq([/url_whitelist/, %r{/cuprite/wanted}])
+      @session.within_frame "framename" do
+        expect(@session).to have_content("We should see this.")
+      end
+      @session.within_frame "unwantedframe" do
+        expect(@session).not_to have_content("We shouldn't see this.")
+      end
     end
 
     it "allows urls when the whitelist is empty" do

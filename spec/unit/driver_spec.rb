@@ -33,7 +33,26 @@ describe Capybara::Cuprite::Driver do
     end
   end
 
+  describe "#browser" do
+    it "raises for both :url_blacklist and :url_whitelist" do
+      driver = described_class.new(nil, { url_blacklist: /unwanted/, url_whitelist: /wanted/ })
+
+      expect { driver.browser }.to raise_error(ArgumentError, "You can't use whitelist along with blacklist")
+    end
+  end
+
   describe "#reset!" do
+    it "restores the url_blacklist set at runtime" do
+      driver = described_class.new(nil, { url_blacklist: /unwanted/ })
+      driver.browser.url_blacklist = /other/
+
+      driver.reset!
+
+      expect(driver.browser.url_blacklist).to eq([/unwanted/])
+    ensure
+      driver&.quit
+    end
+
     it "keeps raise_on_unhandled_modal" do
       driver = described_class.new(nil, { raise_on_unhandled_modal: true })
 

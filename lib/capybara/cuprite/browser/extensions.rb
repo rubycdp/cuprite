@@ -22,11 +22,12 @@ module Capybara
         end
         alias url_allowlist url_whitelist
 
-        # Allows requests only to matching URLs, from the current page on.
+        # Allows requests only to matching URLs, from the current page on. An empty list lifts the allowlist from the
+        # next page on, the current page keeps the previous one.
         #
         # @param patterns [Regexp, Array<Regexp>, nil]
         # @return [void]
-        # @raise [ArgumentError] for a pattern that isn't a Regexp
+        # @raise [ArgumentError] for a pattern that isn't a Regexp, or when a blocklist is set
         def url_whitelist=(patterns)
           @settings.url_whitelist = patterns
           page.network.whitelist = @settings.url_whitelist if @client && @settings.url_whitelist.any?
@@ -39,14 +40,14 @@ module Capybara
         end
         alias url_blocklist url_blacklist
 
-        # Blocks requests to matching URLs, from the current page on.
+        # Blocks requests to matching URLs, from the current page on. An empty list lifts the blocklist.
         #
         # @param patterns [Regexp, Array<Regexp>, nil]
         # @return [void]
-        # @raise [ArgumentError] for a pattern that isn't a Regexp
+        # @raise [ArgumentError] for a pattern that isn't a Regexp, or when an allowlist is set
         def url_blacklist=(patterns)
           @settings.url_blacklist = patterns
-          page.network.blacklist = @settings.url_blacklist if @client && @settings.url_blacklist.any?
+          page.network.blacklist = @settings.url_blacklist if @client
         end
         alias url_blocklist= url_blacklist=
       end
