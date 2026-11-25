@@ -36,6 +36,7 @@
   [rubycdp/ferrum#716]
 
 ### Fixed
+- `value` of a multiple select includes the selected options in an `<optgroup>`, it returned only the others
 - Setting a text field to a value ending in `\n` no longer fails now and then with `Ferrum::NoExecutionContextError`
   when the form submits and the page navigates away before the field refocuses
 - `response_headers` are looked up case-insensitively as with rack_test, `["Content-Type"]` returned `nil`
