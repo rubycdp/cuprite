@@ -45,7 +45,7 @@ module Ferrum
   class Page
     NAVIGATION_WAIT: Float
 
-    @frames: Hash[String, Frame]
+    def frame_by: (?id: String?, ?name: String?, ?execution_id: Integer?) -> Frame?
 
     def initialize: (*untyped, **untyped) -> void
 
