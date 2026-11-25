@@ -6,12 +6,9 @@ module Capybara
       # Answers JavaScript dialogs as `accept_modal` and `dismiss_modal` asked, and records their messages.
       # @api private
       module Modals
-        # How often `find_modal` checks for a dialog, `CUPRITE_MODAL_WAIT` in seconds.
-        MODAL_WAIT = ENV.fetch("CUPRITE_MODAL_WAIT", 0.05).to_f
-
         def initialize(...)
           @accept_modal = []
-          @modal_messages = []
+          @modal_messages = Thread::Queue.new
           @modal_response = nil
           @unhandled_modal_error = nil
           super
@@ -60,27 +57,26 @@ module Capybara
         # @return [String] the dialog's message
         # @raise [Capybara::ModalNotFound] when no matching dialog was answered in time
         def find_modal(options)
-          start = Ferrum::Utils::ElapsedTime.monotonic_time
           expect_text = options[:text]
           expect_regexp = expect_text.is_a?(Regexp) ? expect_text : Regexp.escape(expect_text.to_s)
           not_found_msg = "Unable to find modal dialog"
           not_found_msg += " with #{expect_text}" if expect_text
-          wait = options.fetch(:wait, timeout)
+          deadline = monotonic_time + options.fetch(:wait, timeout)
 
-          begin
-            modal_text = @modal_messages.shift
-            raise Capybara::ModalNotFound if modal_text.nil? || (expect_text && !modal_text.match(expect_regexp))
-          rescue Capybara::ModalNotFound => e
-            raise e, not_found_msg if Ferrum::Utils::ElapsedTime.timeout?(start, wait)
+          loop do
+            remaining = deadline - monotonic_time
+            raise Capybara::ModalNotFound, not_found_msg if remaining.negative?
 
-            sleep(MODAL_WAIT)
-            retry
+            modal_text = @modal_messages.pop(timeout: remaining)
+            return modal_text if modal_text && (!expect_text || modal_text.match?(expect_regexp))
           end
-
-          modal_text
         end
 
         private
+
+        def monotonic_time
+          Process.clock_gettime(Process::CLOCK_MONOTONIC)
+        end
 
         def raise_pending_unhandled_modal_error!
           error = @unhandled_modal_error
