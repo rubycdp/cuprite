@@ -20,10 +20,6 @@ module Capybara
       # The script that drags with HTML5 drag and drop events.
       # @api private
       DRAG_HTML5_JS = File.read(File.expand_path("javascripts/drag.js", __dir__))
-      # How long `trigger("click")` waits for a navigation to start, `CUPRITE_TRIGGER_CLICK_WAIT` in seconds.
-      # @api private
-      TRIGGER_CLICK_WAIT = ENV.fetch("CUPRITE_TRIGGER_CLICK_WAIT", 0.1).to_f
-
       # @param driver [Driver]
       # @param node [Ferrum::Node]
       # @param initial_cache [Hash] what the finder already knows about the element, see Capybara's finder hints
@@ -298,17 +294,18 @@ module Capybara
         end
       end
 
-      # Dispatches a DOM event on the element without moving the mouse. A `click` waits briefly for the navigation
-      # it may start.
+      # Dispatches a DOM event on the element without moving the mouse. A `click` watches for the navigation it may
+      # start like a real click, for Ferrum's `FERRUM_NAVIGATION_WAIT` seconds.
       #
       # @param event [String, Symbol]
       # @return [void]
       # @raise [ObsoleteNode] when the element is no longer in the DOM
       def trigger(event)
         command do
-          next js(:trigger, event.to_s) unless event.to_s == "click" && TRIGGER_CLICK_WAIT.positive?
+          wait = Ferrum::Page::NAVIGATION_WAIT
+          next js(:trigger, event.to_s) unless event.to_s == "click" && wait.positive?
 
-          driver.browser.await_navigation!(watch: TRIGGER_CLICK_WAIT) { js(:trigger, "click") }
+          driver.browser.await_navigation!(watch: wait) { js(:trigger, "click") }
         end
       end
 

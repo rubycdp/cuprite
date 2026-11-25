@@ -43,6 +43,8 @@ module Ferrum
   end
 
   class Page
+    NAVIGATION_WAIT: Float
+
     @frames: Hash[String, Frame]
 
     def initialize: (*untyped, **untyped) -> void

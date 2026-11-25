@@ -14,6 +14,7 @@
   and last 3 and set the rest from JS. `minlength` validates, `\n` submits a single-input form, and `rapid:` is supported
 - `CUPRITE_DEBUG` is renamed to `CUPRITE_LOG`, which takes `FERRUM_LOG` values and passes them on, `CUPRITE_DEBUG` is
   deprecated and acts as `CUPRITE_LOG=*`. `FERRUM_DEBUG` is deprecated in Ferrum 0.21
+- `trigger("click")` watches for a navigation as long as real clicks, Ferrum's `FERRUM_NAVIGATION_WAIT`
 - Clicks, hovers and drags find their point with Ferrum's `node.pinpoint` instead of `find_position`, deprecated in
   Ferrum 0.21, and a click passes an offset only when Capybara gives `x` and `y` [rubycdp/ferrum#726]
 - Calls Ferrum's `go_to` and `node.scroll` instead of `goto` and `scroll_into_view`, deprecated in Ferrum 0.21, and
@@ -64,6 +65,7 @@
 - String patterns for `url_blacklist`/`url_whitelist`, deprecated in 0.15, raise `ArgumentError`, pass regexps
 - `CUPRITE_MODAL_WAIT`, `accept_*`/`dismiss_*` find the dialog as soon as it's answered instead of checking for it on
   an interval
+- `CUPRITE_TRIGGER_CLICK_WAIT`, use Ferrum's `FERRUM_NAVIGATION_WAIT`, which real clicks use too
 
 
 ## [0.20.1](https://github.com/rubycdp/cuprite/compare/v0.20...v0.20.1) ##
