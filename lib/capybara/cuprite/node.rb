@@ -232,12 +232,9 @@ module Capybara
         return if keys.empty?
 
         command do
-          unless node.evaluate("_cuprite.containsSelection(this) || _cuprite.hasFocus(this)")
-            before_click("click")
-            node.click
-          end
-
-          driver.browser.keyboard.type(keys)
+          keyboard = driver.browser.keyboard
+          keyboard.type(:end) if js(:focusForTyping)
+          keyboard.type(keys)
         end
       end
 
