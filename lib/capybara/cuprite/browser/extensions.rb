@@ -30,7 +30,7 @@ module Capybara
         # @raise [ArgumentError] for a pattern that isn't a Regexp, or when a blocklist is set
         def url_whitelist=(patterns)
           @settings.url_whitelist = patterns
-          page.network.whitelist = @settings.url_whitelist if @client && @settings.url_whitelist.any?
+          page.network.whitelist = @settings.url_whitelist if client && @settings.url_whitelist.any?
         end
         alias url_allowlist= url_whitelist=
 
@@ -47,7 +47,7 @@ module Capybara
         # @raise [ArgumentError] for a pattern that isn't a Regexp, or when an allowlist is set
         def url_blacklist=(patterns)
           @settings.url_blacklist = patterns
-          page.network.blacklist = @settings.url_blacklist if @client
+          page.network.blacklist = @settings.url_blacklist if client
         end
         alias url_blocklist= url_blacklist=
       end

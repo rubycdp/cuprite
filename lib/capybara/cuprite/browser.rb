@@ -17,7 +17,7 @@ module Capybara
         options = Devices.fetch(device).except(:user_agent).merge(options) if device
         super(options&.except(:js_errors, :pending_connection_errors))
 
-        @settings = Settings.new(options, @options.window_size)
+        @settings = Settings.new(options, self.options.window_size)
         @page = nil
       end
 

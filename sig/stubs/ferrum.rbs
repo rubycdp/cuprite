@@ -36,8 +36,9 @@ module Ferrum
       def window_size: () -> [Integer, Integer]?
     end
 
-    @options: Options
-    @client: untyped
+    def options: () -> Options
+
+    def client: () -> Client?
 
     def initialize: (?Hash[Symbol, untyped]? options) -> void
   end
