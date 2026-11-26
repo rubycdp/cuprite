@@ -69,6 +69,8 @@ browser.mouse.move(x: 123, y: 456).down.up
 within_window(new_window) { page.driver.current_page.network.traffic }
 ```
 
+Capybara's `within_frame` doesn't apply to Ferrum's methods either, they run in the page's main frame.
+
 For Selenium you better check your code for `manage` calls because it works
 differently in Cuprite, see the documentation below.
 

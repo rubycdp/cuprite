@@ -18,5 +18,6 @@ All Cuprite errors inherit from `Capybara::Cuprite::Error`.
   [Modals](/docs/cuprite/modals).
 
 Ferrum errors such as `Ferrum::TimeoutError`, `Ferrum::DeadBrowserError` or
-`Ferrum::JavaScriptError` can be raised as well. When the browser dies Cuprite
-restarts it automatically for the next command.
+`Ferrum::JavaScriptError` can be raised as well. When the browser dies the
+current test fails with `Ferrum::DeadBrowserError`, and Cuprite restarts the
+browser when Capybara resets the session for the next test.

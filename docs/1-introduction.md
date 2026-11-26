@@ -73,7 +73,7 @@ See [Docker](/docs/cuprite/docker).
 few things that depend on Capybara, like frames, windows, modals and
 screenshots saved to `Capybara.save_path`.
 
-`page.driver.browser` is a `Ferrum::Browser`, so everything in the
+`page.driver.browser` is a plain `Ferrum::Browser`, so everything in the
 [Ferrum documentation](/docs/ferrum/introduction) applies to it. Use it when
 Capybara has no API for what you need:
 
@@ -91,9 +91,11 @@ browser.downloads.files
 
 A few things to keep in mind:
 
-- It follows Capybara. Page methods such as `browser.evaluate` or `browser.css`
-  run in the window and frame Capybara is switched to, for example inside
-  `within_window` or `within_frame`.
+- It doesn't follow Capybara's windows and frames. Page methods such as
+  `browser.evaluate` or `browser.css` run in the first window's main frame, also
+  inside `within_window` or `within_frame`. The window Capybara is switched to
+  is `page.driver.current_page`, a `Ferrum::Page`, see
+  [Windows & Frames](/docs/cuprite/windows-frames).
 - It's reset between tests. Capybara's reset disposes the browser context, so
   headers, cookies, request interception, recorded traffic, console messages
   and downloads are gone in the next test. Browser-wide settings such as

@@ -25,8 +25,9 @@ always accepted. By default Cuprite prints a warning. With
 Capybara::Cuprite::Driver.new(app, raise_on_unhandled_modal: true)
 ```
 
-The error is raised on the next command sent to the browser. In practice that's
-almost always the same action that triggered the dialog (a click, `visit`,
-`evaluate_script`, ...), since a JavaScript dialog blocks the page until it's
-answered. A dialog fired with nothing in flight, e.g. by a JavaScript timer,
-surfaces on whatever command runs next.
+The error is raised by the Capybara call that triggered the dialog: a click,
+`visit`, `evaluate_script`, `execute_script`, or another action on an element.
+A JavaScript dialog blocks the page until it's answered, so that call is still
+running when Cuprite answers it. A dialog fired with nothing in flight, e.g. by
+a JavaScript timer, surfaces on the next of those calls. Calls made through
+`page.driver.browser` or `page.driver.current_page` don't raise it.
