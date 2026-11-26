@@ -36,7 +36,7 @@ module Capybara
           if @frame_stack.empty?
             main_frame
           else
-            @frames[@frame_stack.last]
+            frame_by(id: @frame_stack.last)
           end
         end
       end

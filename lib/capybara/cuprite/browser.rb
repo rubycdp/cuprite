@@ -17,7 +17,7 @@ module Capybara
         options = Devices.fetch(device).except(:user_agent).merge(options) if device
         super(options&.except(:js_errors, :pending_connection_errors))
 
-        @settings = Settings.new(options, @options.window_size)
+        @settings = Settings.new(options, self.options.window_size)
         @page = nil
       end
 
@@ -110,8 +110,7 @@ module Capybara
           forget_page
           @page_closed = true
         end
-        target.page.close
-        default_context.delete_target(target_id) # page.close is async, delete target asap
+        default_context.close_target(target.id)
       end
 
       private
