@@ -85,6 +85,8 @@ module Capybara
 
       def find: (:css | :xpath method, String selector, **Finder::Hints::hint hints) -> Array[Node]
 
+      def check_modals: [T] () { () -> T } -> T
+
       def command: [T] () { () -> T } -> T
                  | (Symbol function, *Driver::script_value args) -> Driver::script_value
 

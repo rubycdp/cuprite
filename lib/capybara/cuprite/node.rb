@@ -245,7 +245,7 @@ module Capybara
         command do
           js(:scrollIntoViewport)
           x, y = pinpoint
-          driver.browser.page.command("Input.dispatchMouseEvent", type: "mouseMoved", x: x, y: y)
+          driver.current_page.command("Input.dispatchMouseEvent", type: "mouseMoved", x: x, y: y)
         end
       end
 
@@ -284,8 +284,8 @@ module Capybara
       def drop(*args)
         command do
           if args[0].is_a?(String)
-            driver.browser.execute("_cuprite.attachDropInput()")
-            driver.browser.at_css("#_cuprite_drop_file").select_file(args)
+            driver.active_frame.execute("_cuprite.attachDropInput()")
+            driver.active_frame.at_css("#_cuprite_drop_file").select_file(args)
             js(:dropFile)
           else
             strings = args.flat_map { |arg| arg.map { |type, data| { "type" => type, "data" => data } } }
@@ -305,7 +305,7 @@ module Capybara
           wait = Ferrum::Page::NAVIGATION_WAIT
           next js(:trigger, event.to_s) unless event.to_s == "click" && wait.positive?
 
-          driver.browser.await_navigation!(watch: wait) { js(:trigger, "click") }
+          driver.current_page.await_navigation!(watch: wait) { js(:trigger, "click") }
         end
       end
 
@@ -350,7 +350,7 @@ module Capybara
         return if keys.empty?
 
         command do
-          keyboard = driver.browser.keyboard
+          keyboard = driver.current_page.keyboard
           keyboard.type(:end) if js(:focusForTyping)
           keyboard.type(keys)
         end
@@ -370,7 +370,7 @@ module Capybara
 
       # @return [Node, nil] the open shadow root of the element
       def shadow_root
-        root = driver.browser.evaluate("node.shadowRoot", node: node)
+        root = driver.active_frame.evaluate("node.shadowRoot", node: node)
         root && self.class.new(driver, root)
       end
 
@@ -388,7 +388,7 @@ module Capybara
       private
 
       def find(method, selector, **hints)
-        command { Finder.find(driver.browser, method, selector, node, **hints) }.map do |native, cache|
+        command { Finder.find(driver.active_frame, method, selector, node, **hints) }.map do |native, cache|
           self.class.new(driver, native, cache)
         end
       end
@@ -396,7 +396,7 @@ module Capybara
       def command(function = nil, *args)
         raise ObsoleteNode.new(self, nil) unless node.evaluate("this.isConnected")
 
-        block_given? ? yield : js(function, *args)
+        check_modals { block_given? ? yield : js(function, *args) }
       rescue Ferrum::NodeNotFoundError => e
         raise ObsoleteNode.new(self, e.response)
       end
@@ -406,7 +406,11 @@ module Capybara
         x, y = options.values_at(:x, :y)
         offset = x && y ? { x: x, y: y, position: options[:offset] || :top } : {}
         command { before_click(name, offset) }
-        node.click(modifiers: keys, offset: offset, delay: delay, **click)
+        check_modals { node.click(modifiers: keys, offset: offset, delay: delay, **click) }
+      end
+
+      def check_modals(&)
+        driver.window.check_modals(&)
       end
 
       def js(function, *args)
@@ -438,15 +442,15 @@ module Capybara
       end
 
       def drag(other, modifiers, options)
-        browser = driver.browser
+        page = driver.current_page
         delay, scroll, html5, drop_offset = options.values_at(:delay, :scroll, :html5, :drop_offset)
-        browser.execute("_cuprite.dragMousedownTracker()")
+        driver.active_frame.execute("_cuprite.dragMousedownTracker()")
 
         node.scroll if scroll
         x1, y1 = node.pinpoint
 
-        browser.mouse.move(x: x1, y: y1)
-        browser.mouse.down
+        page.mouse.move(x: x1, y: y1)
+        page.mouse.down
         sleep delay if delay
 
         html5 = !js(:legacyDragCheck) if html5.nil?
@@ -454,12 +458,12 @@ module Capybara
         if html5
           keys = modifiers.map(&:to_s)
           driver.evaluate_async_script(DRAG_HTML5_JS, node, other, (delay || 0.05) * 1000, keys, drop_offset)
-          browser.mouse.up
+          page.mouse.up
         else
           other.scroll if scroll
           x2, y2 = other.pinpoint(**drop_offset.to_h)
 
-          browser.keyboard.hold(*modifiers) { browser.mouse.move(x: x2, y: y2, steps: options[:steps]).up }
+          page.keyboard.hold(*modifiers) { page.mouse.move(x: x2, y: y2, steps: options[:steps]).up }
         end
       end
 

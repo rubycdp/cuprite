@@ -2,8 +2,8 @@
 
 module Capybara
   module Cuprite
-    class Browser < Ferrum::Browser
-      # The driver options only Cuprite handles, which {Browser} hands to every {Page} it opens.
+    class Driver < Capybara::Driver::Base
+      # The driver options only Cuprite handles, which {Driver} sets every page up with.
       # @api private
       class Settings
         # @return [Boolean, nil] whether an unhandled dialog raises {UnhandledModalError} instead of warning

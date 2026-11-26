@@ -3,6 +3,10 @@
 ### Added
 
 ### Changed
+- `driver.browser` is a plain `Ferrum::Browser`, whose `page` is the first window. `driver.current_page` is the window
+  Capybara switched to. Cuprite sets every page up through Ferrum's `on_page`
+- `url_blocklist=`, `url_allowlist=`, their aliases and `raise_on_unhandled_modal=` moved from `driver.browser` to
+  `driver`
 
 ### Fixed
 

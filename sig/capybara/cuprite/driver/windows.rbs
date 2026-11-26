@@ -1,0 +1,27 @@
+module Capybara
+  module Cuprite
+    class Driver < Capybara::Driver::Base
+      module Windows : Capybara::Cuprite::Driver
+        def window_handles: () -> Array[String]
+
+        def current_window_handle: () -> String
+
+        def open_new_window: (?(:tab | :window) kind) -> Ferrum::Page
+
+        def switch_to_window: (String handle) -> nil
+
+        def close_window: (String handle) -> Window?
+
+        def no_such_window_error: () -> singleton(Ferrum::NoSuchPageError)
+
+        private
+
+        def within_window: [T] (String handle) { () -> T } -> T
+
+        def forget_page: () -> void
+
+        def window_target: (String handle) -> Ferrum::Target
+      end
+    end
+  end
+end

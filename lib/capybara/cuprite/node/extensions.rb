@@ -15,7 +15,7 @@ module Capybara
         # @return [void]
         # @raise [ObsoleteNode] when the element is no longer in the DOM
         def drag_by(x, y, steps: 1, delay: nil, scroll: true)
-          mouse = driver.browser.mouse
+          mouse = driver.current_page.mouse
 
           command do
             x1, y1 = node.pinpoint

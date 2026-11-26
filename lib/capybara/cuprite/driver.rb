@@ -4,6 +4,9 @@ require "forwardable"
 require "rack"
 require "capybara/cuprite/finder"
 require "capybara/cuprite/driver/extensions"
+require "capybara/cuprite/driver/settings"
+require "capybara/cuprite/driver/window"
+require "capybara/cuprite/driver/windows"
 
 module Capybara
   module Cuprite
@@ -19,6 +22,12 @@ module Capybara
       # The path of the JavaScript Cuprite adds to every page.
       # @api private
       EXTENSION = File.expand_path("javascripts/index.js", __dir__)
+      # The JavaScript Cuprite adds to every page.
+      # @api private
+      EXTENSION_JS = File.read(EXTENSION).freeze
+      # The options Cuprite handles itself and doesn't pass to Ferrum.
+      # @api private
+      CUPRITE_OPTIONS = %i[js_errors pending_connection_errors].freeze
       # The case-insensitive Hash class `response_headers` returns.
       # @api private
       RESPONSE_HEADERS = defined?(Rack::Headers) ? Rack::Headers : Rack::Utils::HeaderHash
@@ -40,27 +49,14 @@ module Capybara
 
       extend Forwardable
       include Extensions
+      include Windows
 
       # @!method title
       #   @return [String] the title of the current page
-      # @!method window_handles
-      #   @return [Array<String>] the handles of all open windows and tabs
-      # @!method current_window_handle
-      #   @return [String] the handle of the current window
-      # @!method close_window(handle)
-      #   Closes a window or tab.
-      #   @param handle [String]
-      #   @return [void]
-      #   @raise [Ferrum::NoSuchPageError] when there's no such window
-      # @!method switch_to_window(handle)
-      #   Makes a window or tab the current one.
-      #   @param handle [String]
-      #   @return [void]
-      #   @raise [Ferrum::NoSuchPageError] when there's no such window
       # @!method refresh
       #   Reloads the current page.
       #   @return [void]
-      delegate %i[title window_handles current_window_handle close_window switch_to_window refresh] => :browser
+      delegate %i[title refresh] => :current_page
       # @!method send_keys(*keys)
       #   Types keys into the focused element, see {Node#send_keys}.
       #   @param keys [Array<String, Symbol, Array>]
@@ -68,18 +64,18 @@ module Capybara
       delegate %i[send_keys] => :active_element
       # @!method current_url
       #   @return [String] the URL of the current page
-      def_delegator :browser, :url, :current_url
+      def_delegator :current_page, :url, :current_url
       # @!method html
       #   @return [String] the HTML of the current page or frame
-      def_delegator :browser, :html
+      delegate %i[html] => :active_frame
       # @!method go_back
       #   Navigates back in history.
       #   @return [void]
-      def_delegator :browser, :back, :go_back
+      def_delegator :current_page, :back, :go_back
       # @!method go_forward
       #   Navigates forward in history.
       #   @return [void]
-      def_delegator :browser, :forward, :go_forward
+      def_delegator :current_page, :forward, :go_forward
 
       # @return [#call] the Rack application under test
       attr_reader :app
@@ -107,6 +103,9 @@ module Capybara
         @app     = app
         @options = options.dup
         @started = false
+        @current_page = nil
+        @page_closed = false
+        @windows = {}
 
         @options[:extensions] ||= []
         @options[:extensions] << EXTENSION
@@ -133,11 +132,36 @@ module Capybara
         true
       end
 
-      # The Ferrum browser, started on first use. Reach for it to use what Capybara doesn't cover.
+      # The Ferrum browser, started on first use. Reach for it to use what Capybara doesn't cover; its `page` is the
+      # first window, {#current_page} is the one switched to.
       #
-      # @return [Browser]
+      # @return [Ferrum::Browser]
+      # @raise [ArgumentError] for a URL pattern that isn't a Regexp, both URL lists, or an unknown device
       def browser
-        @browser ||= Browser.new({ base_url: capybara_base_url }.compact.merge(@options))
+        @browser ||= start_browser
+      end
+
+      # The page of the window switched to, Ferrum's first page until Capybara switches.
+      #
+      # @return [Ferrum::Page]
+      # @raise [Ferrum::NoSuchPageError] when the current window was closed
+      def current_page
+        raise Ferrum::NoSuchPageError if @page_closed
+
+        @current_page ||= browser.page
+      end
+
+      # @api private
+      # @param page [Ferrum::Page]
+      # @return [Window] what Cuprite keeps for the page's window, the current one by default
+      def window(page = current_page)
+        @windows.fetch(page.target_id)
+      end
+
+      # @api private
+      # @return [Ferrum::Frame] the frame switched to in the current page
+      def active_frame
+        window.active_frame
       end
 
       # Navigates to a URL, relative ones against Capybara's `app_host` or server.
@@ -148,12 +172,12 @@ module Capybara
       def visit(url)
         @started = true
         browser.base_url = url if url.match?(%r{\Ahttps?://})
-        browser.go_to(url)
+        check_modals { navigate(url) }
       end
 
       # @return [Integer, nil] the HTTP status of the last response
       def status_code
-        browser.network.status
+        current_page.network.status
       end
 
       # @return [String] the URL of the current frame
@@ -168,7 +192,7 @@ module Capybara
 
       # @return [Node] the focused element
       def active_element
-        Node.new(self, browser.evaluate("document.activeElement"))
+        Node.new(self, active_frame.evaluate("document.activeElement"))
       end
 
       # @param selector [String]
@@ -193,7 +217,7 @@ module Capybara
       # @param args [Array] values passed to the script, nodes as elements
       # @return [Object] the result, elements as {Node}
       def evaluate_script(script, *args)
-        result = browser.evaluate(script, *native_args(args))
+        result = check_modals { active_frame.evaluate(script, *native_args(args)) }
         unwrap_script_result(result)
       end
 
@@ -204,7 +228,9 @@ module Capybara
       # @param args [Array] values passed to the script, nodes as elements
       # @return [Object] the value passed to the callback, elements as {Node}
       def evaluate_async_script(script, *args)
-        result = browser.evaluate(CALLBACK_JS.sub("SCRIPT") { script }, *native_args(args), timeout: session_wait_time)
+        result = check_modals do
+          active_frame.evaluate(CALLBACK_JS.sub("SCRIPT") { script }, *native_args(args), timeout: session_wait_time)
+        end
         unwrap_script_result(result)
       end
 
@@ -214,7 +240,7 @@ module Capybara
       # @param args [Array] values passed to the script, nodes as elements
       # @return [nil]
       def execute_script(script, *args)
-        browser.execute(script, *native_args(args))
+        check_modals { active_frame.execute(script, *native_args(args)) }
         nil
       end
 
@@ -233,21 +259,7 @@ module Capybara
 
         raise ArgumentError, "Unable to switch to frame from #{locator.class}" unless handle
 
-        browser.page.switch_to_frame(handle)
-      end
-
-      # Opens a blank page without switching to it.
-      #
-      # @param kind [:tab, :window] what Capybara's `open_new_window` asks for
-      # @return [Page]
-      # @raise [ArgumentError] for any other kind
-      def open_new_window(kind = :tab)
-        browser.open_new_window(kind)
-      end
-
-      # @return [Class] the error raised for a closed window
-      def no_such_window_error
-        Ferrum::NoSuchPageError
+        window.switch_to_frame(handle)
       end
 
       # Closes the browser.
@@ -255,6 +267,9 @@ module Capybara
       # @return [void]
       def quit
         @browser&.quit
+      ensure
+        @windows.clear
+        forget_page
       end
 
       # Resets the browser between tests: starts a fresh browser context and restores the options.
@@ -263,7 +278,7 @@ module Capybara
       def reset!
         return unless @browser
 
-        browser.reset
+        reset_browser
         base_url = @options[:base_url] || capybara_base_url
         browser.base_url = base_url if base_url
       ensure
@@ -277,9 +292,9 @@ module Capybara
       # @return [void]
       def save_screenshot(path, options = {})
         if File.extname(path) == ".pdf"
-          browser.pdf(path: path, **options)
+          current_page.pdf(path: path, **options)
         else
-          browser.screenshot(path: path, **options)
+          current_page.screenshot(path: path, **options)
         end
       end
 
@@ -290,7 +305,9 @@ module Capybara
       # @raise [Ferrum::NoSuchPageError] when there's no such window
       def resize_window_to(handle, width, height)
         within_window(handle) do
-          browser.resize(width: width, height: height)
+          settings.window_size = [width, height]
+          current_page.resize(width: width, height: height)
+          emulate_viewport(current_page, width, height)
         end
       end
 
@@ -317,7 +334,9 @@ module Capybara
       # @raise [Ferrum::NoSuchPageError] when there's no such window
       def fullscreen_window(handle)
         within_window(handle) do
-          browser.resize(fullscreen: true)
+          settings.window_size = [nil, nil]
+          current_page.resize(fullscreen: true)
+          emulate_viewport(current_page, *current_page.document_size)
         end
       end
 
@@ -325,7 +344,7 @@ module Capybara
       #
       # @return [Hash{String => String}, nil] `Rack::Headers`, or `Rack::Utils::HeaderHash` on Rack 2
       def response_headers
-        headers = browser.network.response&.headers
+        headers = current_page.network.response&.headers
         RESPONSE_HEADERS[headers] if headers
       end
 
@@ -356,14 +375,14 @@ module Capybara
       def accept_modal(type, options = {})
         case type
         when :alert, :confirm
-          browser.page.accept_confirm
+          window.accept_confirm
         when :prompt
-          browser.page.accept_prompt(options[:with])
+          window.accept_prompt(options[:with])
         end
 
         yield if block_given?
 
-        browser.page.find_modal(options)
+        window.find_modal(options)
       end
 
       # Dismisses the dialog the block opens.
@@ -378,14 +397,14 @@ module Capybara
       def dismiss_modal(type, options = {})
         case type
         when :confirm
-          browser.page.dismiss_confirm
+          window.dismiss_confirm
         when :prompt
-          browser.page.dismiss_prompt
+          window.dismiss_prompt
         end
 
         yield if block_given?
 
-        browser.page.find_modal(options)
+        window.find_modal(options)
       end
 
       private
@@ -393,17 +412,81 @@ module Capybara
       attr_reader :screen_size
 
       def find(method, selector, **hints)
-        Finder.find(browser, method, selector, **hints).map { |native, cache| Node.new(self, native, cache) }
+        nodes = check_modals { Finder.find(active_frame, method, selector, **hints) }
+        nodes.map { |native, cache| Node.new(self, native, cache) }
       end
 
-      def within_window(handle)
-        original = browser.current_window_handle
-        raise Ferrum::NoSuchPageError unless browser.window_handles.include?(handle)
+      def check_modals(&)
+        window.check_modals(&)
+      end
 
-        browser.switch_to_window(handle)
-        yield
+      def start_browser
+        options = { base_url: capybara_base_url }.compact.merge(@options)
+        device = options[:emulate]
+        options = Devices.fetch(device).except(:user_agent).merge(options) if device
+
+        browser = Ferrum::Browser.new(options.except(*CUPRITE_OPTIONS))
+        @settings = Settings.new(options, browser.options.window_size)
+        browser.on_page { |page| prepare_page(page) }
+        browser
+      rescue StandardError
+        browser&.quit
+        raise
+      end
+
+      def reset_browser
+        @windows.clear
+        browser.reset
+      rescue Ferrum::DeadBrowserError
+        browser.restart
       ensure
-        browser.switch_to_window(original)
+        @settings.reset
+        forget_page
+      end
+
+      def settings
+        browser
+        @settings
+      end
+
+      def navigate(url)
+        return current_page.go_to(url) unless settings.pending_connection_errors?
+
+        current_page.go_to!(url)
+      rescue Ferrum::NavigationTimeoutError => e
+        raise if Ferrum::Deadline.current&.expired?
+
+        raise PendingConnectionsError.new(e.url, e.pendings)
+      end
+
+      def prepare_page(page)
+        @windows[page.target_id] = Window.new(page, @settings)
+        subscribe_to_js_errors(page) if @settings.js_errors?
+        page.execute(EXTENSION_JS)
+
+        width, height = @settings.window_size
+        page.resize(width: width, height: height) if width && height
+        emulate_viewport(page, width, height)
+        emulate_device_user_agent(page) if @settings.device_user_agent?
+
+        page.network.blacklist = @settings.url_blacklist if @settings.url_blacklist.any?
+        page.network.whitelist = @settings.url_whitelist if @settings.url_whitelist.any?
+      end
+
+      def subscribe_to_js_errors(page)
+        page.on("Runtime.exceptionThrown") do |params|
+          Thread.main.raise Ferrum::JavaScriptError, params["exceptionDetails"]
+        end
+      end
+
+      def emulate_viewport(page, width, height)
+        page.set_viewport(width: width || 0, height: height || 0, scale_factor: @settings.scale_factor,
+                          mobile: @settings.mobile)
+      end
+
+      def emulate_device_user_agent(page)
+        browser.default_user_agent = @settings.user_agent(browser.version.user_agent)
+        page.network.emulate(user_agent: browser.default_user_agent)
       end
 
       def capybara_base_url

@@ -257,7 +257,7 @@ describe Capybara::Cuprite::Driver do
 
   describe "#visit" do
     it "raises with the pending connections when the page times out" do
-      @driver.browser.page # attach first so the low timeout covers visit only
+      @driver.current_page # attach first so the low timeout covers visit only
       old_timeout = @driver.browser.timeout
       @driver.browser.timeout = 0.1
       expect do
@@ -325,6 +325,18 @@ describe Capybara::Cuprite::Driver do
   end
 
   describe "#reset!" do
+    it "restarts a browser that died" do
+      driver = Capybara::Cuprite::Driver.new(nil)
+      expect { driver.browser.crash }.to raise_error(Ferrum::DeadBrowserError)
+
+      driver.reset!
+
+      driver.visit(session_url("/"))
+      expect(driver.html).to include("Hello world")
+    ensure
+      driver&.quit
+    end
+
     it "sets base_url for cookies to the server" do
       @driver.browser.cookies.set(name: "capybara", value: "omg")
       @session.visit("/get_cookie")
@@ -1018,7 +1030,7 @@ describe Capybara::Cuprite::Driver do
 
   describe "#open_new_window" do
     def window_id_of(window)
-      @session.within_window(window) { @driver.browser.page.window_id }
+      @session.within_window(window) { @driver.current_page.window_id }
     end
 
     it "opens a tab in the current window by default" do
@@ -1045,7 +1057,7 @@ describe Capybara::Cuprite::Driver do
     end
 
     it "opens a window that inherits url_blacklist" do
-      @driver.browser.url_blacklist = /unwanted/
+      @driver.url_blacklist = /unwanted/
       @session.visit "/"
       new_tab = @session.open_new_window
       @session.within_window(new_tab) do
@@ -1059,7 +1071,7 @@ describe Capybara::Cuprite::Driver do
 
     it "opens a window that inherits url_whitelist" do
       @session.visit "/"
-      @driver.browser.url_whitelist = [/url_whitelist/, %r{/cuprite/wanted}]
+      @driver.url_whitelist = [/url_whitelist/, %r{/cuprite/wanted}]
       new_tab = @session.open_new_window
       @session.within_window(new_tab) do
         @session.visit "/cuprite/url_whitelist"

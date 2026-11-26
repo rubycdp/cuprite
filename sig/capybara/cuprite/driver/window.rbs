@@ -1,0 +1,22 @@
+module Capybara
+  module Cuprite
+    class Driver < Capybara::Driver::Base
+      class Window
+        include Frames
+        include Modals
+
+        @page: Ferrum::Page
+        @settings: Settings
+        @frame_stack: Array[String]
+        @accept_modal: Array[bool]
+        @modal_messages: Thread::Queue[String?]
+        @modal_response: String?
+        @unhandled_modal_error: UnhandledModalError?
+
+        attr_reader page: Ferrum::Page
+
+        def initialize: (Ferrum::Page page, Settings settings) -> void
+      end
+    end
+  end
+end

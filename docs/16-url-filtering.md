@@ -8,13 +8,13 @@ Cuprite supports URL blocklisting, which allows you to prevent requests to
 designated URLs:
 
 ```ruby
-page.driver.browser.url_blocklist = [%r{http://www.example.com}]
+page.driver.url_blocklist = [%r{http://www.example.com}]
 ```
 
 and also URL allowlisting, which allows requests only to designated URLs:
 
 ```ruby
-page.driver.browser.url_allowlist = [%r{http://127.0.0.1}]
+page.driver.url_allowlist = [%r{http://127.0.0.1}]
 ```
 
 `url_blacklist=` and `url_whitelist=` are aliases of the same setters, and the
