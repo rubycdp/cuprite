@@ -396,7 +396,7 @@ module Capybara
       def command(function = nil, *args)
         raise ObsoleteNode.new(self, nil) unless node.evaluate("this.isConnected")
 
-        block_given? ? yield : js(function, *args)
+        check_modals { block_given? ? yield : js(function, *args) }
       rescue Ferrum::NodeNotFoundError => e
         raise ObsoleteNode.new(self, e.response)
       end
@@ -406,7 +406,11 @@ module Capybara
         x, y = options.values_at(:x, :y)
         offset = x && y ? { x: x, y: y, position: options[:offset] || :top } : {}
         command { before_click(name, offset) }
-        node.click(modifiers: keys, offset: offset, delay: delay, **click)
+        check_modals { node.click(modifiers: keys, offset: offset, delay: delay, **click) }
+      end
+
+      def check_modals(&)
+        driver.browser.page_state.check_modals(&)
       end
 
       def js(function, *args)

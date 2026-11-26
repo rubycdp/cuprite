@@ -2,29 +2,10 @@
 
 module Capybara
   module Cuprite
-    class Page < Ferrum::Page
+    class PageState
       # Answers JavaScript dialogs as `accept_modal` and `dismiss_modal` asked, and records their messages.
       # @api private
       module Modals
-        def initialize(...)
-          @accept_modal = []
-          @modal_messages = Thread::Queue.new
-          @modal_response = nil
-          @unhandled_modal_error = nil
-          super
-        end
-
-        # Dialogs are handled on Ferrum's background dispatcher thread, so
-        # raising there wouldn't reach the caller. The dialog is answered
-        # from that thread, skipping the pending error check, and the error
-        # (if any) is stashed here to be raised from the calling thread the
-        # next time it makes a command round trip.
-        def command(...)
-          return super if Thread.current[:cuprite_handling_dialog]
-
-          raise_pending_unhandled_modal_error! { super }
-        end
-
         # Accepts the next dialog.
         # @return [void]
         def accept_confirm
@@ -61,7 +42,7 @@ module Capybara
           expect_regexp = expect_text.is_a?(Regexp) ? expect_text : Regexp.escape(expect_text.to_s)
           not_found_msg = "Unable to find modal dialog"
           not_found_msg += " with #{expect_text}" if expect_text
-          deadline = monotonic_time + options.fetch(:wait, timeout)
+          deadline = monotonic_time + options.fetch(:wait, page.timeout)
 
           loop do
             remaining = deadline - monotonic_time
@@ -72,27 +53,30 @@ module Capybara
           end
         end
 
+        # Dialogs are answered on Ferrum's background dispatcher thread, where raising wouldn't reach the caller.
+        # The error for a dialog nobody expected is stashed there and raised here, on the calling thread, before and
+        # after the block.
+        #
+        # @yield the calls that may open a dialog
+        # @return [Object] the block's result
+        # @raise [UnhandledModalError] with `raise_on_unhandled_modal` when an unexpected dialog was answered
+        def check_modals
+          raise_stashed_modal_error
+          yield
+        ensure
+          raise_stashed_modal_error
+        end
+
         private
 
         def monotonic_time
           Process.clock_gettime(Process::CLOCK_MONOTONIC)
         end
 
-        def raise_pending_unhandled_modal_error!
+        def raise_stashed_modal_error
           error = @unhandled_modal_error
           @unhandled_modal_error = nil
           raise error if error
-
-          yield
-        ensure
-          error = @unhandled_modal_error
-          @unhandled_modal_error = nil
-          raise error if error
-        end
-
-        def prepare_page
-          super
-          on(:dialog) { |dialog| handle_dialog(dialog) }
         end
 
         def handle_dialog(dialog)
@@ -119,14 +103,7 @@ module Capybara
             accept = true
           end
 
-          answer_dialog(dialog, accept, response)
-        end
-
-        def answer_dialog(dialog, accept, response)
-          Thread.current[:cuprite_handling_dialog] = true
           accept ? dialog.accept(response) : dialog.dismiss
-        ensure
-          Thread.current[:cuprite_handling_dialog] = nil
         end
       end
     end

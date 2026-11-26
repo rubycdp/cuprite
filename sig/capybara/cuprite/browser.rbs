@@ -3,15 +3,38 @@ module Capybara
     class Browser < Ferrum::Browser
       include Extensions
 
+      EXTENSION_JS: String
+
       @settings: Settings
-      @page: Page?
+      @page: Ferrum::Page?
       @page_closed: bool
+      @page_states: Hash[String, PageState]
 
       def initialize: (?Hash[Symbol, untyped]? options) -> void
 
       def command: (String method, ?timeout: (Numeric | Ferrum::Deadline)?, **untyped params) -> Hash[String, untyped]
 
-      def page: () -> Page
+      def page: () -> Ferrum::Page
+
+      def page_state: (?Ferrum::Page page) -> PageState
+
+      def go_to: (?String? url, ?timeout: (Numeric | Ferrum::Deadline)?, ?referrer: String?) -> String?
+
+      def set_viewport: (?width: Integer, ?height: Integer, ?scale_factor: Numeric, ?mobile: bool?) -> nil
+
+      def at_css: (String selector, ?within: Ferrum::Node?) -> Ferrum::Node?
+
+      def at_xpath: (String selector, ?within: Ferrum::Node?) -> Ferrum::Node?
+
+      def css: (String selector, ?within: Ferrum::Node?) -> Array[Ferrum::Node]
+
+      def xpath: (String selector, ?within: Ferrum::Node?) -> Array[Ferrum::Node]
+
+      def html: () -> String
+
+      def evaluate: (String expression, *untyped positional, **untyped keywords) -> untyped
+
+      def execute: (String expression, *untyped positional, **untyped keywords) -> nil
 
       def reset: () -> void
 
@@ -23,7 +46,7 @@ module Capybara
 
       def window_handles: () -> Array[String]
 
-      def open_new_window: (?(:tab | :window) kind) -> Page
+      def open_new_window: (?(:tab | :window) kind) -> Ferrum::Page
 
       def switch_to_window: (String target_id) -> nil
 
@@ -35,7 +58,13 @@ module Capybara
 
       def window_target: (String target_id) -> Ferrum::Target
 
-      def attach_page: (?String? target_id) -> Page
+      def prepare_page: (Ferrum::Page page) -> void
+
+      def subscribe_to_js_errors: (Ferrum::Page page) -> void
+
+      def emulate_device_user_agent: (Ferrum::Page page) -> void
+
+      def active_frame: () -> Ferrum::Frame
     end
   end
 end

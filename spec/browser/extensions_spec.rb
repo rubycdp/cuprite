@@ -264,7 +264,7 @@ describe Capybara::Cuprite::Browser::Extensions do
   describe "#raise_on_unhandled_modal=" do
     it "accepts an unhandled modal with a warning by default" do
       @session.visit "/cuprite/with_js"
-      expect(@session.driver.browser.page)
+      expect(@session.driver.browser.page_state)
         .to receive(:warn).with(
           "Modal window with text `{T}ext \\w|th [reg.exp] (chara©+er$)?` has been opened, " \
           "but you didn't wrap your code into (`accept_prompt` | `dismiss_prompt` | `accept_confirm` " \

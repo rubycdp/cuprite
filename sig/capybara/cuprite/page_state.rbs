@@ -1,0 +1,20 @@
+module Capybara
+  module Cuprite
+    class PageState
+      include Frames
+      include Modals
+
+      @page: Ferrum::Page
+      @settings: Browser::Settings
+      @frame_stack: Array[String]
+      @accept_modal: Array[bool]
+      @modal_messages: Thread::Queue[String?]
+      @modal_response: String?
+      @unhandled_modal_error: UnhandledModalError?
+
+      attr_reader page: Ferrum::Page
+
+      def initialize: (Ferrum::Page page, Browser::Settings settings) -> void
+    end
+  end
+end

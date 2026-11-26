@@ -2,6 +2,7 @@
 
 require "capybara/cuprite/browser/extensions"
 require "capybara/cuprite/browser/settings"
+require "capybara/cuprite/page_state"
 
 module Capybara
   module Cuprite
@@ -9,6 +10,11 @@ module Capybara
     # here only adapt Ferrum to Capybara.
     class Browser < Ferrum::Browser
       include Extensions
+
+      # The JavaScript Cuprite adds to every page.
+      EXTENSION_JS = File.read(Driver::EXTENSION).freeze
+
+      delegate %i[at_css at_xpath css xpath html evaluate execute] => :active_frame
 
       # @api private
       # @param options [Hash, nil] the {Driver} options
@@ -19,6 +25,8 @@ module Capybara
 
         @settings = Settings.new(options, self.options.window_size)
         @page = nil
+        @page_states = {}
+        on_page { |page| prepare_page(page) }
       end
 
       # Restarts a browser that died before raising the error.
@@ -31,17 +39,52 @@ module Capybara
       end
 
       # @api private
-      # @return [Page] the current page
+      # @return [Ferrum::Page] the current page
       # @raise [Ferrum::NoSuchPageError] when the current window was closed
       def page
         raise Ferrum::NoSuchPageError if @page_closed
 
-        @page ||= attach_page
+        @page ||= super
+      end
+
+      # @api private
+      # @param page [Ferrum::Page]
+      # @return [PageState] what Cuprite keeps for the page, the current one by default
+      def page_state(page = self.page)
+        @page_states.fetch(page.target_id)
+      end
+
+      # Navigates the current page, see `Ferrum::Page#go_to`.
+      #
+      # @api private
+      # @param url [String, nil]
+      # @param options [Hash] the keywords of `Ferrum::Page#go_to`, like `referrer:` and `timeout:`
+      # @return [String, nil] the navigated frame's id
+      # @raise [PendingConnectionsError] with `pending_connection_errors` when the page doesn't load in time
+      def go_to(url = nil, **options)
+        return super unless @settings.pending_connection_errors?
+
+        begin
+          go_to!(url, **options)
+        rescue Ferrum::NavigationTimeoutError => e
+          raise if Ferrum::Deadline.current&.expired?
+
+          raise PendingConnectionsError.new(e.url, e.pendings)
+        end
+      end
+
+      # Sets the viewport, keeping the `scale_factor:` and `mobile:` options unless given.
+      #
+      # @api private
+      # @return [nil]
+      def set_viewport(width: 0, height: 0, scale_factor: @settings.scale_factor, mobile: @settings.mobile)
+        super
       end
 
       # @api private
       # @return [void]
       def reset
+        @page_states.clear
         super
       ensure
         @settings.reset
@@ -51,16 +94,19 @@ module Capybara
       # @api private
       # @return [void]
       def quit
+        @page_states.clear
         super
         forget_page
       end
 
-      # Keeps the size for the windows opened next.
+      # Keeps the size for the windows opened next, and the `scale_factor:` and `mobile:` options.
       # @api private
-      # @return [void]
+      # @return [nil]
       def resize(**options)
         @settings.window_size = [options[:width], options[:height]]
         super
+        width, height = options[:fullscreen] ? document_size : options.values_at(:width, :height)
+        set_viewport(width: width, height: height)
       end
 
       # @api private
@@ -79,14 +125,14 @@ module Capybara
       #
       # @api private
       # @param kind [:tab, :window] a tab in the current window, or a window of its own
-      # @return [Page]
+      # @return [Ferrum::Page]
       # @raise [ArgumentError] for any other kind
       def open_new_window(kind = :tab)
         unless %i[tab window].include?(kind)
           raise ArgumentError, "open_new_window takes :tab or :window, got #{kind.inspect}"
         end
 
-        attach_page(default_context.create_target(new_window: kind == :window).id)
+        default_context.create_page(new_window: kind == :window)
       end
 
       # @api private
@@ -96,7 +142,7 @@ module Capybara
       def switch_to_window(target_id)
         target = window_target(target_id)
         forget_page
-        @page = attach_page(target.id)
+        @page = target.page
         @page.activate
       end
 
@@ -110,7 +156,7 @@ module Capybara
           forget_page
           @page_closed = true
         end
-        default_context.close_target(target.id)
+        default_context.close_target(target.id).tap { @page_states.delete(target.id) }
       end
 
       private
@@ -127,14 +173,34 @@ module Capybara
         target
       end
 
-      def attach_page(target_id = nil)
-        target = targets[target_id] if target_id
-        target ||= default_context.default_target
-        return target.page if target.connected?
+      def prepare_page(page)
+        @page_states[page.target_id] = PageState.new(page, @settings)
+        subscribe_to_js_errors(page) if @settings.js_errors?
+        page.execute(EXTENSION_JS)
 
-        target.maybe_sleep_if_new_window
-        target.page = Page.new(target.client, context_id: target.context_id, target_id: target.id, settings: @settings)
-        target.page
+        width, height = @settings.window_size
+        page.resize(width: width, height: height) if width && height
+        page.set_viewport(width: width || 0, height: height || 0, scale_factor: @settings.scale_factor,
+                          mobile: @settings.mobile)
+        emulate_device_user_agent(page) if @settings.device_user_agent?
+
+        page.network.blacklist = @settings.url_blacklist if @settings.url_blacklist.any?
+        page.network.whitelist = @settings.url_whitelist if @settings.url_whitelist.any?
+      end
+
+      def subscribe_to_js_errors(page)
+        page.on("Runtime.exceptionThrown") do |params|
+          Thread.main.raise Ferrum::JavaScriptError, params["exceptionDetails"]
+        end
+      end
+
+      def emulate_device_user_agent(page)
+        self.default_user_agent = @settings.user_agent(version.user_agent)
+        page.network.emulate(user_agent: default_user_agent)
+      end
+
+      def active_frame
+        page_state.active_frame
       end
     end
   end

@@ -148,7 +148,7 @@ module Capybara
       def visit(url)
         @started = true
         browser.base_url = url if url.match?(%r{\Ahttps?://})
-        browser.go_to(url)
+        check_modals { browser.go_to(url) }
       end
 
       # @return [Integer, nil] the HTTP status of the last response
@@ -193,7 +193,7 @@ module Capybara
       # @param args [Array] values passed to the script, nodes as elements
       # @return [Object] the result, elements as {Node}
       def evaluate_script(script, *args)
-        result = browser.evaluate(script, *native_args(args))
+        result = check_modals { browser.evaluate(script, *native_args(args)) }
         unwrap_script_result(result)
       end
 
@@ -204,7 +204,9 @@ module Capybara
       # @param args [Array] values passed to the script, nodes as elements
       # @return [Object] the value passed to the callback, elements as {Node}
       def evaluate_async_script(script, *args)
-        result = browser.evaluate(CALLBACK_JS.sub("SCRIPT") { script }, *native_args(args), timeout: session_wait_time)
+        result = check_modals do
+          browser.evaluate(CALLBACK_JS.sub("SCRIPT") { script }, *native_args(args), timeout: session_wait_time)
+        end
         unwrap_script_result(result)
       end
 
@@ -214,7 +216,7 @@ module Capybara
       # @param args [Array] values passed to the script, nodes as elements
       # @return [nil]
       def execute_script(script, *args)
-        browser.execute(script, *native_args(args))
+        check_modals { browser.execute(script, *native_args(args)) }
         nil
       end
 
@@ -233,13 +235,13 @@ module Capybara
 
         raise ArgumentError, "Unable to switch to frame from #{locator.class}" unless handle
 
-        browser.page.switch_to_frame(handle)
+        browser.page_state.switch_to_frame(handle)
       end
 
       # Opens a blank page without switching to it.
       #
       # @param kind [:tab, :window] what Capybara's `open_new_window` asks for
-      # @return [Page]
+      # @return [Ferrum::Page]
       # @raise [ArgumentError] for any other kind
       def open_new_window(kind = :tab)
         browser.open_new_window(kind)
@@ -356,14 +358,14 @@ module Capybara
       def accept_modal(type, options = {})
         case type
         when :alert, :confirm
-          browser.page.accept_confirm
+          browser.page_state.accept_confirm
         when :prompt
-          browser.page.accept_prompt(options[:with])
+          browser.page_state.accept_prompt(options[:with])
         end
 
         yield if block_given?
 
-        browser.page.find_modal(options)
+        browser.page_state.find_modal(options)
       end
 
       # Dismisses the dialog the block opens.
@@ -378,14 +380,14 @@ module Capybara
       def dismiss_modal(type, options = {})
         case type
         when :confirm
-          browser.page.dismiss_confirm
+          browser.page_state.dismiss_confirm
         when :prompt
-          browser.page.dismiss_prompt
+          browser.page_state.dismiss_prompt
         end
 
         yield if block_given?
 
-        browser.page.find_modal(options)
+        browser.page_state.find_modal(options)
       end
 
       private
@@ -393,7 +395,12 @@ module Capybara
       attr_reader :screen_size
 
       def find(method, selector, **hints)
-        Finder.find(browser, method, selector, **hints).map { |native, cache| Node.new(self, native, cache) }
+        nodes = check_modals { Finder.find(browser, method, selector, **hints) }
+        nodes.map { |native, cache| Node.new(self, native, cache) }
+      end
+
+      def check_modals(&)
+        browser.page_state.check_modals(&)
       end
 
       def within_window(handle)

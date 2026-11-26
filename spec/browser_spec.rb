@@ -25,6 +25,14 @@ describe Capybara::Cuprite::Browser do
     end
   end
 
+  describe "#go_to" do
+    it "passes the referrer to the navigation" do
+      @driver.browser.go_to(session_url("/cuprite/headers"), referrer: "http://example.com/")
+
+      expect(@driver.html).to include("REFERER: http://example.com/")
+    end
+  end
+
   describe "#restart" do
     it "starts over with empty network traffic" do
       @session.visit("/cuprite/with_js")

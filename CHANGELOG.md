@@ -3,6 +3,8 @@
 ### Added
 
 ### Changed
+- `browser.page` is a `Ferrum::Page`, Cuprite sets every page up through Ferrum's `on_page` instead of subclassing it.
+  Frames and dialogs live in `browser.page_state`
 
 ### Fixed
 

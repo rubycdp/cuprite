@@ -5,6 +5,15 @@ module Ferrum
   class StatusError < Error
   end
 
+  class TimeoutError < Error
+  end
+
+  class NavigationTimeoutError < TimeoutError
+    def url: () -> String
+
+    def pendings: () -> Array[String]
+  end
+
   class NoSuchTargetError < Error
   end
 
@@ -48,9 +57,11 @@ module Ferrum
 
     def frame_by: (?id: String?, ?name: String?, ?execution_id: Integer?) -> Frame?
 
-    def initialize: (*untyped, **untyped) -> void
+    def main_frame: () -> Frame
 
-    def default_user_agent: () -> String?
+    def target_id: () -> String
+
+    def timeout: () -> Numeric
   end
 
   class Client
