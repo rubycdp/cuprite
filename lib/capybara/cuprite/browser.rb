@@ -110,8 +110,7 @@ module Capybara
           forget_page
           @page_closed = true
         end
-        target.page.close
-        default_context.delete_target(target_id) # page.close is async, delete target asap
+        default_context.close_target(target.id)
       end
 
       private
