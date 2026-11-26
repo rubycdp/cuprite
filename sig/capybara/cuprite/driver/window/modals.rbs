@@ -1,0 +1,29 @@
+module Capybara
+  module Cuprite
+    class Driver < Capybara::Driver::Base
+      class Window
+        module Modals : Window
+          def accept_confirm: () -> Array[bool]
+
+          def dismiss_confirm: () -> Array[bool]
+
+          def accept_prompt: (String? modal_response) -> String?
+
+          def dismiss_prompt: () -> Array[bool]
+
+          def find_modal: (Driver::modal_options options) -> String
+
+          def check_modals: [T] () { () -> T } -> T
+
+          private
+
+          def monotonic_time: () -> Float
+
+          def raise_stashed_modal_error: () -> void
+
+          def handle_dialog: (Ferrum::Dialog dialog) -> nil
+        end
+      end
+    end
+  end
+end

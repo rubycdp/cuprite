@@ -59,11 +59,14 @@ a working sandbox when possible.
 
 Since Cuprite uses [Ferrum](https://github.com/rubycdp/ferrum#examples) there
 are many useful methods you can call even using this driver.
-`page.driver.browser` is a `Ferrum::Browser`:
+`page.driver.browser` is a plain `Ferrum::Browser`, and its `page` is the first window. The window Capybara switched
+to is `page.driver.current_page`:
 
 ```ruby
 browser = page.driver.browser
 browser.mouse.move(x: 123, y: 456).down.up
+
+within_window(new_window) { page.driver.current_page.network.traffic }
 ```
 
 For Selenium you better check your code for `manage` calls because it works
@@ -241,14 +244,14 @@ Cuprite supports URL blocklisting, which allows you to prevent scripts from
 running on designated domains:
 
 ```ruby
-page.driver.browser.url_blocklist = %r{http://www.example.com}
+page.driver.url_blocklist = %r{http://www.example.com}
 ```
 
 and also URL allowlisting, which allows scripts to only run on designated
 domains:
 
 ```ruby
-page.driver.browser.url_allowlist = %r{http://www.example.com}
+page.driver.url_allowlist = %r{http://www.example.com}
 ```
 
 `url_blacklist=` and `url_whitelist=` are aliases of the same setters. Only one list can be set at a time.

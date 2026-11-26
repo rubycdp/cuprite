@@ -3,6 +3,7 @@ module Capybara
     class Driver < Capybara::Driver::Base
       extend Forwardable
       include Extensions
+      include Windows
 
       interface _RackApp
         def call: (Hash[String, untyped] env) -> [Integer, Hash[String, String], untyped]
@@ -15,6 +16,8 @@ module Capybara
 
       DEFAULT_MAXIMIZE_SCREEN_SIZE: [Integer, Integer]
       EXTENSION: String
+      EXTENSION_JS: String
+      CUPRITE_OPTIONS: Array[Symbol]
       CALLBACK_JS: String
       RESPONSE_HEADERS: singleton(Hash)
 
@@ -23,19 +26,15 @@ module Capybara
 
       @started: bool
       @screen_size: [Integer, Integer]
-      @browser: Browser?
+      @browser: Ferrum::Browser?
+      @settings: Settings
+      @current_page: Ferrum::Page?
+      @page_closed: bool
+      @windows: Hash[String, Window]
 
       def initialize: (_RackApp? app, ?Hash[Symbol, untyped] options) -> void
 
       def title: () -> String
-
-      def window_handles: () -> Array[String]
-
-      def current_window_handle: () -> String
-
-      def close_window: (String handle) -> Ferrum::Target?
-
-      def switch_to_window: (String handle) -> nil
 
       def refresh: () -> true?
 
@@ -51,7 +50,13 @@ module Capybara
 
       def needs_server?: () -> true
 
-      def browser: () -> Browser
+      def browser: () -> Ferrum::Browser
+
+      def current_page: () -> Ferrum::Page
+
+      def window: (?Ferrum::Page page) -> Window
+
+      def active_frame: () -> Ferrum::Frame
 
       def visit: (String url) -> String?
 
@@ -74,10 +79,6 @@ module Capybara
       def execute_script: (String script, *script_value args) -> nil
 
       def switch_to_frame: (Capybara::Node::Element | Node | :parent | :top locator) -> void
-
-      def open_new_window: (?(:tab | :window) kind) -> Ferrum::Page
-
-      def no_such_window_error: () -> singleton(Ferrum::NoSuchPageError)
 
       def quit: () -> void
 
@@ -111,7 +112,21 @@ module Capybara
 
       def check_modals: [T] () { () -> T } -> T
 
-      def within_window: [T] (String handle) { () -> T } -> T
+      def start_browser: () -> Ferrum::Browser
+
+      def reset_browser: () -> void
+
+      def settings: () -> Settings
+
+      def navigate: (String url) -> String?
+
+      def prepare_page: (Ferrum::Page page) -> void
+
+      def subscribe_to_js_errors: (Ferrum::Page page) -> void
+
+      def emulate_viewport: (Ferrum::Page page, Integer? width, Integer? height) -> nil
+
+      def emulate_device_user_agent: (Ferrum::Page page) -> void
 
       def capybara_base_url: () -> String?
 

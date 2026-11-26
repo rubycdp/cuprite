@@ -1,0 +1,13 @@
+module Capybara
+  module Cuprite
+    class Driver < Capybara::Driver::Base
+      class Window
+        module Frames : Window
+          def switch_to_frame: (String | :parent | :top handle) -> void
+
+          def active_frame: () -> Ferrum::Frame
+        end
+      end
+    end
+  end
+end

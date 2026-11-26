@@ -1,6 +1,6 @@
 module Capybara
   module Cuprite
-    class Browser < Ferrum::Browser
+    class Driver < Capybara::Driver::Base
       class Settings
         type window_size = [Integer, Integer] | [nil, nil]
 

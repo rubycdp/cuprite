@@ -47,8 +47,6 @@ module Ferrum
 
     def options: () -> Options
 
-    def client: () -> Client?
-
     def initialize: (?Hash[Symbol, untyped]? options) -> void
   end
 

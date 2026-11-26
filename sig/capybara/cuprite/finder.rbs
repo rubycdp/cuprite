@@ -1,7 +1,7 @@
 module Capybara
   module Cuprite
     module Finder
-      def self?.find: (Browser browser, :css | :xpath method, String selector, ?Ferrum::Node? within, **Hints::hint hints) -> Array[[Ferrum::Node, Hints::cache]]
+      def self?.find: (Ferrum::Frame frame, :css | :xpath method, String selector, ?Ferrum::Node? within, **Hints::hint hints) -> Array[[Ferrum::Node, Hints::cache]]
     end
   end
 end

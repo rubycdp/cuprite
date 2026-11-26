@@ -44,11 +44,11 @@ describe Capybara::Cuprite::Driver do
   describe "#reset!" do
     it "restores the url_blacklist set at runtime" do
       driver = described_class.new(nil, { url_blacklist: /unwanted/ })
-      driver.browser.url_blacklist = /other/
+      driver.url_blacklist = /other/
 
       driver.reset!
 
-      expect(driver.browser.url_blacklist).to eq([/unwanted/])
+      expect(driver.url_blacklist).to eq([/unwanted/])
     ensure
       driver&.quit
     end
@@ -58,8 +58,8 @@ describe Capybara::Cuprite::Driver do
 
       driver.browser
 
-      expect { driver.reset! }.not_to(change { driver.browser.raise_on_unhandled_modal })
-      expect(driver.browser.raise_on_unhandled_modal).to eq(true)
+      expect { driver.reset! }.not_to(change { driver.raise_on_unhandled_modal })
+      expect(driver.raise_on_unhandled_modal).to eq(true)
     end
 
     it "drops the cached page even when the browser fails to reset" do
@@ -78,21 +78,21 @@ describe Capybara::Cuprite::Driver do
 
     it "doesn't launch a browser when none has started" do
       driver = described_class.new(nil)
-      allow(Capybara::Cuprite::Browser).to receive(:new).and_raise(Ferrum::ProcessTimeoutError.new(10, ""))
+      allow(Ferrum::Browser).to receive(:new).and_raise(Ferrum::ProcessTimeoutError.new(10, ""))
 
       expect { driver.visit("about:blank") }.to raise_error(Ferrum::ProcessTimeoutError)
       expect { driver.reset! }.not_to raise_error
-      expect(Capybara::Cuprite::Browser).to have_received(:new).once
+      expect(Ferrum::Browser).to have_received(:new).once
     end
   end
 
   describe "#quit" do
     it "doesn't launch a browser when none has started" do
       driver = described_class.new(nil)
-      allow(Capybara::Cuprite::Browser).to receive(:new).and_raise(Ferrum::ProcessTimeoutError.new(10, ""))
+      allow(Ferrum::Browser).to receive(:new).and_raise(Ferrum::ProcessTimeoutError.new(10, ""))
 
       expect { driver.quit }.not_to raise_error
-      expect(Capybara::Cuprite::Browser).not_to have_received(:new)
+      expect(Ferrum::Browser).not_to have_received(:new)
     end
   end
 
