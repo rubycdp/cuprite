@@ -5,7 +5,7 @@ source "https://rubygems.org"
 # Development gems use `require: false` so that `rbs collection` skips them and installs only runtime dependency types
 
 gem "byebug", "~> 11.1", require: false, platforms: %i[mri windows]
-gem "ferrum", github: "rubycdp/ferrum", branch: "main"
+gem "ferrum", github: "rubycdp/ferrum", branch: "on-page-hook"
 gem "launchy", "~> 2.5", require: false
 gem "logger", require: false
 gem "ostruct", require: false
