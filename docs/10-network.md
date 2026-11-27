@@ -14,13 +14,13 @@ Returns network traffic (loaded resources), including requests blocked by
 and response details. Traffic is not cleared when you visit a new page.
 
 ```ruby
-traffic = page.driver.browser.network.traffic
+traffic = page.driver.current_page.network.traffic
 exchange = traffic.first
 exchange.request.url # => "http://127.0.0.1:3000/"
 exchange.response.status # => 200
 
 traffic.select(&:blocked?)
-page.driver.browser.network.clear(:traffic)
+page.driver.current_page.network.clear(:traffic)
 ```
 
 #### wait_idle(\*\*options) : `true` | `nil`
@@ -36,7 +36,7 @@ Waits until there are no active connections. Returns `true` on success and
 
 ```ruby
 click_button "Save"
-page.driver.browser.network.wait_idle
+page.driver.current_page.network.wait_idle
 ```
 
 #### clear(:cache)
@@ -44,7 +44,7 @@ page.driver.browser.network.wait_idle
 Clears the browser cache.
 
 ```ruby
-page.driver.browser.network.clear(:cache)
+page.driver.current_page.network.clear(:cache)
 ```
 
 #### await_navigation(\*\*options) { ... }
@@ -58,7 +58,7 @@ makes you wait longer or less than needed, and network idle can return before
 the page even started to reload.
 
 ```ruby
-page.driver.browser.await_navigation { find(".suggestion").click }
+page.driver.current_page.await_navigation { find(".suggestion").click }
 ```
 
 #### status_code : `Integer`

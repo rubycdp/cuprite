@@ -73,39 +73,35 @@ See [Docker](/docs/cuprite/docker).
 few things that depend on Capybara, like frames, windows, modals and
 screenshots saved to `Capybara.save_path`.
 
-`page.driver.browser` is a plain `Ferrum::Browser`, so everything in the
-[Ferrum documentation](/docs/ferrum/introduction) applies to it. Use it when
-Capybara has no API for what you need:
+`page.driver.current_page` is the `Ferrum::Page` of the window Capybara is
+switched to, so everything in the [Ferrum documentation](/docs/ferrum/introduction)
+applies to it. Use it when Capybara has no API for what you need:
 
 ```ruby
-browser = page.driver.browser
-browser.network.emulate(accept_language: "de")
-browser.cookies.set(name: "stealth", value: "omg")
-browser.network.wait_idle
-browser.network.traffic.last.response.status # => 200
-browser.mouse.move(x: 123, y: 456).down.up
-browser.screenshot(format: :jpeg, quality: 60)
-browser.console.select(&:error?)
-browser.downloads.files
+ferrum_page = page.driver.current_page
+ferrum_page.network.emulate(accept_language: "de")
+ferrum_page.cookies.set(name: "stealth", value: "omg")
+ferrum_page.network.wait_idle
+ferrum_page.network.traffic.last.response.status # => 200
+ferrum_page.mouse.move(x: 123, y: 456).down.up
+ferrum_page.screenshot(format: :jpeg, quality: 60)
+ferrum_page.console.select(&:error?)
+ferrum_page.downloads.files
 ```
 
 A few things to keep in mind:
 
-- It always works with the first window. `browser.evaluate`, `browser.css`
-  and other page methods run there, even inside `within_window` or
-  `within_frame`. For the window you switched to, use
-  `page.driver.current_page`, see [Windows & Frames](/docs/cuprite/windows-frames).
 - It's reset between tests. Capybara's reset disposes the browser context, so
   headers, cookies, request interception, recorded traffic, console messages
   and downloads are gone in the next test. Browser-wide settings such as
-  `browser.timeout = 10` stay.
+  `page.driver.browser.timeout = 10` stay.
 - It doesn't wait. Ferrum's finders return what's on the page right now, while
   Capybara's retry up to `Capybara.default_max_wait_time`. Prefer Capybara's
-  finders and matchers in tests, and use `browser` for what Capybara can't do.
+  finders and matchers in tests, and use Ferrum for what Capybara can't do.
 
 ## Migrating from Selenium
 
 Check your code for `page.driver.browser.manage` calls, there's no `manage` in
 Cuprite. Use Capybara's API where it has one, for example
-`page.current_window.resize_to`, and `page.driver.browser` for the rest, for
-example [cookies](/docs/ferrum/cookies).
+`page.current_window.resize_to`, and `page.driver.current_page` for the rest,
+for example [cookies](/docs/ferrum/cookies).

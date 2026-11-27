@@ -29,5 +29,5 @@ The error is raised by the Capybara call that triggered the dialog: a click,
 `visit`, `evaluate_script`, `execute_script`, or another action on an element.
 A JavaScript dialog blocks the page until it's answered, so that call is still
 running when Cuprite answers it. A dialog fired with nothing in flight, e.g. by
-a JavaScript timer, surfaces on the next of those calls. Calls made through
-`page.driver.browser` or `page.driver.current_page` don't raise it.
+a JavaScript timer, surfaces on the next of those calls. Ferrum calls such as
+`page.driver.current_page.evaluate` don't raise it.

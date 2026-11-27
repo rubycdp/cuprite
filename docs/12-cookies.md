@@ -8,7 +8,7 @@ Manipulate cookies with Ferrum's [cookies](/docs/ferrum/cookies). Cookies are
 cleared at the end of every test.
 
 ```ruby
-cookies = page.driver.browser.cookies
+cookies = page.driver.current_page.cookies
 cookies.set(name: "stealth", value: "omg", path: "/", expires: Time.now + 3600)
 cookies["stealth"].value # => "omg"
 cookies.all # => { "stealth" => #<Ferrum::Cookies::Cookie ...> }

@@ -30,9 +30,9 @@ expect(page).to have_field("Email", focused: true)
 For more control use [Ferrum's mouse and keyboard](/docs/ferrum/mouse-keyboard):
 
 ```ruby
-browser = page.driver.browser
-browser.mouse.click(x: 100, y: 200)
-browser.mouse.move(x: 123, y: 456).down.up
-browser.mouse.scroll_by(y: 400)
-browser.keyboard.type("text", :Enter)
+ferrum_page = page.driver.current_page
+ferrum_page.mouse.click(x: 100, y: 200)
+ferrum_page.mouse.move(x: 123, y: 456).down.up
+ferrum_page.mouse.scroll_by(y: 400)
+ferrum_page.keyboard.type("text", :Enter)
 ```

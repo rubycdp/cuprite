@@ -15,7 +15,7 @@ module Capybara
     # The driver keeps what Capybara needs and Ferrum doesn't have, and leaves the rest to a plain Ferrum browser:
     #
     #   Driver
-    #   ├─ browser       Ferrum::Browser, its page is the first window
+    #   ├─ browser       Ferrum::Browser
     #   │  └─ on_page    sets up every new page: Cuprite's JS, viewport, user agent, URL lists, JS errors
     #   ├─ current_page  Ferrum::Page of Capybara's current window
     #   ├─ window        Window, that window's frames and dialogs
@@ -147,8 +147,8 @@ module Capybara
         true
       end
 
-      # The Ferrum browser, started on first use. Reach for it to use what Capybara doesn't cover; its `page` is the
-      # first window, {#current_page} is the one switched to.
+      # The Ferrum browser, started on first use. Reach for it for browser-wide settings such as `timeout`, and for
+      # pages through {#current_page}.
       #
       # @return [Ferrum::Browser]
       # @raise [ArgumentError] for a URL pattern that isn't a Regexp, both URL lists, or an unknown device

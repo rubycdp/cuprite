@@ -59,17 +59,12 @@ a working sandbox when possible.
 
 Since Cuprite uses [Ferrum](https://github.com/rubycdp/ferrum#examples) there
 are many useful methods you can call even using this driver.
-`page.driver.browser` is a plain `Ferrum::Browser`, and its `page` is the first window. The window Capybara switched
-to is `page.driver.current_page`:
+`page.driver.current_page` is the Ferrum page of the window Capybara is switched to:
 
 ```ruby
-browser = page.driver.browser
-browser.mouse.move(x: 123, y: 456).down.up
-
-within_window(new_window) { page.driver.current_page.network.traffic }
+page.driver.current_page.mouse.move(x: 123, y: 456).down.up
+page.driver.current_page.network.traffic
 ```
-
-`within_frame` doesn't change where Ferrum's methods run either.
 
 For Selenium you better check your code for `manage` calls because it works
 differently in Cuprite, see the documentation below.
@@ -135,7 +130,7 @@ opened where you can further experiment with the test.
 
 ## Clicking/Scrolling
 
-* `page.driver.browser.mouse.click(x:, y:)` Click a very specific area of the screen.
+* `page.driver.current_page.mouse.click(x:, y:)` Click a very specific area of the screen.
 * `page.scroll_to(left, top)` Scroll to a given position.
 * `element.send_keys(*keys)` Send keys to a given node.
 
@@ -145,10 +140,10 @@ opened where you can further experiment with the test.
 Manipulate HTTP request headers with Ferrum:
 
 ``` ruby
-page.driver.browser.headers.get # => {}
-page.driver.browser.headers.set("X-Trace" => "1")
-page.driver.browser.headers.add({ "Referer" => "https://example.com" })
-page.driver.browser.headers.get # => { "X-Trace" => "1", "Referer" => "https://example.com" }
+page.driver.current_page.headers.get # => {}
+page.driver.current_page.headers.set("X-Trace" => "1")
+page.driver.current_page.headers.add({ "Referer" => "https://example.com" })
+page.driver.current_page.headers.get # => { "X-Trace" => "1", "Referer" => "https://example.com" }
 ```
 
 Notice that `set` will overwrite already set headers. You should use `add` if
@@ -159,11 +154,11 @@ cleared at the end of the test.
 
 ## Network traffic
 
-* `page.driver.browser.network.traffic` allows you to inspect network traffic (i.e., loaded resources) on the current page. It returns an array of `Ferrum::Network::Exchange` objects, each representing a network request/response exchange. You can query both the request and response details of each exchange.
+* `page.driver.current_page.network.traffic` allows you to inspect network traffic (i.e., loaded resources) on the current page. It returns an array of `Ferrum::Network::Exchange` objects, each representing a network request/response exchange. You can query both the request and response details of each exchange.
 
 ```ruby
 # Retrieve all network exchanges
-network_traffic = page.driver.browser.network.traffic
+network_traffic = page.driver.current_page.network.traffic
 
 # Access the first exchange
 first_exchange = network_traffic.first
@@ -172,28 +167,28 @@ first_exchange = network_traffic.first
 response = first_exchange.response
 ```
 
-* `page.driver.browser.network.wait_idle` Natively waits for network idle
+* `page.driver.current_page.network.wait_idle` Natively waits for network idle
 and returns `nil` if there are still active connections after timeout.
 Accepts the same options as
 [`wait_idle`](https://docs.rubycdp.com/docs/ferrum/network)
 
 ```ruby
-page.driver.browser.network.wait_idle
+page.driver.current_page.network.wait_idle
 page.driver.refresh
 ```
 
 Please note that network traffic is not cleared when you visit new page. You can
 manually clear the network traffic by calling
-`page.driver.browser.network.clear(:traffic)` or `page.driver.reset!`
+`page.driver.current_page.network.clear(:traffic)` or `page.driver.reset!`
 
-* `page.driver.browser.await_navigation { ... }` unlike `network.wait_idle` runs
+* `page.driver.current_page.await_navigation { ... }` unlike `network.wait_idle` runs
 the block and waits until the page it reloads or navigates to is loaded, or the
 timeout passes. It's useful when you know that for example clicking an
 autocomplete suggestion reloads the page. Sleep makes you wait longer or less
 than needed, and network idle can return before the page even started to reload.
 
 ```ruby
-page.driver.browser.await_navigation { find(".suggestion").click }
+page.driver.current_page.await_navigation { find(".suggestion").click }
 ```
 
 
@@ -202,7 +197,7 @@ page.driver.browser.await_navigation { find(".suggestion").click }
 Use Ferrum's cookies to inspect and manipulate cookies:
 
 ```ruby
-cookies = page.driver.browser.cookies
+cookies = page.driver.current_page.cookies
 cookies.set(name: "stealth", value: "omg")
 cookies["stealth"].value # => "omg"
 cookies.all # => { "stealth" => #<Ferrum::Cookies::Cookie ...> }
@@ -216,14 +211,14 @@ cookies.clear
 Besides capybara screenshot method you can get image or PDF as Base64 with Ferrum:
 
 ```ruby
-page.driver.browser.screenshot(format: :jpeg, full: true)
-page.driver.browser.pdf(paper_width: 6, paper_height: 12)
+page.driver.current_page.screenshot(format: :jpeg, full: true)
+page.driver.current_page.pdf(paper_width: 6, paper_height: 12)
 ```
 
 
 ## Authorization
 
-* `page.driver.browser.network.authorize(user:, password:) { |request, _index, _total| request.continue }`
+* `page.driver.current_page.network.authorize(user:, password:) { |request, _index, _total| request.continue }`
 
 ## Proxy
 
