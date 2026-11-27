@@ -91,11 +91,10 @@ browser.downloads.files
 
 A few things to keep in mind:
 
-- It doesn't follow Capybara's windows and frames. Page methods such as
-  `browser.evaluate` or `browser.css` run in the first window's main frame, also
-  inside `within_window` or `within_frame`. The window Capybara is switched to
-  is `page.driver.current_page`, a `Ferrum::Page`, see
-  [Windows & Frames](/docs/cuprite/windows-frames).
+- It always works with the first window. `browser.evaluate`, `browser.css`
+  and other page methods run there, even inside `within_window` or
+  `within_frame`. For the window you switched to, use
+  `page.driver.current_page`, see [Windows & Frames](/docs/cuprite/windows-frames).
 - It's reset between tests. Capybara's reset disposes the browser context, so
   headers, cookies, request interception, recorded traffic, console messages
   and downloads are gone in the next test. Browser-wide settings such as

@@ -80,6 +80,7 @@ switch_to_frame(:parent)
 switch_to_frame(:top)
 ```
 
-Capybara's finders and `evaluate_script` run in the frame switched to. Ferrum's
-own methods don't, `page.driver.current_page.css` searches the main frame. Reach
-a frame through Ferrum with `page.driver.current_page.frame_by(name: "payment")`.
+Capybara's finders and `evaluate_script` run in the frame you switched to.
+Ferrum's methods don't: `page.driver.current_page.css` searches the top frame,
+not the one you switched to. To use Ferrum in a frame, get it with
+`page.driver.current_page.frame_by(name: "payment")`.

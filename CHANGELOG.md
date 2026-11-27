@@ -5,9 +5,9 @@
 ### Changed
 - `driver.browser` is a plain `Ferrum::Browser`, whose `page` is the first window. `driver.current_page` is the window
   Capybara switched to. Cuprite sets every page up through Ferrum's `on_page` [#399]
-- Ferrum's methods called on `driver.browser` run in the first window's main frame, also inside `within_window` and
-  `within_frame`. `browser.go_to` no longer raises `PendingConnectionsError`, `visit` does, and `browser.resize` and
-  `browser.set_viewport` don't keep `:mobile` and `:scale_factor` [#399]
+- `driver.browser` always works with the first window: `evaluate`, `css` and other page methods run there, even inside
+  `within_window` and `within_frame`. `browser.go_to` no longer raises `PendingConnectionsError`, `visit` does, and
+  `browser.resize` and `browser.set_viewport` don't keep `:mobile` and `:scale_factor` [#399]
 - `url_blocklist=`, `url_allowlist=`, their aliases and `raise_on_unhandled_modal=` moved from `driver.browser` to
   `driver` [#399]
 - A browser that died is restarted by `reset!` before the next test, not by the command that found it dead, so the test
