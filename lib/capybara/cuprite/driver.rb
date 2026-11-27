@@ -141,9 +141,14 @@ module Capybara
         @browser ||= start_browser
       end
 
-      # The page of the window switched to, Ferrum's first page until Capybara switches.
+      # The Ferrum page of Capybara's current window, the one it's switched to at the moment. The driver runs Capybara's
+      # calls on it, and it's the way to use Ferrum in that window, because `browser.page` is always the first window,
+      # even inside `within_window`.
       #
-      # @return [Ferrum::Page]
+      # @example
+      #   within_window(new_window) { page.driver.current_page.network.traffic }
+      #
+      # @return [Ferrum::Page] the first window's page until Capybara switches to another one
       # @raise [Ferrum::NoSuchPageError] when the current window was closed
       def current_page
         raise Ferrum::NoSuchPageError if @page_closed
