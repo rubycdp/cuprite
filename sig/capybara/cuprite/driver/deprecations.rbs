@@ -1,0 +1,11 @@
+module Capybara
+  module Cuprite
+    class Driver < Capybara::Driver::Base
+      module Deprecations
+        BROWSER_METHODS: Array[Symbol]
+
+        def self?.extend_browser: (Ferrum::Browser browser, Driver driver) -> void
+      end
+    end
+  end
+end

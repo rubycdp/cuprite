@@ -1,0 +1,7 @@
+module Capybara
+  module Cuprite
+    REMOVE_DEPRECATED_IN: String
+
+    def self.deprecation_warning: (String method, ?String? advice) -> void
+  end
+end
