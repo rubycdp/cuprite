@@ -12,6 +12,21 @@ module Capybara
   module Cuprite
     # Capybara driver for Chrome, built on Ferrum.
     #
+    # The driver keeps what Capybara needs and Ferrum doesn't have, and leaves the rest to a plain Ferrum browser:
+    #
+    #   Driver
+    #   ├─ browser       Ferrum::Browser, its page is the first window
+    #   │  └─ on_page    sets up every new page: Cuprite's JS, viewport, user agent, URL lists, JS errors
+    #   ├─ current_page  Ferrum::Page of Capybara's current window
+    #   ├─ window        Window, that window's frames and dialogs
+    #   │  ├─ Frames     the frame switched to, current_frame
+    #   │  └─ Modals     the dialogs to answer, the unhandled dialog error
+    #   ├─ Windows       window handles, opening, switching, closing
+    #   ├─ Settings      the options only Cuprite handles
+    #   └─ Extensions    debug, URL lists, raise_on_unhandled_modal
+    #
+    #   Node wraps a Ferrum::Node and works in current_frame and current_page, Finder finds nodes in a frame.
+    #
     # @example Register the driver
     #   Capybara.register_driver(:cuprite) do |app|
     #     Capybara::Cuprite::Driver.new(app, window_size: [1200, 800])
