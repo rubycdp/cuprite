@@ -9,7 +9,7 @@ Headers apply to all subsequent HTTP requests, including assets, AJAX, etc.
 They are cleared at the end of every test.
 
 ```ruby
-headers = page.driver.browser.headers
+headers = page.driver.current_page.headers
 headers.get # => {}
 headers.set("X-Trace" => "1")
 headers.add({ "X-Tenant" => "acme" })
@@ -21,7 +21,7 @@ header is sent with every request, for the referrer of one navigation only pass
 it to `go_to`:
 
 ```ruby
-page.driver.browser.go_to("/landing", referrer: "https://example.com")
+page.driver.current_page.go_to("/landing", referrer: "https://example.com")
 ```
 
 To change the user agent or the language use Ferrum's
@@ -30,5 +30,5 @@ To change the user agent or the language use Ferrum's
 at the end of every test too:
 
 ```ruby
-page.driver.browser.network.emulate(user_agent: "Cuprite", accept_language: "de")
+page.driver.current_page.network.emulate(user_agent: "Cuprite", accept_language: "de")
 ```

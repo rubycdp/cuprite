@@ -67,6 +67,12 @@ describe Capybara::Cuprite::Driver do
         expect(@driver.html).to include("USER_AGENT: Mozilla/5.0 (iPhone; CPU iPhone OS")
         expect(@session.evaluate_script("navigator.userAgent")).to start_with("Mozilla/5.0 (iPhone;")
       end
+
+      it "keeps Chrome's user agent as Ferrum's default user agent" do
+        @session.visit("/cuprite/headers")
+
+        expect(@driver.browser.default_user_agent).to eq(@driver.browser.version.user_agent)
+      end
     end
 
     context "with emulate: and explicit options" do

@@ -12,6 +12,21 @@ module Capybara
   module Cuprite
     # Capybara driver for Chrome, built on Ferrum.
     #
+    # The driver keeps what Capybara needs and Ferrum doesn't have, and leaves the rest to a plain Ferrum browser:
+    #
+    #   Driver
+    #   ├─ browser       Ferrum::Browser
+    #   │  └─ on_page    sets up every new page: Cuprite's JS, viewport, user agent, URL lists, JS errors
+    #   ├─ current_page  Ferrum::Page of Capybara's current window
+    #   ├─ window        Window, that window's frames and dialogs
+    #   │  ├─ Frames     the frame switched to, current_frame
+    #   │  └─ Modals     the dialogs to answer, the unhandled dialog error
+    #   ├─ Windows       window handles, opening, switching, closing
+    #   ├─ Settings      the options only Cuprite handles
+    #   └─ Extensions    debug, URL lists, raise_on_unhandled_modal
+    #
+    #   Node wraps a Ferrum::Node and works in current_frame and current_page, Finder finds nodes in a frame.
+    #
     # @example Register the driver
     #   Capybara.register_driver(:cuprite) do |app|
     #     Capybara::Cuprite::Driver.new(app, window_size: [1200, 800])
@@ -67,7 +82,7 @@ module Capybara
       def_delegator :current_page, :url, :current_url
       # @!method html
       #   @return [String] the HTML of the current page or frame
-      delegate %i[html] => :active_frame
+      delegate %i[html] => :current_frame
       # @!method go_back
       #   Navigates back in history.
       #   @return [void]
@@ -132,8 +147,8 @@ module Capybara
         true
       end
 
-      # The Ferrum browser, started on first use. Reach for it to use what Capybara doesn't cover; its `page` is the
-      # first window, {#current_page} is the one switched to.
+      # The Ferrum browser, started on first use. Reach for it for browser-wide settings such as `timeout`, and for
+      # pages through {#current_page}.
       #
       # @return [Ferrum::Browser]
       # @raise [ArgumentError] for a URL pattern that isn't a Regexp, both URL lists, or an unknown device
@@ -141,9 +156,14 @@ module Capybara
         @browser ||= start_browser
       end
 
-      # The page of the window switched to, Ferrum's first page until Capybara switches.
+      # The Ferrum page of Capybara's current window, the one it's switched to at the moment. The driver runs Capybara's
+      # calls on it, and it's the way to use Ferrum in that window, because `browser.page` is always the first window,
+      # even inside `within_window`.
       #
-      # @return [Ferrum::Page]
+      # @example
+      #   within_window(new_window) { page.driver.current_page.network.traffic }
+      #
+      # @return [Ferrum::Page] the first window's page until Capybara switches to another one
       # @raise [Ferrum::NoSuchPageError] when the current window was closed
       def current_page
         raise Ferrum::NoSuchPageError if @page_closed
@@ -152,16 +172,15 @@ module Capybara
       end
 
       # @api private
-      # @param page [Ferrum::Page]
-      # @return [Window] what Cuprite keeps for the page's window, the current one by default
-      def window(page = current_page)
-        @windows.fetch(page.target_id)
+      # @return [Window] the frames and dialogs Cuprite keeps for the current window
+      def window
+        @windows.fetch(current_page.target_id)
       end
 
       # @api private
       # @return [Ferrum::Frame] the frame switched to in the current page
-      def active_frame
-        window.active_frame
+      def current_frame
+        window.current_frame
       end
 
       # Navigates to a URL, relative ones against Capybara's `app_host` or server.
@@ -192,7 +211,7 @@ module Capybara
 
       # @return [Node] the focused element
       def active_element
-        Node.new(self, active_frame.evaluate("document.activeElement"))
+        Node.new(self, current_frame.evaluate("document.activeElement"))
       end
 
       # @param selector [String]
@@ -217,7 +236,7 @@ module Capybara
       # @param args [Array] values passed to the script, nodes as elements
       # @return [Object] the result, elements as {Node}
       def evaluate_script(script, *args)
-        result = check_modals { active_frame.evaluate(script, *native_args(args)) }
+        result = check_modals { current_frame.evaluate(script, *native_args(args)) }
         unwrap_script_result(result)
       end
 
@@ -229,7 +248,7 @@ module Capybara
       # @return [Object] the value passed to the callback, elements as {Node}
       def evaluate_async_script(script, *args)
         result = check_modals do
-          active_frame.evaluate(CALLBACK_JS.sub("SCRIPT") { script }, *native_args(args), timeout: session_wait_time)
+          current_frame.evaluate(CALLBACK_JS.sub("SCRIPT") { script }, *native_args(args), timeout: session_wait_time)
         end
         unwrap_script_result(result)
       end
@@ -240,7 +259,7 @@ module Capybara
       # @param args [Array] values passed to the script, nodes as elements
       # @return [nil]
       def execute_script(script, *args)
-        check_modals { active_frame.execute(script, *native_args(args)) }
+        check_modals { current_frame.execute(script, *native_args(args)) }
         nil
       end
 
@@ -412,7 +431,7 @@ module Capybara
       attr_reader :screen_size
 
       def find(method, selector, **hints)
-        nodes = check_modals { Finder.find(active_frame, method, selector, **hints) }
+        nodes = check_modals { Finder.find(current_frame, method, selector, **hints) }
         nodes.map { |native, cache| Node.new(self, native, cache) }
       end
 
@@ -485,8 +504,7 @@ module Capybara
       end
 
       def emulate_device_user_agent(page)
-        browser.default_user_agent = @settings.user_agent(browser.version.user_agent)
-        page.network.emulate(user_agent: browser.default_user_agent)
+        page.network.emulate(user_agent: @settings.user_agent(browser.default_user_agent))
       end
 
       def capybara_base_url

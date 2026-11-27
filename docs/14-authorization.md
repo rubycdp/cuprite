@@ -9,7 +9,7 @@ credentials for HTTP basic authentication. It intercepts requests, so the block
 decides what happens to every request and has to continue it:
 
 ```ruby
-page.driver.browser.network.authorize(user: "login", password: "pass") do |request, _index, _total|
+page.driver.current_page.network.authorize(user: "login", password: "pass") do |request, _index, _total|
   request.continue
 end
 visit "/admin"

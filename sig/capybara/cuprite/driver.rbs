@@ -54,9 +54,9 @@ module Capybara
 
       def current_page: () -> Ferrum::Page
 
-      def window: (?Ferrum::Page page) -> Window
+      def window: () -> Window
 
-      def active_frame: () -> Ferrum::Frame
+      def current_frame: () -> Ferrum::Frame
 
       def visit: (String url) -> String?
 

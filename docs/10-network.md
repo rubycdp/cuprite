@@ -14,13 +14,13 @@ Returns network traffic (loaded resources), including requests blocked by
 and response details. Traffic is not cleared when you visit a new page.
 
 ```ruby
-traffic = page.driver.browser.network.traffic
+traffic = page.driver.current_page.network.traffic
 exchange = traffic.first
 exchange.request.url # => "http://127.0.0.1:3000/"
 exchange.response.status # => 200
 
 traffic.select(&:blocked?)
-page.driver.browser.network.clear(:traffic)
+page.driver.current_page.network.clear(:traffic)
 ```
 
 #### wait_idle(\*\*options) : `true` | `nil`
@@ -36,7 +36,7 @@ Waits until there are no active connections. Returns `true` on success and
 
 ```ruby
 click_button "Save"
-page.driver.browser.network.wait_idle
+page.driver.current_page.network.wait_idle
 ```
 
 #### clear(:cache)
@@ -44,21 +44,25 @@ page.driver.browser.network.wait_idle
 Clears the browser cache.
 
 ```ruby
-page.driver.browser.network.clear(:cache)
+page.driver.current_page.network.clear(:cache)
 ```
 
 #### await_navigation(\*\*options) { ... }
 
-Ferrum's `browser.await_navigation`, unlike `network.wait_idle`, runs the block
-and waits until the page it reloads or navigates to is loaded. Returns `true`,
-or `nil` if it doesn't load within `timeout:`, `browser.timeout` by default.
-`await_navigation!` raises `Ferrum::TimeoutError` instead. Useful when you know
-an action, like choosing an autocomplete suggestion, reloads the page. Sleep
-makes you wait longer or less than needed, and network idle can return before
-the page even started to reload.
+Ferrum's `await_navigation` runs the block and waits until the page it navigates
+to is loaded. Returns `true`, or `nil` if it doesn't load within `timeout:`,
+`browser.timeout` by default. `await_navigation!` raises `Ferrum::TimeoutError`
+instead.
+
+A click already waits for the page it opens, but only for a navigation that
+starts within `FERRUM_NAVIGATION_WAIT`, 0.1 seconds. Use `await_navigation` with
+`watch:` when the navigation starts later, for example when an autocomplete
+suggestion loads data first and only then opens the page. Sleep makes you wait
+longer or less than needed, and network idle can return before the navigation
+even started.
 
 ```ruby
-page.driver.browser.await_navigation { find(".suggestion").click }
+page.driver.current_page.await_navigation(watch: 1) { find(".suggestion").click }
 ```
 
 #### status_code : `Integer`

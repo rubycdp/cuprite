@@ -27,7 +27,7 @@ Screenshots are saved to `Capybara.save_path` when a relative path is given.
 Ferrum's `screenshot` and `pdf` return Base64 when no `path:` is given:
 
 ```ruby
-page.driver.browser.screenshot(format: :png, full: true)
-page.driver.browser.screenshot(format: :jpeg, quality: 60)
-page.driver.browser.pdf(paper_width: 8.5, paper_height: 11)
+page.driver.current_page.screenshot(format: :png, full: true)
+page.driver.current_page.screenshot(format: :jpeg, quality: 60)
+page.driver.current_page.pdf(paper_width: 8.5, paper_height: 11)
 ```

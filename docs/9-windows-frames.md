@@ -19,6 +19,18 @@ new_window.close
 open_new_window
 ```
 
+#### current_page : `Ferrum::Page`
+
+`page.driver.browser.page` is always the first window. The Ferrum page of the
+window Capybara is switched to is `page.driver.current_page`:
+
+```ruby
+within_window(new_window) do
+  page.driver.current_page.network.traffic
+  page.driver.current_page.screenshot(path: "tab.png")
+end
+```
+
 ## Window size
 
 #### resize_to(width, height)
@@ -67,3 +79,8 @@ switch_to_frame(find("iframe"))
 switch_to_frame(:parent)
 switch_to_frame(:top)
 ```
+
+Capybara's finders and `evaluate_script` run in the frame you switched to.
+Ferrum's methods don't: `page.driver.current_page.css` searches the top frame,
+not the one you switched to. To use Ferrum in a frame, get it with
+`page.driver.current_page.frame_by(name: "payment")`.

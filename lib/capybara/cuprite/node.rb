@@ -284,8 +284,8 @@ module Capybara
       def drop(*args)
         command do
           if args[0].is_a?(String)
-            driver.active_frame.execute("_cuprite.attachDropInput()")
-            driver.active_frame.at_css("#_cuprite_drop_file").select_file(args)
+            driver.current_frame.execute("_cuprite.attachDropInput()")
+            driver.current_frame.at_css("#_cuprite_drop_file").select_file(args)
             js(:dropFile)
           else
             strings = args.flat_map { |arg| arg.map { |type, data| { "type" => type, "data" => data } } }
@@ -370,7 +370,7 @@ module Capybara
 
       # @return [Node, nil] the open shadow root of the element
       def shadow_root
-        root = driver.active_frame.evaluate("node.shadowRoot", node: node)
+        root = driver.current_frame.evaluate("node.shadowRoot", node: node)
         root && self.class.new(driver, root)
       end
 
@@ -388,7 +388,7 @@ module Capybara
       private
 
       def find(method, selector, **hints)
-        command { Finder.find(driver.active_frame, method, selector, node, **hints) }.map do |native, cache|
+        command { Finder.find(driver.current_frame, method, selector, node, **hints) }.map do |native, cache|
           self.class.new(driver, native, cache)
         end
       end
@@ -444,7 +444,7 @@ module Capybara
       def drag(other, modifiers, options)
         page = driver.current_page
         delay, scroll, html5, drop_offset = options.values_at(:delay, :scroll, :html5, :drop_offset)
-        driver.active_frame.execute("_cuprite.dragMousedownTracker()")
+        driver.current_frame.execute("_cuprite.dragMousedownTracker()")
 
         node.scroll if scroll
         x1, y1 = node.pinpoint
