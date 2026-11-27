@@ -3,6 +3,7 @@
 require "forwardable"
 require "rack"
 require "capybara/cuprite/finder"
+require "capybara/cuprite/driver/deprecations"
 require "capybara/cuprite/driver/extensions"
 require "capybara/cuprite/driver/settings"
 require "capybara/cuprite/driver/window"
@@ -447,6 +448,7 @@ module Capybara
         browser = Ferrum::Browser.new(options.except(*CUPRITE_OPTIONS))
         @settings = Settings.new(options, browser.options.window_size)
         browser.on_page { |page| prepare_page(page) }
+        Deprecations.extend_browser(browser, self)
         browser
       rescue StandardError
         browser&.quit
