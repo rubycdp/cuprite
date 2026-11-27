@@ -485,8 +485,7 @@ module Capybara
       end
 
       def emulate_device_user_agent(page)
-        browser.default_user_agent = @settings.user_agent(browser.version.user_agent)
-        page.network.emulate(user_agent: browser.default_user_agent)
+        page.network.emulate(user_agent: @settings.user_agent(browser.default_user_agent))
       end
 
       def capybara_base_url
