@@ -21,7 +21,7 @@ module Capybara
           end
 
           # @return [Ferrum::Frame] the frame switched to, the main frame by default
-          def active_frame
+          def current_frame
             if @frame_stack.empty?
               page.main_frame
             else

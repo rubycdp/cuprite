@@ -67,7 +67,7 @@ module Capybara
       def_delegator :current_page, :url, :current_url
       # @!method html
       #   @return [String] the HTML of the current page or frame
-      delegate %i[html] => :active_frame
+      delegate %i[html] => :current_frame
       # @!method go_back
       #   Navigates back in history.
       #   @return [void]
@@ -152,16 +152,15 @@ module Capybara
       end
 
       # @api private
-      # @param page [Ferrum::Page]
-      # @return [Window] what Cuprite keeps for the page's window, the current one by default
-      def window(page = current_page)
-        @windows.fetch(page.target_id)
+      # @return [Window] the frames and dialogs Cuprite keeps for the current window
+      def window
+        @windows.fetch(current_page.target_id)
       end
 
       # @api private
       # @return [Ferrum::Frame] the frame switched to in the current page
-      def active_frame
-        window.active_frame
+      def current_frame
+        window.current_frame
       end
 
       # Navigates to a URL, relative ones against Capybara's `app_host` or server.
@@ -192,7 +191,7 @@ module Capybara
 
       # @return [Node] the focused element
       def active_element
-        Node.new(self, active_frame.evaluate("document.activeElement"))
+        Node.new(self, current_frame.evaluate("document.activeElement"))
       end
 
       # @param selector [String]
@@ -217,7 +216,7 @@ module Capybara
       # @param args [Array] values passed to the script, nodes as elements
       # @return [Object] the result, elements as {Node}
       def evaluate_script(script, *args)
-        result = check_modals { active_frame.evaluate(script, *native_args(args)) }
+        result = check_modals { current_frame.evaluate(script, *native_args(args)) }
         unwrap_script_result(result)
       end
 
@@ -229,7 +228,7 @@ module Capybara
       # @return [Object] the value passed to the callback, elements as {Node}
       def evaluate_async_script(script, *args)
         result = check_modals do
-          active_frame.evaluate(CALLBACK_JS.sub("SCRIPT") { script }, *native_args(args), timeout: session_wait_time)
+          current_frame.evaluate(CALLBACK_JS.sub("SCRIPT") { script }, *native_args(args), timeout: session_wait_time)
         end
         unwrap_script_result(result)
       end
@@ -240,7 +239,7 @@ module Capybara
       # @param args [Array] values passed to the script, nodes as elements
       # @return [nil]
       def execute_script(script, *args)
-        check_modals { active_frame.execute(script, *native_args(args)) }
+        check_modals { current_frame.execute(script, *native_args(args)) }
         nil
       end
 
@@ -412,7 +411,7 @@ module Capybara
       attr_reader :screen_size
 
       def find(method, selector, **hints)
-        nodes = check_modals { Finder.find(active_frame, method, selector, **hints) }
+        nodes = check_modals { Finder.find(current_frame, method, selector, **hints) }
         nodes.map { |native, cache| Node.new(self, native, cache) }
       end
 

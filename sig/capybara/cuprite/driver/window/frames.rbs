@@ -5,7 +5,7 @@ module Capybara
         module Frames : Window
           def switch_to_frame: (String | :parent | :top handle) -> void
 
-          def active_frame: () -> Ferrum::Frame
+          def current_frame: () -> Ferrum::Frame
         end
       end
     end
