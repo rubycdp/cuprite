@@ -78,15 +78,15 @@ switched to, so everything in the [Ferrum documentation](/docs/ferrum/introducti
 applies to it. Use it when Capybara has no API for what you need:
 
 ```ruby
-page = session.driver.current_page
-page.network.emulate(accept_language: "de")
-page.cookies.set(name: "stealth", value: "omg")
-page.network.wait_idle
-page.network.traffic.last.response.status # => 200
-page.mouse.move(x: 123, y: 456).down.up
-page.screenshot(format: :jpeg, quality: 60)
-page.console.select(&:error?)
-page.downloads.files
+native = page.driver.current_page
+native.network.emulate(accept_language: "de")
+native.cookies.set(name: "stealth", value: "omg")
+native.network.wait_idle
+native.network.traffic.last.response.status # => 200
+native.mouse.move(x: 123, y: 456).down.up
+native.screenshot(format: :jpeg, quality: 60)
+native.console.select(&:error?)
+native.downloads.files
 ```
 
 A few things to keep in mind:

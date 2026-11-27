@@ -181,14 +181,16 @@ Please note that network traffic is not cleared when you visit new page. You can
 manually clear the network traffic by calling
 `page.driver.current_page.network.clear(:traffic)` or `page.driver.reset!`
 
-* `page.driver.current_page.await_navigation { ... }` unlike `network.wait_idle` runs
-the block and waits until the page it reloads or navigates to is loaded, or the
-timeout passes. It's useful when you know that for example clicking an
-autocomplete suggestion reloads the page. Sleep makes you wait longer or less
-than needed, and network idle can return before the page even started to reload.
+* `page.driver.current_page.await_navigation(watch: 1) { ... }` runs the block and
+waits until the page it navigates to is loaded, or the timeout passes. A click
+already waits for the page it opens, but only for a navigation that starts within
+`FERRUM_NAVIGATION_WAIT`, 0.1 seconds. Use it when the navigation starts later,
+for example when an autocomplete suggestion loads data first and only then opens
+the page. Sleep makes you wait longer or less than needed, and network idle can
+return before the navigation even started.
 
 ```ruby
-page.driver.current_page.await_navigation { find(".suggestion").click }
+page.driver.current_page.await_navigation(watch: 1) { find(".suggestion").click }
 ```
 
 

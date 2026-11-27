@@ -49,16 +49,20 @@ page.driver.current_page.network.clear(:cache)
 
 #### await_navigation(\*\*options) { ... }
 
-Ferrum's `browser.await_navigation`, unlike `network.wait_idle`, runs the block
-and waits until the page it reloads or navigates to is loaded. Returns `true`,
-or `nil` if it doesn't load within `timeout:`, `browser.timeout` by default.
-`await_navigation!` raises `Ferrum::TimeoutError` instead. Useful when you know
-an action, like choosing an autocomplete suggestion, reloads the page. Sleep
-makes you wait longer or less than needed, and network idle can return before
-the page even started to reload.
+Ferrum's `await_navigation` runs the block and waits until the page it navigates
+to is loaded. Returns `true`, or `nil` if it doesn't load within `timeout:`,
+`browser.timeout` by default. `await_navigation!` raises `Ferrum::TimeoutError`
+instead.
+
+A click already waits for the page it opens, but only for a navigation that
+starts within `FERRUM_NAVIGATION_WAIT`, 0.1 seconds. Use `await_navigation` with
+`watch:` when the navigation starts later, for example when an autocomplete
+suggestion loads data first and only then opens the page. Sleep makes you wait
+longer or less than needed, and network idle can return before the navigation
+even started.
 
 ```ruby
-page.driver.current_page.await_navigation { find(".suggestion").click }
+page.driver.current_page.await_navigation(watch: 1) { find(".suggestion").click }
 ```
 
 #### status_code : `Integer`
